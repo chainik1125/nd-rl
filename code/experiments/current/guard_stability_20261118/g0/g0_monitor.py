@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa: E501
 """Collapse monitor + auto-fetch for the guard-off author-tag reruns (2026-11-18). Runs ON SERRANO under nohup.
 
     python3 g0_monitor.py [--hours 10]
@@ -16,6 +16,7 @@ Log: /scratch/cowifornia/nd-rl/author_tags/runs_g0/monitor.log; state: runs_g0/m
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import math
 import re
@@ -157,7 +158,8 @@ def main() -> None:
     a = ap.parse_args()
     t_end = time.time() + a.hours * 3600
     st: dict = json.loads(STATE.read_text()) if STATE.exists() else {}
-    st.setdefault("tag", {}); st.setdefault("ta", {})  # fmt: skip
+    st.setdefault("tag", {})
+    st.setdefault("ta", {})
     say(f"monitor start (pid {subprocess.os.getpid()}), {a.hours} h")
     while time.time() < t_end:
         for line, host in TAG_LINES.items():
@@ -174,12 +176,10 @@ def main() -> None:
             segs, _, rest = rest.partition("@@END")
             ends, _, rest = rest.partition("@@NB")
             nb, _, done = rest.partition("@@DONE")
-            try:
+            with contextlib.suppress(ValueError, IndexError):
                 s.setdefault("neighbors", []).append(
                     [time.time(), int(nb.split()[0]), s.get("last_it")]
                 )
-            except (ValueError, IndexError):
-                pass
             can = parse(body)
             s["alarms"] = sum(1 for x in body.splitlines() if x.startswith("ALARM it"))
             s["segs"] = len(segs.split())

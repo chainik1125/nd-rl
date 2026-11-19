@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa: E501
 """summarize.py RUN_DIR [RUN_DIR ...] [--upto N] [--json OUT]: per-run summary of GRPO metrics.jsonl rows.
 
 For each run (a seg dir holding metrics.jsonl): iterations completed; at it 10/20/40/60 (the closest logged at or
@@ -33,7 +33,7 @@ def kind(msg: str) -> str:
 
 
 def load(d: Path, upto: int | None) -> list[dict]:
-    rows = [json.loads(x) for x in open(d / "metrics.jsonl") if x.strip()]
+    rows = [json.loads(x) for x in (d / "metrics.jsonl").read_text().splitlines() if x.strip()]
     return [r for r in rows if upto is None or r["iter"] <= upto]
 
 
@@ -136,7 +136,7 @@ def show(s: dict, name: str) -> None:
     print(
         f"   base: nll {b['nll']:.4f} P(:) {b['colon']:.3g} logP(:) {b['colon_logp']:.2f} wrong {b['wrong_max']:.4f}"
     )
-    for p, v in s["points"].items():
+    for v in s["points"].values():
         m = f" m {v['lr_mult']:.3f}" if v["lr_mult"] is not None else ""
         print(
             f"   it {v['iter']:>3}: pass@1 {100 * v['pass1']:5.1f}%  nll {v['nll']:.4f}  P(:) {v['colon']:.3g} "
@@ -182,7 +182,7 @@ def series(d: Path, upto: int | None) -> None:
 def timing(d: Path, split_utc: str | None) -> None:
     """Seconds per iteration before / after a UTC time (an iteration's time: its lean_gate.jsonl row)."""
     rows = load(d, None)
-    gate = [json.loads(x) for x in open(d / "lean_gate.jsonl") if x.strip()]
+    gate = [json.loads(x) for x in (d / "lean_gate.jsonl").read_text().splitlines() if x.strip()]
     n = min(len(rows), len(gate))
     pairs = [(gate[i]["utc"], rows[i]["secs"], rows[i]["iter"]) for i in range(n)]
     if split_utc is None:
@@ -192,11 +192,12 @@ def timing(d: Path, split_utc: str | None) -> None:
         return
     pre = [x for x in pairs if x[0] < split_utc][1:]  # it 1 holds start-up
     post = [x for x in pairs if x[0] >= split_utc][1:]  # the first one straddles the split
-    f = lambda xs: (
-        f"{statistics.mean(x[1] for x in xs):.1f} s/it over its {xs[0][2]}-{xs[-1][2]}"
-        if xs
-        else "none"
-    )
+
+    def f(xs: list) -> str:
+        if not xs:
+            return "none"
+        return f"{statistics.mean(x[1] for x in xs):.1f} s/it over its {xs[0][2]}-{xs[-1][2]}"
+
     print(f"   timing {d.parent.name}: before {split_utc}: {f(pre)}; after: {f(post)}")
 
 

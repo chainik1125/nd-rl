@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa: E501
 """Seconds per iteration of each guard-off line with vs without another job on its GPU (serrano, read-only).
 
 Per-iteration `secs` from metrics.jsonl (runs_g0/<line>/seg*/); the co-resident job count from the monitor's polls
@@ -16,10 +16,10 @@ for ln, s in st["tag"].items():
     nb = [x for x in s.get("neighbors", []) if x[2] is not None]
     rows = []
     for seg in sorted((G0 / ln).glob("seg[0-9]*")):
-        rs = [json.loads(l) for l in open(seg / "metrics.jsonl")]
+        rs = [json.loads(x) for x in (seg / "metrics.jsonl").read_text().splitlines()]
         rows += [(seg.name, r["iter"], r["secs"]) for r in rs[1:]]
     by = {"alone": [], "shared": []}
-    for segn, it, secs in rows:
+    for _segn, it, secs in rows:
         n = next((x[1] for x in nb if x[2] >= it), None)
         if n is not None:
             by["shared" if n > 0 else "alone"].append(secs)

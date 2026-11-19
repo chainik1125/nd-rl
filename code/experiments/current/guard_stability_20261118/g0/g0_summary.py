@@ -1,4 +1,4 @@
-# ruff: noqa
+# ruff: noqa: E501
 """Summary of the guard-off author-tag reruns from the fetched trees (serrano). Read-only on the data.
 
     /scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python g0_summary.py [--json OUT]
@@ -73,8 +73,8 @@ def line_summary(ln: str, mon: dict) -> dict:
     end_it = max(cv) if cv else None
     secs, colon, wrong, alarms = [], [], [], 0
     for s in segs:
-        for l in open(d / f"seg{s['seg']}" / "metrics.jsonl"):
-            r = json.loads(l)
+        for line in (d / f"seg{s['seg']}" / "metrics.jsonl").read_text().splitlines():
+            r = json.loads(line)
             if r.get("iter", 0) > 1:
                 secs.append(r["secs"])
             c = r.get("canary") or {}
@@ -82,7 +82,9 @@ def line_summary(ln: str, mon: dict) -> dict:
                 colon.append(c["colon"])
                 wrong.append(c["wrong_max"])
     for f in (d / "logs").glob(f"{ln}_seg*.log"):
-        alarms += sum(1 for x in open(f, errors="replace") if x.startswith("ALARM it"))
+        alarms += sum(
+            1 for x in f.read_text(errors="replace").splitlines() if x.startswith("ALARM it")
+        )
     m = (mon.get("tag") or {}).get(ln, {})
     return {"line": ln, "segs": len(segs), "host": m.get("host"), "start": segs[0]["start"], "end": segs[-1].get("end"),
             "iters": v["last_iter"], "x_dan": round(v["x_dan"], 3), "gpuh": round(v["gpuh"], 2),
@@ -110,7 +112,7 @@ def cross_table(seed: int, S: dict) -> dict:
         "B": b.get("solved_base"),
         "none": strict(R / "base_none.json"),
     }
-    for t, s in (("B", b), ("A", a)):
+    for t, _s in (("B", b), ("A", a)):
         pre = R / f"precollapse_t{t}_p10_s{seed}.json"
         fin = R / f"final_t{t}_p10_s{seed}.json"
         src = pre if pre.exists() else fin
