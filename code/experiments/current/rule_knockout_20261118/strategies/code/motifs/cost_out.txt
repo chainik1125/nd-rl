@@ -1,0 +1,126 @@
+knockout                          del sigs_lost  extra novel lines: ctl min/med/mean   rl14 min/med   | share of each rule's pretraining records deleted
+mp_chain2                        2377         4           0/2/2.1        0/2/1.9   | 
+mp_curried                        218         7           0/1/1.2        0/1/1.3   | 
+mp_on_mp                         2594        10           0/2/2.2        0/2/2.1   | 
+ande_then_mp_major                 77         4           0/2/1.8        0/2/1.9   | 
+assumption_cited_twice            784         5           0/0/0.0        0/0/0.0   | 
+lemma_cited_twice                4095        15           0/0/0.4        0/0/0.0   | ANDI 13%, R 25%
+refute_assumption_then_bote       503         1           0/0/0.0        0/0/0.0   | BOTE 17%
+bote_in_box                      1283        19           0/2/1.7        0/0/0.6   | BOTE 43%
+bote_closes_impi                 1170         1           0/1/1.0        0/1/0.7   | BOTE 40%
+ore_on_derived                     71         5           0/0/0.1        0/0/0.0   | 
+ore_lemma                          42         4           0/1/0.8        0/1/0.8   | 
+ore_any_work                     1908        55           0/4/4.3        0/3/3.9   | ORE 84%
+ore_b1_has_work                   188        28           0/3/2.7        0/2/2.0   | 
+ore_both_work                      85        12           0/0/0.2        0/0/0.0   | 
+ore_branch_ends_mp               1305         4           0/4/4.3        0/3/3.5   | ORE 57%
+ore_in_impi                       158        14           0/3/2.9        0/3/2.9   | 
+negi_in_impi                     1060        12           2/4/4.0        2/3/3.4   | 
+mp_then_contradiction             831        10           0/1/0.9        0/0/0.2   | 
+depth>=3                         5664         4           0/2/1.8        0/0/0.0   | 
+impi_x3                          5619         2           2/2/2.0              -   | 
+raa_classical                   10554         2           1/1/1.0        1/1/1.0   | NEGI 66%, DN 81%, NEGE 25%
+lemma_box                       12115        13           0/1/1.1        0/1/1.0   | NEGI 67%, DN 82%, IMPE 11%, NEGE 29%
+depth>=2                        22092        51           0/5/4.6        0/1/1.2   | IMPI 38%, ANDE 12%
+impi_in_impi                    20828        16           2/5/4.7        3/4/4.0   | IMPI 36%, ANDE 11%
+andi_then_mp                     1498         2           0/1/1.0        0/0/0.5   | 
+negi_vacuous                     7807         4           0/0/0.3              -   | NEGI 49%, DN 34%, NEGE 24%
+impi_vacuous                    39693         7           0/0/0.8        0/0/0.1   | IMPI 68%, ORI 20%, IMPE 12%, ANDI 19%, ANDE 39%, NEGE 11%, R 17%, BOTE 22%
+disj_syllogism                      0         0           0/0/0.0        0/0/0.0   | 
+dilemma_mp_both                     0         0           0/0/0.0        0/0/0.0   | 
+mp_chain3                           0         0           0/0/0.0        0/0/0.0   | 
+ore_in_ore                          0         0           0/0/0.0        0/0/0.0   | 
+
+## mp_chain2: cheapest control proof, extra novel=0 (rl_8493)
+   N1 W : PR ; N2 ( ( W > P ) & ( P > T ) ) : PR ; N3 Z : PR ; N4 ( P > T ) : ANDE2 N2 ; N5 ( W > P ) : ANDE1 N2 ; N6 P : IMPE N5 N1 ; N7 ( P > T ) : R N4 ; N8 T : IMPE N7 N6 ; N9 ( Z & T ) : ANDI N3 N8
+   lost sigs: []
+## mp_curried: cheapest control proof, extra novel=0 (ladder_2208)
+   N1 ( R > ( ( R v P ) > P ) ) : PR ; N2 | ( R & ( R v P ) ) : AS ; N4 | R : ANDE1 N2 ; N5 | ( R v P ) : ORI1 N4 ; N6 | ( ( R v P ) > P ) : IMPE N1 N4 ; N7 | P : IMPE N6 N5 ; N8 ( ( R & ( R v P ) ) > P ) : IMPI N2 N7
+   lost sigs: []
+## mp_on_mp: cheapest control proof, extra novel=0 (rl_8493)
+   N1 W : PR ; N2 ( ( W > P ) & ( P > T ) ) : PR ; N3 Z : PR ; N4 ( P > T ) : ANDE2 N2 ; N5 ( W > P ) : ANDE1 N2 ; N6 P : IMPE N5 N1 ; N7 ( P > T ) : R N4 ; N8 T : IMPE N7 N6 ; N9 ( Z & T ) : ANDI N3 N8
+   lost sigs: []
+## ande_then_mp_major: cheapest control proof, extra novel=0 (ladder_3267)
+   N1 ( ( R & R ) & ( S > P ) ) : PR ; N3 ( ~ ( ~ S ) ) : PR ; N4 S : DN N3 ; N5 ( S > P ) : ANDE2 N1 ; N6 P : IMPE N5 N4 ; N7 ( P v ( ( ~ R ) v ( S & Q ) ) ) : ORI1 N6
+   lost sigs: []
+## assumption_cited_twice: cheapest control proof, extra novel=0 (ladder_3695)
+   N1 P : PR ; N4 | ( ~ P ) : AS ; N5 | F : NEGE N1 N4 ; N6 | ( Q v P ) : BOTE N5 ; N7 | ( ( ~ P ) & ( Q v P ) ) : ANDI N4 N6 ; N8 ( ( ~ P ) > ( ( ~ P ) & ( Q v P ) ) ) : IMPI N4 N7
+   lost sigs: []
+## lemma_cited_twice: cheapest control proof, extra novel=0 (ladder_2415)
+   N1 Q : PR ; N2 P : PR ; N3 ( P v S ) : PR ; N4 ( P & P ) : ANDI N2 N2 ; N5 ( ( P & P ) & Q ) : ANDI N4 N1 ; N6 ( ( P & P ) & ( ( P & P ) & Q ) ) : ANDI N4 N5 ; N7 ( ( P v S ) & ( ( P & P ) & ( ( P & P ) & Q ) ) ) : ANDI N3 N6
+   lost sigs: []
+## refute_assumption_then_bote: cheapest control proof, extra novel=0 (ladder_3537)
+   N1 ( ~ P ) : PR ; N4 | P : AS ; N5 | F : NEGE N4 N1 ; N6 | S : BOTE N5 ; N7 ( P > S ) : IMPI N4 N6
+   lost sigs: []
+## bote_in_box: cheapest control proof, extra novel=0 (ladder_2970)
+   N1 ( P v P ) : PR ; N2 | ( ~ P ) : AS ; N3 | | P : AS ; N4 | | F : NEGE N3 N2 ; N5 | | ( P & P ) : BOTE N4 ; N6 | | P : AS ; N7 | | ( P & P ) : ANDI N6 N6 ; N8 | ( P & P ) : ORE N1 N3 N5 N6 N7 ; N9 ( ( ~ P ) > ( P & P ) ) : IMPI N2 N8
+   lost sigs: []
+## bote_closes_impi: cheapest control proof, extra novel=0 (ladder_1525)
+   N1 ( ~ ( R v P ) ) : PR ; N2 | ( ~ ( ( R v P ) > ( ~ ( S & S ) ) ) ) : AS ; N3 | | ( R v S ) : AS ; N4 | | | ( R v P ) : AS ; N5 | | | F : NEGE N4 N1 ; N6 | | | ( ~ ( S & S ) ) : BOTE N5 ; N7 | | ( ( R v P ) > ( ~ ( S & S ) ) ) : IMPI N4 N6 ; N8 | | F : NEGE N7 N2 ; N9 | ( ~ ( R v S ) ) : NEGI N3 N8 ; N10 ( ( ~ ( ( R v P ) > ( ~ ( S & S ) ) ) ) > ( ~ ( R v S ) ) ) : IMPI N2 N9
+   lost sigs: [('A', 'IMPI', (('IMPI.last', 'BOTE'),))]
+## ore_on_derived: cheapest control proof, extra novel=0 (ladder_480)
+   N1 ( ~ Q ) : PR ; N3 ( ~ ( ~ ( Q v R ) ) ) : PR ; N4 ( Q v R ) : DN N3 ; N5 | Q : AS ; N6 | F : NEGE N5 N1 ; N7 | R : BOTE N6 ; N8 | R : AS ; N9 R : ORE N4 N5 N7 N8 N8
+   lost sigs: []
+## ore_lemma: cheapest control proof, extra novel=0 (ladder_4346)
+   N1 ( S & ( ~ R ) ) : PR ; N2 ( R v R ) : PR ; N3 | ( ~ ( ~ S ) ) : AS ; N4 | ( ~ R ) : ANDE2 N1 ; N6 | | R : AS ; N7 | | R : AS ; N8 | R : ORE N2 N6 N6 N7 N7 ; N9 | F : NEGE N8 N4 ; N10 ( ~ ( ~ ( ~ S ) ) ) : IMPI N3 N9
+   lost sigs: []
+## ore_any_work: cheapest control proof, extra novel=0 (ladder_4230)
+   N1 ( Q v Q ) : PR ; N2 ( Q > R ) : PR ; N3 | S : AS ; N4 | | Q : AS ; N5 | | R : IMPE N2 N4 ; N6 | | Q : AS ; N7 | | R : IMPE N2 N6 ; N8 | R : ORE N1 N4 N5 N6 N7 ; N9 ( S > R ) : IMPI N3 N8
+   lost sigs: []
+## ore_b1_has_work: cheapest control proof, extra novel=0 (ladder_4230)
+   N1 ( Q v Q ) : PR ; N2 ( Q > R ) : PR ; N3 | S : AS ; N4 | | Q : AS ; N5 | | R : IMPE N2 N4 ; N6 | | Q : AS ; N7 | | R : IMPE N2 N6 ; N8 | R : ORE N1 N4 N5 N6 N7 ; N9 ( S > R ) : IMPI N3 N8
+   lost sigs: []
+## ore_both_work: cheapest control proof, extra novel=0 (ladder_3254)
+   N1 ( ( ( R & Q ) v R ) v Q ) : PR ; N2 ( ( ( R & Q ) v R ) > ( ( S v S ) v Q ) ) : PR ; N3 | ( ( R & Q ) v R ) : AS ; N4 | ( ( S v S ) v Q ) : IMPE N2 N3 ; N5 | Q : AS ; N6 | ( ( S v S ) v Q ) : ORI2 N5 ; N7 ( ( S v S ) v Q ) : ORE N1 N3 N4 N5 N6
+   lost sigs: []
+## ore_branch_ends_mp: cheapest control proof, extra novel=0 (ladder_4230)
+   N1 ( Q v Q ) : PR ; N2 ( Q > R ) : PR ; N3 | S : AS ; N4 | | Q : AS ; N5 | | R : IMPE N2 N4 ; N6 | | Q : AS ; N7 | | R : IMPE N2 N6 ; N8 | R : ORE N1 N4 N5 N6 N7 ; N9 ( S > R ) : IMPI N3 N8
+   lost sigs: []
+## ore_in_impi: cheapest control proof, extra novel=0 (ladder_87)
+   N1 ( S v S ) : PR ; N2 | ( ~ ( ~ ( P & R ) ) ) : AS ; N3 | | ( ~ ( ~ R ) ) : AS ; N4 | | | S : AS ; N5 | | | S : AS ; N6 | | S : ORE N1 N4 N4 N5 N5 ; N7 | | ( S v ( P v P ) ) : ORI1 N6 ; N8 | ( ( ~ ( ~ R ) ) > ( S v ( P v P ) ) ) : IMPI N3 N7 ; N9 ( ( ~ ( ~ ( P & R ) ) ) > ( ( ~ ( ~ R ) ) > ( S v ( P v P ) ) ) ) : IMPI N2 N8
+   lost sigs: []
+## negi_in_impi: cheapest control proof, extra novel=2 (ladder_209)
+   N1 ( ~ ( ~ Q ) ) : PR ; N2 ( S > Q ) : PR ; N3 | ( ~ ( ~ ( S > P ) ) ) : AS ; N4 | | S : AS ; N5 | | | ( ~ ( S > Q ) ) : AS ; N6 | | | F : NEGE N2 N5 ; N7 | | ( ~ ( ~ ( S > Q ) ) ) : NEGI N5 N6 ; N8 | | ( ( ~ ( ~ Q ) ) & ( ~ ( ~ ( S > Q ) ) ) ) : ANDI N1 N7 ; N9 | ( S > ( ( ~ ( ~ Q ) ) & ( ~ ( ~ ( S > Q ) ) ) ) ) : IMPI N4 N8 ; N10 ( ( ~ ( ~ ( S > P ) ) ) > ( S > ( ( ~ ( ~ Q ) ) & ( ~ ( ~ ( S > Q ) ) ) ) ) ) : IMPI N3 N9
+   lost sigs: [('B', 'AS', 'NEGI', 'IMPI', 3), ('B', 'NEGI', 'IMPI', 2)]
+## mp_then_contradiction: cheapest control proof, extra novel=0 (ladder_2197)
+   N1 ( P > ( ~ Q ) ) : PR ; N2 | ( ~ ( ~ Q ) ) : AS ; N3 | Q : DN N2 ; N4 | | P : AS ; N5 | | ( ~ Q ) : IMPE N1 N4 ; N6 | | F : NEGE N3 N5 ; N7 | ( ~ P ) : NEGI N4 N6 ; N8 ( ( ~ ( ~ Q ) ) > ( ~ P ) ) : IMPI N2 N7
+   lost sigs: []
+## depth>=3: cheapest control proof, extra novel=0 (ladder_2745)
+   N1 ( R v R ) : PR ; N2 | ( ~ ( Q & P ) ) : AS ; N3 | | ( ~ ( ~ ( Q & P ) ) ) : AS ; N4 | | | R : AS ; N5 | | | R : AS ; N6 | | R : ORE N1 N4 N4 N5 N5 ; N7 | ( ( ~ ( ~ ( Q & P ) ) ) > R ) : IMPI N3 N6 ; N8 ( ( ~ ( Q & P ) ) > ( ( ~ ( ~ ( Q & P ) ) ) > R ) ) : IMPI N2 N7
+   lost sigs: []
+## impi_x3: cheapest control proof, extra novel=2 (ladder_3447)
+   N2 | ( ~ R ) : AS ; N3 | | R : AS ; N4 | | | S : AS ; N5 | | ( S > S ) : IMPI N4 N4 ; N6 | ( R > ( S > S ) ) : IMPI N3 N5 ; N7 ( ( ~ R ) > ( R > ( S > S ) ) ) : IMPI N2 N6
+   lost sigs: [('B', 'AS', 'IMPI', 'IMPI', 3), ('B', 'IMPI', 'IMPI', 2)]
+## raa_classical: cheapest control proof, extra novel=1 (ladder_2865)
+   N2 ( ~ ( Q & R ) ) : PR ; N4 | ( Q & R ) : AS ; N5 | | ( ~ ( R & ( S > Q ) ) ) : AS ; N6 | | F : NEGE N4 N2 ; N7 | ( ~ ( ~ ( R & ( S > Q ) ) ) ) : NEGI N5 N6 ; N8 | ( R & ( S > Q ) ) : DN N7 ; N9 ( ( Q & R ) > ( R & ( S > Q ) ) ) : IMPI N4 N8
+   lost sigs: [('A', 'DN', (('DN', 'NEGI'),))]
+## lemma_box: cheapest control proof, extra novel=0 (ladder_2803)
+   N1 ( R v R ) : PR ; N2 ( ~ R ) : PR ; N3 | ( ~ ( ( Q > S ) v Q ) ) : AS ; N4 | | R : AS ; N5 | | R : AS ; N6 | R : ORE N1 N4 N4 N5 N5 ; N7 | F : NEGE N6 N2 ; N8 ( ~ ( ~ ( ( Q > S ) v Q ) ) ) : IMPI N3 N7 ; N9 ( ( Q > S ) v Q ) : DN N8
+   lost sigs: []
+## depth>=2: cheapest control proof, extra novel=0 (ladder_3548)
+   N1 ( R v R ) : PR ; N2 ( ~ R ) : PR ; N3 | ( ~ ( ~ ( P > R ) ) ) : AS ; N5 | | R : AS ; N6 | | R : AS ; N7 | R : ORE N1 N5 N5 N6 N6 ; N8 | F : NEGE N7 N2 ; N9 ( ~ ( ~ ( ~ ( P > R ) ) ) ) : NEGI N3 N8
+   lost sigs: []
+## impi_in_impi: cheapest control proof, extra novel=2 (ladder_2906)
+   N2 R : PR ; N3 | ( P v P ) : AS ; N4 | | R : AS ; N5 | ( R > R ) : IMPI N4 N4 ; N6 | ( ( R > R ) & R ) : ANDI N5 N2 ; N7 ( ( P v P ) > ( ( R > R ) & R ) ) : IMPI N3 N6
+   lost sigs: [('B', 'AS', 'IMPI', 'IMPI', 2), ('B', 'IMPI', 'IMPI', 1)]
+## andi_then_mp: cheapest control proof, extra novel=0 (ladder_486)
+   N1 R : PR ; N2 ( S v ( R v Q ) ) : PR ; N3 ( ( ( S v ( R v Q ) ) & R ) > ( ( P & Q ) > R ) ) : PR ; N4 | ( ~ ( ~ S ) ) : AS ; N5 | | ( ~ S ) : AS ; N6 | | ( ( S v ( R v Q ) ) & R ) : ANDI N2 N1 ; N7 | | | S : AS ; N8 | | | ( ( P & Q ) > R ) : IMPE N3 N6 ; N9 | | ( S > ( ( P & Q ) > R ) ) : IMPI N7 N8 ; N10 | ( ( ~ S ) > ( S > ( ( P & Q ) > R ) ) ) : IMPI N5 N9 ; N11 ( ( ~ ( ~ S ) ) > ( ( ~ S ) > ( S > ( ( P & Q ) > R ) ) ) ) : IMPI N4 N10
+   lost sigs: [('A', 'IMPE', (('IMPE.maj', 'PR'), ('IMPE.min', 'ANDI')))]
+## negi_vacuous: cheapest control proof, extra novel=0 (ladder_3046)
+   N3 ( ~ R ) : PR ; N4 | R : AS ; N5 | | S : AS ; N6 | | F : NEGE N4 N3 ; N7 | ( ~ S ) : NEGI N5 N6 ; N8 ( R > ( ~ S ) ) : IMPI N4 N7
+   lost sigs: []
+## impi_vacuous: cheapest control proof, extra novel=0 (ladder_3622)
+   N1 ( P > ( R & S ) ) : PR ; N2 P : PR ; N4 | ( Q > Q ) : AS ; N5 | ( R & S ) : IMPE N1 N2 ; N6 | R : ANDE1 N5 ; N7 ( ( Q > Q ) > R ) : IMPI N4 N6
+   lost sigs: []
+## disj_syllogism: cheapest control proof, extra novel=0 (ladder_2100)
+   N1 ( ( P v Q ) v S ) : PR ; N2 ( ~ ( P v Q ) ) : PR ; N3 | ( P v Q ) : AS ; N4 | F : NEGE N3 N2 ; N5 | S : BOTE N4 ; N6 | S : AS ; N7 S : ORE N1 N3 N5 N6 N6
+   lost sigs: []
+## dilemma_mp_both: cheapest control proof, extra novel=0 (rl_13835)
+   N1 ( ( ~ U ) v R ) : PR ; N2 ( T > ( ~ Q ) ) : PR ; N3 ( ( ~ U ) > T ) : PR ; N4 ( R > ( ~ Q ) ) : PR ; N5 | ( ~ U ) : AS ; N6 | T : IMPE N3 N5 ; N7 | ( ~ Q ) : IMPE N2 N6 ; N8 | R : AS ; N9 | ( ~ Q ) : IMPE N4 N8 ; N10 ( ~ Q ) : ORE N1 N5 N7 N8 N9
+   lost sigs: []
+## mp_chain3: cheapest control proof, extra novel=0 (rl_12333)
+   N1 Z : PR ; N2 ( X > W ) : PR ; N3 ( Z > Y ) : PR ; N4 ( Y > X ) : PR ; N5 Y : IMPE N3 N1 ; N6 X : IMPE N4 N5 ; N7 W : IMPE N2 N6
+   lost sigs: []
+## ore_in_ore: cheapest control proof, extra novel=0 (ladder_3531)
+   N1 ( ( S & S ) v ( R > S ) ) : PR ; N2 R : PR ; N3 | ( S & S ) : AS ; N4 | ( R > S ) : AS ; N5 | | ( S & S ) : AS ; N6 | | ( R > S ) : AS ; N7 | | S : IMPE N6 N2 ; N8 | | ( S & S ) : ANDI N7 N7 ; N9 | ( S & S ) : ORE N1 N5 N5 N6 N8 ; N10 ( S & S ) : ORE N1 N3 N3 N4 N9
+   lost sigs: []

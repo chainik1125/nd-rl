@@ -1,0 +1,216 @@
+<title>Rule Knockouts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column lab report. Summary and the shared chart first, then one card per removed rule in a 2-up grid. */
+:root {
+  --bg: #f7f8fa; --surface: #ffffff; --line: #dfe3ea; --grid: #e9ecf1;
+  --fg: #14171c; --fg2: #4a515c; --fg3: #737b88;
+  --mp: #2a78d6; --cp: #eb6834; --exfalso: #1baf7a; --dn: #eda100; --full: #6b7380;
+  --live: #1a7f4b; --live-bg: #e3f4ea;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121417; --surface: #1a1d21; --line: #2c3138; --grid: #24282e;
+  --fg: #eef0f3; --fg2: #b9c0ca; --fg3: #8b939f;
+  --mp: #3987e5; --cp: #d95926; --exfalso: #199e70; --dn: #c98500; --full: #9aa2ae;
+  --live: #5fd39a; --live-bg: #173426; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121417; --surface: #1a1d21; --line: #2c3138; --grid: #24282e;
+  --fg: #eef0f3; --fg2: #b9c0ca; --fg3: #8b939f;
+  --mp: #3987e5; --cp: #d95926; --exfalso: #199e70; --dn: #c98500; --full: #9aa2ae;
+  --live: #5fd39a; --live-bg: #173426; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.page { max-width: 1120px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: 30px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; }
+h3 { font-size: 17px; }
+p { margin: 0; }
+.lede { color: var(--fg2); max-width: 68ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; color: var(--fg3); font-size: 13px; }
+.pill { background: var(--live-bg); color: var(--live); font-weight: 600; padding: 2px 9px; border-radius: 999px; font-size: 12px; }
+.head { display: flex; flex-direction: column; gap: 10px; }
+.takeaways { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 20px; max-width: 78ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sub { color: var(--fg3); font-size: 13px; max-width: 80ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--fg2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 16px; height: 0; border-top: 3px solid; display: inline-block; }
+.sw.dash { border-top-style: dashed; }
+.arms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 820px) { .arms { grid-template-columns: minmax(0, 1fr); } }
+.arm-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; flex: none; align-self: center; }
+.code { font-family: var(--mono); font-size: 12.5px; color: var(--fg2); border: 1px solid var(--line); border-radius: 5px; padding: 0 6px; }
+.kind { font-size: 12px; color: var(--fg3); text-transform: uppercase; letter-spacing: 0.06em; }
+.eli5 { max-width: 62ch; }
+.example { font-family: var(--mono); font-size: 13.5px; background: var(--bg); border-radius: 6px; padding: 8px 10px; overflow-x: auto; white-space: pre; }
+.still { color: var(--fg2); font-size: 13.5px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 12px; }
+@media (max-width: 460px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+.stat b { display: block; font-family: var(--display); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.stat .lab { font-size: 12.5px; color: var(--fg2); }
+.stat .den { font-size: 12px; color: var(--fg3); font-variant-numeric: tabular-nums; }
+.chart-title { font-weight: 600; font-size: 14px; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-family: var(--body); font-size: 11.5px; fill: var(--fg3); font-variant-numeric: tabular-nums; }
+.chart text.endlab { fill: var(--fg); font-weight: 600; font-size: 12px; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgb(0 0 0 / 0.14); min-width: 150px; z-index: 3; font-variant-numeric: tabular-nums; }
+.tip .t { color: var(--fg3); margin-bottom: 4px; }
+.tip .r { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--fg2); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+th { color: var(--fg3); font-weight: 500; font-size: 12px; }
+td.name { font-family: var(--mono); font-size: 12.5px; }
+.notes { color: var(--fg2); font-size: 13.5px; display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 20px; max-width: 86ch; }
+.empty { color: var(--fg3); font-size: 13px; padding: 28px 0; text-align: center; }
+</style>
+
+<div class="page">
+  <header class="head">
+    <h1>Rule Knockouts</h1>
+    <p class="lede">Remove one inference rule from the pretraining proofs, run RL, and watch whether the model ever starts using the rule it was never shown. Four rules, one arm each, plus a control that saw everything.</p>
+    <div class="meta"><span class="pill" id="pill"></span><span id="pulled"></span><span>9.6M-parameter transformer · 10 min pretraining · expert iteration unless marked · Lean is the only judge</span></div>
+    <ul class="takeaways" id="takeaways"></ul>
+  </header>
+
+  <section class="panel">
+    <h2>RL targets solved over time, every arm</h2>
+    <p class="sub">Cumulative count of the 18,439 RL training targets with at least one Lean-accepted proof, against minutes of RL. The harness measures the held-out dev set only when a run ends, so there is no held-out curve; held-out scores for finished runs are in the table at the bottom.</p>
+    <div class="legend" id="legendA"></div>
+    <div class="chart" id="chartA"></div>
+  </section>
+
+  <section class="arms" id="arms"></section>
+
+  <section class="panel">
+    <h2>Every run</h2>
+    <p class="sub">“Used it” counts distinct Lean-accepted proofs containing the arm's removed rule. “Solved that use it” counts solved targets whose reference proof contains the rule, a proxy for needing it. Held-out dev is 843 theorems at 16 samples each, measured once at the end.</p>
+    <div class="tablewrap"><table id="runs"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Read this before quoting a number</h2>
+    <ul class="notes" id="notes"></ul>
+  </section>
+</div>
+
+<script>
+const D = __DATA__;
+const ARM = Object.fromEntries(D.arms.map(a => [a.id, a]));
+const css = v => `var(--${v})`;
+const fmt = n => n.toLocaleString("en-US");
+const pct = x => (x < 0.1 && x > 0 ? x.toFixed(2) : x.toFixed(1)) + "%";
+const el = (tag, attrs = {}, kids = []) => { const e = document.createElement(tag); for (const k in attrs) k === "text" ? e.textContent = attrs[k] : e.setAttribute(k, attrs[k]); kids.forEach(c => e.appendChild(c)); return e; };
+const svg = (tag, attrs = {}) => { const e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+function niceMax(v) { if (v <= 0) return 4; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p; return 10 * p; }
+
+// One scale places marks, ticks and labels. series: [{label, color, dash, pts: [[minutes, count]], end}]
+function lineChart(host, series, opts) {
+  host.textContent = "";
+  const live = series.filter(s => s.pts.length);
+  if (!live.length) { host.appendChild(el("div", { class: "empty", text: opts.empty || "No sampling rounds yet." })); return; }
+  const W = opts.w || 720, H = opts.h || 300, m = { l: 52, r: opts.right || 96, t: 12, b: 36 };
+  const xMax = Math.max(opts.xMin || 30, ...live.map(s => s.pts[s.pts.length - 1][0]));
+  const yMax = niceMax(Math.max(4, ...live.flatMap(s => s.pts.map(p => p[1]))));
+  const X = v => m.l + (W - m.l - m.r) * v / xMax, Y = v => H - m.b - (H - m.t - m.b) * v / yMax;
+  const root = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.title });
+  for (let i = 0; i <= 4; i++) {
+    const v = yMax * i / 4;
+    root.appendChild(svg("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: css("grid"), "stroke-width": 1 }));
+    const t = svg("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end" }); t.textContent = fmt(Math.round(v)); root.appendChild(t);
+  }
+  const step = xMax > 120 ? 30 : xMax > 60 ? 20 : 10;
+  for (let v = 0; v <= xMax + 0.01; v += step) { const t = svg("text", { x: X(v), y: H - m.b + 16, "text-anchor": "middle" }); t.textContent = v; root.appendChild(t); }
+  const xl = svg("text", { x: (m.l + W - m.r) / 2, y: H - 4, "text-anchor": "middle" }); xl.textContent = "minutes of RL"; root.appendChild(xl);
+  for (const s of live) root.appendChild(svg("path", { d: s.pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(""), fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-dasharray": s.dash ? "5 4" : "" }));
+  // direct labels: one per `end` group, at the line that reaches furthest right, nudged apart vertically
+  const ends = {}; for (const s of live) if (s.end) { const p = s.pts[s.pts.length - 1]; if (!ends[s.end] || p[1] > ends[s.end].p[1]) ends[s.end] = { p, s }; }
+  const labs = Object.entries(ends).map(([name, e]) => ({ name, x: X(e.p[0]) + 7, y: Y(e.p[1]) + 4, v: e.p[1] })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < 14) labs[i].y = labs[i - 1].y + 14;
+  for (let i = labs.length - 1; i > 0; i--) if (labs[i].y > H - m.b + 2) { labs[i].y = H - m.b + 2; if (labs[i].y - labs[i - 1].y < 14) labs[i - 1].y = labs[i].y - 14; }
+  for (const l of labs) { const t = svg("text", { x: l.x, y: l.y, class: "endlab" }); t.textContent = `${l.name} ${fmt(l.v)}`; root.appendChild(t); }
+  const cross = svg("line", { y1: m.t, y2: H - m.b, stroke: css("fg3"), "stroke-width": 1, "stroke-dasharray": "3 3", visibility: "hidden" }); root.appendChild(cross);
+  const hit = svg("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }); root.appendChild(hit);
+  host.appendChild(root);
+  const tip = el("div", { class: "tip" }); tip.hidden = true; host.appendChild(tip);
+  const at = (s, x) => { let best = null; for (const p of s.pts) { if (p[0] <= x + 0.5) best = p; else break; } return best; };
+  hit.addEventListener("pointermove", ev => {
+    const r = root.getBoundingClientRect(), px = (ev.clientX - r.left) * W / r.width, x = Math.max(0, Math.min(xMax, (px - m.l) * xMax / (W - m.l - m.r)));
+    cross.setAttribute("x1", X(x)); cross.setAttribute("x2", X(x)); cross.setAttribute("visibility", "visible");
+    tip.textContent = ""; tip.appendChild(el("div", { class: "t", text: `${Math.round(x)} min of RL` }));
+    live.map(s => ({ s, p: at(s, x) })).filter(o => o.p).sort((a, b) => b.p[1] - a.p[1]).forEach(o => {
+      const sw = el("i", { class: "sw" + (o.s.dash ? " dash" : "") }); sw.style.borderTopColor = o.s.color;
+      tip.appendChild(el("div", { class: "r" }, [el("span", {}, [sw, document.createTextNode(o.s.label)]), el("b", { text: fmt(o.p[1]) })]));
+    });
+    tip.hidden = false;
+    const left = (ev.clientX - r.left) + 14; tip.style.left = (left + tip.offsetWidth > r.width ? Math.max(0, left - tip.offsetWidth - 28) : left) + "px"; tip.style.top = "8px";
+  });
+  hit.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); tip.hidden = true; });
+}
+
+const runLabel = r => `${ARM[r.arm].short} ${r.recipe === "ei" ? "" : r.recipe + " "}s${r.seed}`.replace("  ", " ");
+const fullPool = D.runs.filter(r => r.recipe !== "ei-focus");
+
+// header
+const liveN = D.runs.filter(r => r.status === "live").length, doneN = D.runs.length - liveN;
+document.getElementById("pill").textContent = liveN ? `${liveN} runs live` : "all runs finished";
+document.getElementById("pulled").textContent = `Data pulled ${D.pulled} · ${doneN} finished`;
+D.takeaways.forEach(t => document.getElementById("takeaways").appendChild(el("li", { text: t })));
+D.notes.forEach(t => document.getElementById("notes").appendChild(el("li", { text: t })));
+
+// shared chart
+const legendA = document.getElementById("legendA");
+D.arms.forEach(a => { const sw = el("i", { class: "sw" }); sw.style.borderTopColor = css(a.id); legendA.appendChild(el("span", {}, [sw, document.createTextNode(a.id === "full" ? "control (nothing removed)" : `${a.name} removed`)])); });
+if (fullPool.some(r => r.recipe === "grpo")) { const sw = el("i", { class: "sw dash" }); sw.style.borderTopColor = css("fg3"); legendA.appendChild(el("span", {}, [sw, document.createTextNode("dashed: GRPO")])); }
+lineChart(document.getElementById("chartA"), fullPool.map(r => ({ label: runLabel(r), color: css(r.arm), dash: r.recipe === "grpo", end: ARM[r.arm].short, pts: r.t.map((t, i) => [t, r.solved[i]]) })), { title: "RL targets solved over time", h: 340, right: 150 });
+
+// one card per removed rule
+const arms = document.getElementById("arms");
+D.arms.filter(a => a.id !== "full").forEach(a => {
+  const mine = fullPool.filter(r => r.arm === a.id), ctl = fullPool.filter(r => r.arm === "full");
+  const acc = rs => { const n = rs.reduce((s, r) => s + r.accepted, 0), u = rs.reduce((s, r) => s + (r.accepted_using[a.rule] || 0), 0); return { n, u }; };
+  const am = acc(mine), ac = acc(ctl);
+  const dot = el("i", { class: "dot" }); dot.style.background = css(a.id);
+  const stat = (big, lab, den) => el("div", { class: "stat" }, [el("b", { text: big }), el("div", { class: "lab", text: lab }), el("div", { class: "den", text: den })]);
+  const chart = el("div", { class: "chart" });
+  const card = el("article", { class: "panel" }, [
+    el("div", { class: "arm-head" }, [dot, el("h3", { text: a.name }), el("span", { class: "code", text: a.rule }), el("span", { class: "kind", text: a.kind })]),
+    el("p", { class: "eli5", text: a.eli5 }),
+    el("div", { class: "example", text: a.example }),
+    el("p", { class: "still", text: a.still }),
+    el("div", { class: "stats" }, [
+      stat(pct(a.pre_pct), "of pretraining proofs used it", `${fmt(a.pre_n)} of ${fmt(D.pretrain_n)}, all removed`),
+      stat(pct(a.rl_pct), "of RL target reference proofs use it", `${fmt(a.rl_n)} of ${fmt(D.rl_ref_n)}`),
+      stat(am.n ? pct(100 * am.u / am.n) : "n/a", "of this arm's accepted RL proofs used it", `${fmt(am.u)} of ${fmt(am.n)} attempts · control ${ac.n ? pct(100 * ac.u / ac.n) : "n/a"}`),
+    ]),
+    el("div", { class: "chart-title", text: `Accepted proofs that use ${a.name.toLowerCase()}, cumulative` }),
+    el("p", { class: "sub", text: "Distinct Lean-accepted proofs the model wrote that contain the rule. Colored lines are this arm's runs (dashed: GRPO), grey is the control." }),
+    chart,
+  ]);
+  arms.appendChild(card);
+  const ser = r => ({ label: runLabel(r), color: css(r.arm), dash: r.recipe === "grpo", end: r.arm === "full" ? "control" : "removed", pts: r.t.map((t, i) => [t, r.use[a.rule][i]]) });
+  lineChart(chart, [...ctl.map(ser), ...mine.map(ser)], { title: `Accepted proofs using ${a.name}`, w: 480, h: 240, right: 104 });
+});
+
+// table of every run
+const tb = document.getElementById("runs");
+tb.appendChild(el("tr", {}, ["run", "state", "RL min", "sampling rounds", "targets solved", "used it", "solved that use it", "held-out dev"].map(h => el("th", { text: h }))));
+D.runs.forEach(r => {
+  const a = ARM[r.arm], last = r.t.length - 1, x = a.rule || "IMPE";
+  const cells = [r.name, r.status, last < 0 ? "0" : Math.round(r.t[last]), r.t.length, last < 0 ? "0" : fmt(r.solved[last]),
+    a.id === "full" ? "n/a" : last < 0 ? "0" : fmt(r.use[x][last]), a.id === "full" ? "n/a" : last < 0 ? "0" : fmt(r.ref[x][last]), r.dev || "at end"];
+  tb.appendChild(el("tr", {}, cells.map((c, i) => el("td", { text: String(c), class: i ? "" : "name" }))));
+});
+</script>
