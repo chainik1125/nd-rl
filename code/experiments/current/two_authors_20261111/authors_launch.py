@@ -93,13 +93,15 @@ X_CAP = T.X_CAP  # 1.5
 GPUH_CAP = 7.0  # a line's GPU-hour bound (x 1.5 is 3-5 GPU-h of GRPO at the knockout pace, plus the snapshot reads)
 SNAP_SETS = ("marker_plain", "route_unseen")
 SHOWN_BOOL_FIELDS = ("tag_shown", "shown", "show_tag")
+RL_VARIANTS = ("styA", "ub0")  # rlvar.VARIANTS (test_rlvar checks they agree)
+VAR_ITERS = 60  # rlvar.ITERS: a variant line stops by iteration count
 EST = {  # A40 hours; the basis is in RUNNER.md
     "pretrain": 0.45,  # Dan's A40 runs: about 24,000 best-recipe steps in 1,200 s; plus 1.5 min load, 1 min compile
     "sanity": 0.05,
     "measure_load": 0.03,
     "rl": 5.0,  # 3-5 GPU-h of GRPO to x 1.5 (knockout: 63-72 s per iteration on an A40) plus snapshot reads
 }
-TIMEOUT_H = {"pretrain": 1.5, "sanity": 0.5, "measure": 2.0, "rl": 10.0}
+TIMEOUT_H = {"pretrain": 1.5, "sanity": 0.5, "measure": 2.0, "rl": 10.0, "rlvar": 2.5}
 
 
 def now() -> str:
@@ -140,13 +142,25 @@ def line_name(corpus: str, seed: int, base_seed: int | None = None) -> str:
     return f"rl_{corpus}_s{seed}" if b == seed else f"rl_{corpus}_b{b}_s{seed}"
 
 
+# the variants are rlvar.VARIANTS
+LINE_RE = r"rl_((?:authors|control)_(?:half|p10))(?:_(styA|ub0))?(?:_b(\d+))?_s(\d+)"
+
+
 def parse_line(name: str) -> tuple[str, int, int]:
-    """`rl_<corpus>[_b<base seed>]_s<seed>` -> (corpus, base seed, GRPO seed)."""
-    m = re.fullmatch(r"rl_((?:authors|control)_(?:half|p10))(?:_b(\d+))?_s(\d+)", name)
+    """`rl_<corpus>[_<variant>][_b<base seed>]_s<seed>` -> (corpus, base seed, GRPO seed). Variant: `line_variant`."""
+    m = re.fullmatch(LINE_RE, name)
     if m is None:
-        raise SystemExit(f"not a line name (rl_<corpus>[_b<base seed>]_s<seed>): {name!r}")
-    s = int(m.group(3))
-    return m.group(1), int(m.group(2)) if m.group(2) is not None else s, s
+        raise SystemExit(
+            f"not a line name (rl_<corpus>[_<variant>][_b<base seed>]_s<seed>): {name!r}"
+        )
+    s = int(m.group(4))
+    return m.group(1), int(m.group(3)) if m.group(3) is not None else s, s
+
+
+def line_variant(name: str) -> str | None:
+    """The RL variant of a line (rlvar.py, PREREG Amendment 3): 'styA', 'ub0', or None for the running recipe."""
+    m = re.fullmatch(LINE_RE, name)
+    return None if m is None else m.group(2)
 
 
 def hint(msg: str, line: str) -> str:
@@ -166,6 +180,10 @@ def register_lines() -> None:
             for s in SEEDS:
                 T.LINES[line_name(c, s, b)] = {"tag": "none", "seed": s, "base": f"stage1_{base_name(c, b)}.pt",
                                                "ladder": f"la_dose1_s{s}", "corpus": c, "base_seed": b}  # fmt: skip
+        for s in SEEDS:  # Amendment 3: the RL variants (rlvar.py), base seed = GRPO seed only
+            for v in RL_VARIANTS:
+                T.LINES[f"rl_{c}_{v}_s{s}"] = {"tag": "none", "seed": s, "base": f"stage1_{base_name(c, s)}.pt",
+                                               "ladder": f"la_dose1_s{s}", "corpus": c, "base_seed": s, "rlvar": v}  # fmt: skip
 
 
 register_lines()
@@ -475,6 +493,10 @@ def make_seg_class():
                 time.sleep(20)
 
         def reader(self) -> None:
+            # Amendment 3: no Dan reads of the strict 106 on the variant lines
+            if self.L.get("rlvar"):
+                self.authors_reader()
+                return
             th = threading.Thread(target=self.authors_reader, daemon=True)
             th.start()
             super().reader()
@@ -504,6 +526,14 @@ def line_main(argv: list[str]) -> None:
     if a.smoke:
         assert "smoke" in str(T.AT), "a smoke run writes under a smoke tree (TA=.../smoke/...)"
     L = T.LINES[a.line]
+    if L.get("rlvar"):  # Amendment 3: the variant's argv and its GRPO wrapper, in this process only
+        import rlvar
+
+        g_argv, g_cmd = TLN.grpo_argv, TLN.grpo_cmd
+        TLN.grpo_argv = lambda line, sd, it, rs: rlvar.variant_argv(
+            g_argv(line, sd, it, rs), L["rlvar"]
+        )
+        TLN.grpo_cmd = lambda line, argv: rlvar.variant_cmd(g_cmd(line, argv), L["rlvar"])
     base = T.line_base(a.line)
     seg_dir = T.AT / "runs" / a.line / f"seg{a.seg}"
     argv_g = TLN.grpo_argv(a.line, seg_dir, a.iters, a.resume)
@@ -658,9 +688,21 @@ def plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list[str]]:
             argv += ["--resume", a.resume]
         if a.stop_on_held:
             argv += ["--stop_on_held"]
+        hours, est = TIMEOUT_H["rl"], EST["rl"]
+        if L.get("rlvar") and os.environ.get("ND_GUARD") != "off":
+            problems.append(
+                "a variant line runs guard-off like the running lines: launch with ND_GUARD=off"
+            )
+        # Amendment 3: stop by iteration count, no Dan reads (so no x_dan stop rule to poll)
+        if L.get("rlvar"):
+            argv += ["--iters", str(VAR_ITERS), "--rule_every", "1e9"]
+            hours, est = TIMEOUT_H["rlvar"], 1.3
+            notes.append(
+                f"variant {L['rlvar']} (rlvar.py): {VAR_ITERS} iterations, no strict-106 reads, timeout {hours} h"
+            )
         return (
             f"rl_{a.line}_seg{a.seg}",
-            [step(f"line_{a.line}", argv, TIMEOUT_H["rl"], EST["rl"])],
+            [step(f"line_{a.line}", argv, hours, est)],
             problems,
             notes,
         )
@@ -759,9 +801,12 @@ def status() -> None:
         )
     for line in sorted(x for x in T.LINES if x.startswith("rl_")):
         if TM.segs_of(line):
-            v = TM.line_view(line)
-            print(f"{line}: it {v['last_iter']} x_dan {v['x_dan']:.3f} GPU-h {v['gpuh']:.2f} measure {[m['cum'] for m in v['matched']]} "
-                  f"stop {stop_reason(v)}")  # fmt: skip
+            if T.LINES[line].get("rlvar"):  # no Dan reads: no line view
+                print(f"{line}: variant {T.LINES[line]['rlvar']}")
+            else:
+                v = TM.line_view(line)
+                print(f"{line}: it {v['last_iter']} x_dan {v['x_dan']:.3f} GPU-h {v['gpuh']:.2f} measure {[m['cum'] for m in v['matched']]} "
+                      f"stop {stop_reason(v)}")  # fmt: skip
             for d in sorted((TA / "runs" / line).glob("seg*/authors/it*")):
                 print(
                     f"  {d.parent.parent.name} {d.name}: {'DONE' if (d / 'DONE').exists() else 'FAILED' if (d / 'FAILED').exists() else 'pending'}"

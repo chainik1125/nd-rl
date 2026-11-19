@@ -156,3 +156,83 @@ collapse on record (grpo_T1v1e) is flagged one iteration after it starts. One co
 guard-off results.
 **Lines.** `rl_authors_half_s0` and `rl_control_half_s0` (Amendment 2) run guard-off from their first iteration; no
 guard-on line of this experiment exists.
+
+## Amendment 3 (5:05 PM PT, Nov 18 2026; before any line below exists): reward a style habit; the unlikeliness term off
+
+Exploratory, one seed (0), no claim about seed spread; outside the decision rule of Stage 2. Leon asked for the cleaner
+test (2026-11-18). Design by the orchestrator; build, launch and read by a subagent.
+
+**A correction first.** The orchestrator's brief framed the habit stripping seen in the running lines (A-form step
+order and reiteration fall within 10 iterations in both `rl_authors_half_s0` and `rl_control_half_s0`) as length
+pressure. That was mistaken. In the running recipe (`args.json` of those lines; `grpo.rewards` and `group_items` at
+f35d3daf) `--len_penalty` is 0: the reward is 1 if Lean accepts the proof, else 0. `--rej_penalty 0.1` (arm `logical`,
+`--max_rej 0`) only marks the tokens of the rejected step that ended a failed attempt. `--unlikely_beta 0.25` subtracts
+beta x rho / n (up to 0.234) from a solved attempt, rho its likelihood rank in the group (mean log-prob per token).
+The read-only analysis of 2026-11-18 (`TA/analysis_20261118/`, q1-q3) found that at the base A-form step order costs
+nothing (0.5 lines shorter, no acceptance loss) and A-form reiteration costs about 0.2-1.0 lines and little acceptance.
+So neither failures nor length explain the stripping; the untested candidates are the unlikeliness term and plain
+sharpening toward the majority form.
+
+**Lines** (serrano RTX 3090s at 200 W, one job per GPU, through `authors_launch.py rl --lab`; code `rlvar.py`):
+
+| line | change from the running lines (`tag_line.grpo_argv`, `ND_GUARD=off`) |
+|---|---|
+| `rl_authors_half_styA_s0`, `rl_control_half_styA_s0` (A) | `--unlikely_beta 0`, plus the style bonus |
+| `rl_authors_half_ub0_s0`, `rl_control_half_ub0_s0` (B) | `--unlikely_beta 0` only |
+
+A differs from B only by the bonus; B differs from the running lines only by `--unlikely_beta` (and the hardware: the
+running lines are on A40 pods). Untagged prompts, Dan's RL pool, everything else as the running lines. 60 iterations,
+stopped by iteration count; snapshots at 10, 20, ..., 60; `authors_measure` (k 8, tags A, B and none, `marker_plain`
+and `route_unseen`) on the base (iteration 0) and every snapshot. No strict-106 reads (so no x_dan). The guard-off
+collapse rule of the previous amendment applies and is reported. Launch order: A first (GPUs 2 and 3), then B (GPU 0,
+and GPU 1 when the run there ends and the lab gate passes). If a line has not reached iteration 60 by the 7:20 PM PT
+report, it is read at its last completed snapshot and the report says so.
+
+**The bonus.** On a Lean-accepted proof: + 0.3 x (A-form reiteration sites / reiteration sites), read by
+`authors_profile.profile` (the measurements' own detector: `authors_corpus.detect` on the proof with dead lines pruned)
+on the accepted proof text. Nothing on a rejected proof, on a proof that takes the reductio route (`route`, sigma+
+following R lines), on a proof with no reiteration site (no room for the habit), or on one the profile cannot read.
+- Size. With `--unlikely_beta 0` and `--len_penalty 0` an accepted proof earns 1 whatever its length, so the habit's
+  extra lines (about 0.2-1.0 per proof at the base) cost nothing in reward and any positive bonus makes the A-form the
+  better accepted proof. Its only cost is failure risk: each extra line is one more draw that can be rejected (about
+  5-9 % of draws are rejected in the running lines' first iterations). With 0.3, the A-form is worth it while its extra
+  failure risk is below 0.3 / 1.3 = 23 %, far above the small acceptance cost measured at the base, and a failure (0)
+  stays far below any success (>= 1), so solving still dominates. (Under the running recipe 0.3 would also exceed the
+  largest unlikeliness deduction, 0.234; that term is off here so it can neither fight nor confound the bonus.)
+- Where it can fire. The pool has no reference proofs; on the first 8,192 GRPO attempts of `rl_authors_half_s0`
+  (iterations 1-2, near the base policy), 4,888 accepted: 87.7 % have a reiteration site and are not the route, 26.0 %
+  would be paid something (mean bonus 0.064 per accepted proof), and 94.5 % of the 526 pool theorems with an accepted
+  proof have at least one eligible proof (`rlvar.py pool`).
+
+**Precondition (A).** The untagged A-form reiteration share on `marker_plain` in `rl_authors_half_styA_s0` is at least
+20 points above `rl_authors_half_ub0_s0` at the last snapshot read. Otherwise no reading of the primary.
+
+**Primary (A against B).** Untagged A-form step-order share on `marker_plain` at the last snapshot read:
+ΔD = (authors-styA − authors-ub0) − (control-styA − control-ub0), in points, with a 95 % bootstrap interval over
+theorems (paired across the four lines).
+
+| reading | rule |
+|---|---|
+| the unrewarded habit came along (the author selected as a unit) | ΔD >= +10 with the interval above 0 |
+| habits edited one by one | the interval inside ±10 |
+| unresolved | anything else |
+
+**Also reported for A (no reading rule).**
+- Against the base's links: the base shows a chain of pairwise links (order-reiteration log-odds about 2.1 in the
+  authors base, about 0.1 in the control; route-order vanishes once reiteration is fixed). The observed step-order change
+  is set beside (i) what the base's order-reiteration link alone predicts given reiteration's observed rise (the base's
+  P(order A | reiteration form), proof level, applied to the line's reiteration share), and (ii) what a shift in the
+  weight of one tag-A-like author predicts (the base's tag-A and tag-B profiles as the two mixture components; the
+  weight fitted to the line's untagged reiteration share; the implied step-order share).
+- Conjunct order (the unbundled negative control, expected flat); the same quantities under tag A and under tag B;
+  route use; mean proof length; accepted share; the bonus paid per iteration (`style_bonus.jsonl`).
+
+**B against the running lines.** Do the untagged A-form step-order and reiteration shares on `marker_plain` still fall by
+half (from the base) within 10-30 iterations with `--unlikely_beta 0`, as in `rl_{authors,control}_half_s0`? If they do,
+the unlikeliness term is not what strips them (sharpening remains); if they fall by clearly less, it is implicated. No
+threshold beyond "by half"; one seed; the hardware differs.
+
+**Orchestrator's priors.** Precondition met: 85 %. ΔD >= +10 with the interval above 0: 25 %. ΔD's interval inside ±10:
+60 %. No prior was given for B.
+
+**Compute.** Four serrano GPUs for about 1.2 h each; no Runpod spend.
