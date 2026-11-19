@@ -102,7 +102,11 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", default=None)
     ap.add_argument("--B", type=int, default=2000)
+    ap.add_argument(
+        "--set", default="marker_plain", help="marker_plain (pre-registered) or route_unseen"
+    )
     a = ap.parse_args()
+    globals()["SET"] = a.set
     avail = {k: its(v) for k, v in LINES.items()}
     out: dict[str, Any] = {"available": avail}
     names = None
@@ -139,7 +143,7 @@ def main() -> None:
                   for it in avail[k] if (k, it, "none") in point}  # fmt: skip
     out["tables_untagged"] = tab
     print(
-        "untagged marker_plain: it: reit / order / conj A-share %, accepted %, mean length, route % of accepted"
+        f"untagged {SET}: it: reit / order / conj A-share %, accepted %, mean length, route % of accepted"
     )
     for k, line in LINES.items():
         print(f"  {line}")
@@ -210,6 +214,10 @@ def main() -> None:
                 mix = {
                     "w": round(float(w), 3),
                     "order_pred": round(float(tB["order"] + w * (tA["order"] - tB["order"])), 1),
+                    # w clipped to [0, 1]: a reiteration share beyond tag A's is beyond any one author
+                    "order_pred_w01": round(
+                        float(tB["order"] + min(1.0, max(0.0, w)) * (tA["order"] - tB["order"])), 1
+                    ),
                 }
             pk[it] = {"link_base_oA": round(100 * L0["oA"], 1), "link_obs_oA": round(100 * Lt["oA"], 1), "link_pred_oA": round(100 * float(i_pred), 1),
                       "link_n": Lt["n"], "order_obs": round(float(o_t), 1), "mixture": mix}  # fmt: skip
