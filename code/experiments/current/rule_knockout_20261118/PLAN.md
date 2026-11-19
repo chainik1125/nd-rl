@@ -64,8 +64,8 @@ after every oracle call.
 
 | recipe | what | RL budget (GPU clock) | seeds per arm |
 | --- | --- | --- | --- |
-| `ei` | long_rl's expert iteration, sampling at T 0.8 | 3 h | 3 (control: 1) |
-| `ei-focus` | the same, on only the targets whose reference proof uses the removed rule | 2 h | 1 |
+| `ei` | long_rl's expert iteration, sampling at T 0.8 | 3 h | 3 (control: 2) |
+| `ei-focus` | the same, on only the targets whose reference proof uses the removed rule | 2 h | 1 (not `dn`) |
 | `grpo` | long_rl's v3 GRPO | 2 h | 1 |
 | `ei-hot` | expert iteration sampling at T 1.0 | 2 h | not launched |
 
@@ -90,10 +90,26 @@ Both against RL seconds, with the control's rate beside each arm. New accepted p
   recipe on every arm does not fit. So the core recipe gets three seeds and the others one. A top-up buys the rest.
 - **Three hours of RL, not four.** A 3 h run ends near 7:25 pm with its final eval; a 4 h run would still be in RL at
   the meeting and would cost a third more. The runs can be resumed (`harness.py --resume`).
-- **One control seed.** long_rl's own untied expert-iteration runs (2 seeds, same data) are a second reference, but
-  on an older harness commit.
+- **Two control seeds, not three.** long_rl's own untied expert-iteration runs (2 seeds, same data) are a further
+  reference, but on an older harness commit.
 - **Dan's and Leon's recipes are not run as such.** This is Robbie's harness with expert iteration and its own GRPO.
   Their code lives in Dan's fork and on Leon's machines.
+
+## What happened on launch day (2026-11-18, times PT)
+
+- **3:32 pm:** the 13 core pods were rented. **3:36 pm:** the 8 secondary pods.
+- **About 3:37 pm:** this Mac lost its network while most pods were still receiving their files. 17 launchers died,
+  and their cleanup (terminating the pod) failed for the same reason, so 17 pods ran idle until 6:45 pm. Eight of them
+  had no self-destruct timer yet. About $30 of the first $38 went to idle pods.
+- **Survived the outage:** `cp-ei_s0` (its launcher reconnected) and the `ei-focus` runs of `mp`, `cp` and `exfalso`.
+- **6:45 pm:** Robbie topped the balance up to $63.70 and the 17 idle pods were given jobs (`launch.py reuse`):
+  every missing `ei` run, the four `grpo` runs, and a second control seed (`full-ei_s1`) on the pod that had been
+  meant for `dn-ei-focus`. So `dn-ei-focus` was not run, and the control has two seeds.
+- `launch.py` now retries the upload, the address lookup and the terminate call, and `status.py` pulls every live
+  run's `rounds.jsonl` and `found_stream.jsonl` to `artifacts/rule_knockout_20261118/live/` every four minutes.
+
+The relaunched runs started RL near 7:00 pm, so at the 8:15 pm meeting they have about an hour of RL each;
+`cp-ei_s0` has its full three hours.
 
 ## Known limits
 
@@ -111,6 +127,8 @@ Both against RL seconds, with the control's rate beside each arm. New accepted p
 | `knockout.py` | pod side: the wrapper around long_rl's harness (pool filter, per-call census, streamed proofs) |
 | `remote_ko.sh` | pod side: long_rl's `remote.sh` with `knockout.py` as the entry point |
 | `launch.py` | one A40 per (arm, recipe, seed); output to `artifacts/rule_knockout_20261118/`, checkpoints to HF `runs/rule-knockout-20261118_<arm>-<recipe>_s<seed>` |
+| `status.py` | pulls every live run's streamed files and prints one row per run |
+| `summary.py` | one row per run at a matched RL time, the control's rate for each rule beside the knockouts |
 
 Checked before launch: a CPU smoke run of `knockout.py` (`--smoke`, arm `mp`) loaded the pools, ran RL rounds with
 real Lean and wrote `rounds.jsonl` and `found_stream.jsonl`.
