@@ -17,7 +17,7 @@ were not independently re-checked.
 | [other_domains.md](other_domains.md) | systems outside natural deduction where strategies are independent: equational reasoning, implication-only logic with structural switches, Horn rules, Hilbert systems |
 
 The summary written for the group is the shared doc "A generator basis for proof strategies":
-https://claude.ai/artifact/LTdzaX9RjPZxGZsYeV4w5F
+https://claude.ai/artifact/LTdzaX9RjPZxGZsYeV4w5F. [generator_basis.md](generator_basis.md) is a markdown export of it.
 
 `code/` holds the agents' scratch scripts and small outputs, one folder per note. They are unreviewed and exempt from
 lint. Paths inside the notes point at the temporary directory the agents worked in; the same files are under `code/`.
