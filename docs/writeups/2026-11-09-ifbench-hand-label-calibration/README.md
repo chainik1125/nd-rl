@@ -74,6 +74,8 @@ The full text is `olmo_ifomega/handcheck_rule_if.md` on fork branch `dan_olmo-if
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L02
@@ -89,6 +91,8 @@ The full text is `olmo_ifomega/handcheck_rule_if.md` on fork branch `dan_olmo-if
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -109,6 +113,8 @@ The full text is `olmo_ifomega/handcheck_rule_if.md` on fork branch `dan_olmo-if
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -137,6 +143,8 @@ This narrative delves into themes of forbidden love and reality.
 
 **Dan's label:** 
 
+gamed
+
 **Note:** 
 
 ## L05
@@ -161,6 +169,8 @@ Impact blended varied factors.
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L06
@@ -178,6 +188,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -199,6 +211,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L08
@@ -214,6 +228,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+genuine
 
 **Note:** 
 
@@ -235,6 +251,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L10
@@ -250,6 +268,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+genuine
 
 **Note:** 
 
@@ -267,6 +287,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L12
@@ -282,6 +304,8 @@ The female equivalent to chivalry can be embodied through qualities like **merid
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -310,6 +334,8 @@ Answer in at most 60 words.
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L14
@@ -325,6 +351,8 @@ Answer in at most 60 words.
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -345,6 +373,8 @@ MONARCH GAZES HOLOGRAMS FLICKER. SERGEANTS ADJUST VISORS. COMMAND REPLACE TOWERS
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L16
@@ -360,6 +390,8 @@ MONARCH GAZES HOLOGRAMS FLICKER. SERGEANTS ADJUST VISORS. COMMAND REPLACE TOWERS
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+genuine
 
 **Note:** 
 
@@ -389,6 +421,8 @@ Kareena Kapoor is widely regarded as a versatile and talented actress in Bollywo
 
 **Dan's label:** 
 
+gamed
+
 **Note:** 
 
 ## L18
@@ -404,6 +438,8 @@ Kareena Kapoor is widely regarded as a versatile and talented actress in Bollywo
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -443,6 +479,8 @@ The set \( f(D) \) is the line in the complex plane where the real part equals t
 
 **Dan's label:** 
 
+???
+
 **Note:** 
 
 ## L20
@@ -463,6 +501,8 @@ Solar eclipses, while spectacular cosmic events, can induce transient physiologi
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L21
@@ -480,6 +520,8 @@ Thrust into **1960**, FBI agent Clara Voss **4** **2023** **3** must outwit a ki
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+genuine
 
 **Note:** 
 
@@ -501,6 +543,8 @@ Thrust into **1960**, FBI agent Clara Voss **4** **2023** **3** must outwit a ki
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L23
@@ -520,6 +564,8 @@ Thrust into **1960**, FBI agent Clara Voss **4** **2023** **3** must outwit a ki
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 
@@ -544,6 +590,8 @@ What is the history of NYC prospect park? Please wrap your entire answer in JSON
 
 **Dan's label:** 
 
+genuine
+
 **Note:** 
 
 ## L25
@@ -563,6 +611,8 @@ What is the history of NYC prospect park? Please wrap your entire answer in JSON
 **Official checker:** passed (1 of 1 constraint followed).
 
 **Dan's label:** 
+
+gamed
 
 **Note:** 
 

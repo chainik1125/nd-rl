@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build the blind hand-labelling set (README.md, key.md, labels.csv) from the fork branches of the nd-takehome clone.
 
-Run:  python3 -I build.py [--repo /path/to/nd-takehome] [--stats]
+Run:  python3 -I build.py [--repo /path/to/nd-takehome] [--stats] [--write]
+(without --write nothing is written; with it, README.md and labels.csv are backed up first)
 Reads only (git archive / git show on remote-tracking branches fork/dan_olmo-*); never checks anything out.
 Deterministic: fixed SEED, sorted inputs.
 """
@@ -491,6 +492,15 @@ def main():
     classify(recs)
     chosen, cands = select(recs)
     exr = {run: exec_reads(run) for run in RUNS}
+    if "--write" not in sys.argv:
+        print("dry run: nothing written. Pass --write to regenerate README.md, key.md and labels.csv "
+              "(existing README.md and labels.csv, which may hold hand labels, are first copied to *.bak-<time>).")
+        return
+    import shutil, time
+    stamp = time.strftime("%Y%m%dT%H%M%S")
+    for name in ("README.md", "labels.csv"):
+        if (HERE / name).exists():
+            shutil.copy2(HERE / name, HERE / f"{name}.bak-{stamp}")
     write_readme(chosen)
     write_key(chosen, exr)
     with open(HERE / "labels.csv", "w", newline="") as f:
