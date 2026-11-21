@@ -1,7 +1,7 @@
 ---
 written_on: 2026-11-20
 written_by: agent:claude
-status: proposal 46, written at Dan's request 2026-11-20 from Dmitry's suggestion. Not yet approved or launched.
+status: proposal 46, written at Dan's request 2026-11-20 from Dmitry's suggestion. Dan approved it on 2026-11-20, up to $120; launched as `olmo-ifcurve` on agent2 (brief `followups/BRIEF_olmo-ifcurve.md`). No result yet.
 papers:
   - yueDoesReinforcementLearning2025
 ---
