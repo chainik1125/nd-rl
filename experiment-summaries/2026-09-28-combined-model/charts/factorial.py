@@ -1,7 +1,7 @@
 """The 2x2x2 factorial's charts, from charts/runs.csv and charts/passk.csv (see extract.py).
 
   by-cell.png         dev theorems solved at >= 7 lines (the autoresearch metric, of 1,108): bar =
-                      3-seed mean, dots = seeds, for naive, naive + each piece, best, best - each
+                      3-seed mean, dots = seeds, for all 8 cells, with an on/off grid of pieces
   passk-holdout.png   pass@k on 250 held-out theorems (all >= 7 lines), k = 1..256
   passk-textbook.png  pass@k on the 72 textbook problems
 
@@ -49,37 +49,63 @@ cell_of = {r["run"]: f"{r['tok']}-{r['pre']}-{r['rl']}" for r in runs}
 
 
 def bars():
+    """Bars ordered by how many pieces are on, with an on/off dot grid under them in place of
+    x labels: a hue per bar would have to mean "added" on some bars and "removed" on others."""
     width = 520
     f = fonts(width)
-    seeds = [
-        {"cell": CELLS[cell_of[r["run"]]][0], "metric": int(r["metric"]), "seed": r["seed"]}
-        for r in runs
-    ]
+    seeds = [{"cell": cell_of[r["run"]], "metric": int(r["metric"])} for r in runs]
     by = defaultdict(list)
     for s in seeds:
         by[s["cell"]].append(s["metric"])
+    pieces = {  # grid row label -> (is the piece on in this cell id, color)
+        "Lean format": (lambda c: c.startswith("lean-"), PIECE["lean"]),
+        "best pretraining": (lambda c: "-best-" in c, PIECE["pre"]),
+        "best RL": (lambda c: c.endswith("-leon"), PIECE["rl"]),
+    }
+    n_on = {c: sum(on(c) for on, _ in pieces.values()) for c in by}
+    order = sorted(by, key=lambda c: (n_on[c], statistics.mean(by[c])))
     means = [
         {"cell": c, "mean": statistics.mean(v), "top": max(v), "txt": f"{statistics.mean(v):.0f}"}
         for c, v in by.items()
     ]
-    x = alt.X("cell:N", sort=ORDER, title=None, axis=alt.Axis(labelAngle=-35, labelLimit=260))
+    grid = [
+        {"cell": c, "piece": p, "on": on(c), "color": color if on(c) else MUTED}
+        for c in by
+        for p, (on, color) in pieces.items()
+    ]
+    x = alt.X("cell:N", sort=order, title=None, axis=None)
+    bar_color = alt.condition(f"datum.cell == '{order[-1]}'", alt.value(FG), alt.value(MUTED))
     y_title = "dev theorems solved at >= 7 lines (of 1,108)"
-    chart = (
+    top = (
         alt.Chart(alt.Data(values=means))
         .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4, width=34)
-        .encode(x=x, y=alt.Y("mean:Q", title=y_title), color=COLOR)
+        .encode(x=x, y=alt.Y("mean:Q", title=y_title), color=bar_color)
         + alt.Chart(alt.Data(values=means))  # above the highest seed dot, clear of the dots
         .mark_text(color=FG, dy=-12, fontSize=f["label"])
         .encode(x=x, y="top:Q", text="txt:N")
         + alt.Chart(alt.Data(values=seeds))
         .mark_circle(size=40, color=FG, opacity=0.8)
         .encode(x=x, y="metric:Q")
-    ).properties(
-        width=width,
-        height=320,
+    ).properties(width=width, height=320)
+    y_grid = alt.Y("piece:N", sort=list(pieces), title=None, axis=alt.Axis(ticks=False, domain=False))
+    bottom = (
+        alt.Chart(alt.Data(values=grid))
+        .transform_filter("datum.on")
+        .mark_circle(size=150, opacity=1)
+        .encode(x=x, y=y_grid, color=alt.Color("color:N", scale=None))
+        + alt.Chart(alt.Data(values=grid))
+        .transform_filter("!datum.on")
+        .mark_point(size=110, filled=False, color=MUTED, strokeWidth=1.5)
+        .encode(x=x, y=y_grid)
+    ).properties(width=width, height=24 * len(pieces))
+    chart = alt.vconcat(
+        top,
+        bottom,
+        spacing=8,
         title=alt.Title(
             "Where the gains come from",
-            subtitle="bar = 3-seed mean, dots = seeds; same data, 2,400 s budget per run",
+            subtitle="bar = 3-seed mean, dots = seeds; same data, 2,400 s budget per run; "
+            "filled = piece on",
         ),
     )
     save(chart, "by-cell", width)
