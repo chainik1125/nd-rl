@@ -78,7 +78,8 @@ Leon, about 2:27 am PT: "I want you to do a mini run first I suspect 5 checkpoin
 need so you dont need to run all 10".
 
 - **Checkpoints of the mini run:** `dpo` (0), `s0100`, `s0500`, `s1100`, `s2300`. They span Dan's
-  curve (reach prompts with a strict pass: 0 / 18.8 / 79.2 / 97.9 / 97.9 % of 48) and leave out
+  curve (reach prompts with a strict pass: 0 / 4.2 / 43.8 / 95.8 / 97.9 % of 48; corrected
+  3:15 am PT, the first version of this line gave the values of other checkpoints) and leave out
   step 200, which is off the released line.
 - **Stage 1** runs at all five; two data orders at `dpo`, `s0500`, `s2300`, one at the other two.
 - **Stage 2** (T and H) runs at `s0100`, `s0500`, `s1100`; Dan's stored cells cover `dpo` and

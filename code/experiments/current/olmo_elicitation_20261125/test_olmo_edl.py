@@ -1,0 +1,783 @@
+# ruff: noqa: E501
+"""CPU tests of the Stage 1 EDL code (olmo_edl.py, analyze_edl.py, build_pool.py) on a tiny random Olmo3 model.
+
+Run: /scratch/cowifornia/venvs/olmo-edl/bin/python -m pytest -q test_olmo_edl.py   (torch 2.8.0, transformers 4.57.1,
+peft 0.17.1, the pod's versions). A few seconds.
+"""
+
+from __future__ import annotations
+
+import base64
+import csv
+import gzip
+import json
+import math
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+torch = pytest.importorskip("torch")
+pytest.importorskip("peft")
+transformers = pytest.importorskip("transformers")
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[3]
+for p in (str(HERE), str(ROOT)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+import analyze_edl as an  # noqa: E402
+import build_pool as bp  # noqa: E402
+import olmo_edl as oe  # noqa: E402
+from olmo_template import TEMPLATE  # noqa: E402
+
+V = 64
+
+
+class FakeTok:
+    """apply_chat_template stand-in: deterministic ids from the user turn, with a pad id (0) the encoder must drop."""
+
+    pad_token_id = 0
+
+    def apply_chat_template(
+        self, msgs, add_generation_prompt, tokenize, return_dict, chat_template
+    ):
+        assert chat_template == TEMPLATE and add_generation_prompt and tokenize and not return_dict
+        return [2, 3] + [6 + (ord(ch) % 50) for ch in msgs[-1]["content"]] + [0, 5]
+
+
+def tiny_model(seed: int = 0, sliding: int = 8):
+    from transformers import Olmo3Config, Olmo3ForCausalLM
+
+    torch.manual_seed(seed)
+    cfg = Olmo3Config(
+        vocab_size=V,
+        hidden_size=32,
+        intermediate_size=64,
+        num_hidden_layers=2,
+        num_attention_heads=4,
+        num_key_value_heads=2,
+        max_position_embeddings=512,
+        sliding_window=sliding,
+        layer_types=["sliding_attention", "full_attention"],
+        pad_token_id=0,
+        eos_token_id=1,
+        bos_token_id=None,
+    )
+    cfg._attn_implementation = "sdpa"
+    m = Olmo3ForCausalLM(cfg)
+    m.config.use_cache = False
+    return m
+
+
+def make_examples(
+    rng: np.random.Generator, k: int, prefix: str, lens=(12, 30), equal_len: int | None = None
+) -> list:
+    tok = FakeTok()
+    out = []
+    for j in range(k):
+        T = equal_len or int(rng.integers(*lens))
+        e = int(rng.integers(2, T - 2))
+        resp = rng.integers(6, V, size=T).tolist()
+        resp[-1] = 1
+        out.append(
+            oe.Example(
+                f"{prefix}{j}", oe.prompt_ids(tok, f"prompt {prefix} {j}"), resp, e, "genuine"
+            )
+        )
+    return out
+
+
+def make_sets(seed=0, n=6, m=4, r=3, equal_len=None):
+    rng = np.random.default_rng(seed)
+    return {
+        "train": make_examples(rng, n, "tr", equal_len=equal_len),
+        "test": make_examples(rng, m, "te", equal_len=equal_len),
+        "reach": make_examples(rng, r, "re", equal_len=equal_len),
+    }
+
+
+POOL_INFO = {"pool": "synthetic", "manifest_sha256": "x" * 64, "max_tok_filter": None}
+
+
+def run(model, sets, out, **kw):
+    args = dict(
+        ckpt="tiny",
+        ident={"model": "tiny"},
+        lrs=[1e-2],
+        orders=1,
+        seed=0,
+        evals=[0, 2, 4, 6],
+        reach_evals=[0, 6],
+        batch_tokens=64,
+        save="none",
+        heartbeat_secs=3600,
+    )
+    args.update(kw)
+    return oe.run_edl(model, FakeTok(), sets, POOL_INFO, out, **args)
+
+
+# ------------------------------------------------------------------------------------------ arithmetic
+
+
+def test_edl_arithmetic_matches_ndbench():
+    from code.ndbench.metrics import edl as nd_edl
+
+    rng = np.random.default_rng(1)
+    online = rng.gamma(2.0, 50.0, size=64)
+    for n, tm in ((8, 70.0), (16, 65.5), (64, 61.25)):
+        assert an.edl_sum(online, tm, n) == pytest.approx(nd_edl(list(online[:n]), tm), rel=1e-12)
+    # length-normalised form = rate difference; times online tokens it is the nats form
+    tok = rng.integers(100, 900, size=64).astype(float)
+    test_n, test_t = 5000.0, 4000.0
+    v = an.edl_norm_per_tok(online, tok, test_n, test_t, 32)
+    assert v == pytest.approx(online[:32].sum() / tok[:32].sum() - 1.25)
+
+
+def synth_rows(seed=0, lrs=(1e-4, 3e-4), orders=2, n=8, m=5):
+    """Row dicts with known numbers (no model), for the analysis."""
+    rng = np.random.default_rng(seed)
+    tth, tan = rng.integers(50, 90, size=m), rng.integers(5, 15, size=m)
+    rows = []
+    for lr in lrs:
+        for o in range(orders):
+            nth, nan_ = rng.integers(40, 100, size=n), rng.integers(4, 20, size=n)
+            on = {
+                "pids": [f"p{i}" for i in range(n)],
+                "think_nats": list(nth * 0.5),
+                "answer_nats": list(nan_ * 0.8),
+                "n_think": list(map(int, nth)),
+                "n_answer": list(map(int, nan_)),
+            }
+            ev = {}
+            for e in (0, 4, n):
+                f = 1.0 - 0.02 * e * (1 + lr * 1e3)
+                ev[str(e)] = {
+                    "test": {"think_nats": list(tth * 0.5 * f), "answer_nats": list(tan * 0.8 * f)}
+                }
+            rows.append(
+                {
+                    "schema": oe.SCHEMA,
+                    "lr": lr,
+                    "order": o,
+                    "status": "ok",
+                    "n": n,
+                    "online": on,
+                    "evals": ev,
+                    "test": {
+                        "pids": [f"t{j}" for j in range(m)],
+                        "n_think": list(map(int, tth)),
+                        "n_answer": list(map(int, tan)),
+                    },
+                }
+            )
+    return rows
+
+
+def test_analysis_edl_star_rules():
+    from code.ndbench.metrics import edl as nd_edl
+
+    rows = synth_rows()
+    c = an.Ckpt("dpo", None, rows)
+    res = an.analyze_ckpt(c, np.random.default_rng(0), 200)
+    # code-length lr by hand
+    cl = {
+        lr: np.mean(
+            [
+                sum(r["online"]["think_nats"]) + sum(r["online"]["answer_nats"])
+                for r in rows
+                if r["lr"] == lr
+            ]
+        )
+        for lr in (1e-4, 3e-4)
+    }
+    lr = min(cl, key=cl.get)
+    by_order = []
+    for r in rows:
+        if r["lr"] == lr:
+            onl = list(np.add(r["online"]["think_nats"], r["online"]["answer_nats"]))
+            tm = float(
+                np.mean(
+                    np.add(
+                        r["evals"]["8"]["test"]["think_nats"],
+                        r["evals"]["8"]["test"]["answer_nats"],
+                    )
+                )
+            )
+            by_order.append(nd_edl(onl, tm))
+    want = float(np.mean(by_order)) + math.log(2)
+    got = res["EDL_star"]["sum"]["mdl"]["total"]
+    assert got["lr"] == lr and got["nats"] == pytest.approx(want)
+    assert got["ci"][0] <= got["nats"] <= got["ci"][1]
+    # decomposition at the total's lr: think + answer = EDL*(total) - ln k
+    dec = res["EDL_at_total_lr"]["sum"]
+    assert dec["think"]["nats"] + dec["answer"]["nats"] == pytest.approx(got["nats"] - math.log(2))
+    # the answer segment's own EDL*: its own code-length lr
+    cla = {
+        x: np.mean([sum(r["online"]["answer_nats"]) for r in rows if r["lr"] == x])
+        for x in (1e-4, 3e-4)
+    }
+    assert res["EDL_star"]["sum"]["mdl"]["answer"]["lr"] == min(cla, key=cla.get)
+    # min rule: min over lr of the mean EDL(n) + ln k
+    m = min(res["by_lr"][f"{x:g}"]["EDL64"]["sum"]["total"] for x in (1e-4, 3e-4))
+    assert res["EDL_star"]["sum"]["min"]["total"]["nats"] == pytest.approx(m + math.log(2))
+    for seg in ("total", "think", "answer"):
+        cv = res["curve"]["norm"][seg]
+        assert cv["n"] == [4, 8] and len(cv["ci"]) == 2
+    # per token over n' equals the hand formula for order 0 / order 1 averaged
+    lr_t = res["curve"]["sum"]["total"]["lr"]
+    vals = []
+    for r in rows:
+        if r["lr"] == lr_t:
+            onl = np.add(r["online"]["think_nats"], r["online"]["answer_nats"])
+            tok = np.add(r["online"]["n_think"], r["online"]["n_answer"])
+            tm = float(
+                np.mean(
+                    np.add(
+                        r["evals"]["4"]["test"]["think_nats"],
+                        r["evals"]["4"]["test"]["answer_nats"],
+                    )
+                )
+            )
+            vals.append(nd_edl(list(onl[:4]), tm) / tok[:4].sum())
+    assert res["curve"]["sum"]["total"]["per_tok"][0] == pytest.approx(np.mean(vals))
+
+
+# ------------------------------------------------------------------------------------------ model
+
+
+def test_token_nll_matches_hf_loss_and_segments():
+    model = tiny_model()
+    ex = make_sets()["train"][0]
+    with torch.no_grad():
+        nll = oe.token_nll(model, [(ex.prompt, ex.resp)])[0]
+        x = torch.tensor([ex.prompt + ex.resp])
+        lab = torch.tensor([[-100] * len(ex.prompt) + ex.resp])
+        hf = float(model(input_ids=x, labels=lab).loss)  # Dan's lora.py nll()
+    assert nll.shape == (len(ex.resp),)
+    assert float(nll.mean()) == pytest.approx(hf, rel=1e-5)
+    th, ans = oe.seg_sums(nll, ex.think_end)
+    assert th == pytest.approx(float(nll[: ex.think_end].sum()), rel=1e-6)
+    assert th + ans == pytest.approx(float(nll.sum()), rel=1e-6)
+
+
+def test_batched_scoring_matches_batch1():
+    model = tiny_model(sliding=8)  # responses (12-30 tokens) run past the sliding window
+    exs = make_sets(n=7)["train"]
+    a = oe.score(model, exs, batch_tokens=0)
+    b = oe.score(model, exs, batch_tokens=400)
+    np.testing.assert_allclose(a["think_nats"], b["think_nats"], rtol=1e-4)
+    np.testing.assert_allclose(a["answer_nats"], b["answer_nats"], rtol=1e-4)
+
+
+def test_adapter_reset_restores_step0_exactly():
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    exs = make_sets()["train"]
+    oe.reset_lora(model, 1)
+    s0 = oe.score(model, exs)
+    params = oe.trainable(model)
+    opt = torch.optim.AdamW(params, lr=5e-2)
+    for ex in exs[:3]:
+        oe.train_step(model, opt, params, ex, grad_clip=1.0)
+    s1 = oe.score(model, exs)
+    assert s1["think_nats"] != s0["think_nats"]  # training changed the model
+    oe.reset_lora(model, 2)  # another A init: B = 0 makes it irrelevant
+    s2 = oe.score(model, exs)
+    assert s2["think_nats"] == s0["think_nats"] and s2["answer_nats"] == s0["answer_nats"]
+
+
+def test_run_rows_reset_check_and_fields(tmp_path):
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    sets = make_sets()
+    assert run(model, sets, tmp_path, lrs=[1e-2, 3e-2]) == 0
+    rows = oe.read_rows(tmp_path / "edl_rows.jsonl")
+    assert len(rows) == 2 and (tmp_path / "DONE").exists() and (tmp_path / "step0.json").exists()
+    for r in rows:
+        assert r["status"] == "ok" and r["reset_check"]["abs_diff"] == 0.0
+        assert (
+            sorted(r["evals"], key=int) == ["0", "2", "4", "6"]
+            and "reach" in r["evals"]["6"]
+            and "reach" not in r["evals"]["4"]
+        )
+        assert len(r["online"]["think_nats"]) == 6 and r["online"]["pids"] == [
+            sets["train"][k].pid for k in r["perm"]
+        ]
+        assert r["test"]["pids"] == [e.pid for e in sets["test"]]
+    hb = json.loads((tmp_path / "heartbeat.json").read_text())
+    assert hb["phase"] == "done"
+    s = an.analyze(tmp_path.parent / "nonexistent", B=10)  # no runs: empty, no crash
+    assert s["checkpoints"] == {}
+
+
+def test_null_control_edl_zero(tmp_path):
+    """A model whose loss cannot change (zero LM head: uniform logits, zero gradients) has EDL = 0 in the
+    length-normalised form, and in the per-example form when train and test responses have equal lengths."""
+    for equal_len, sub in ((None, "var"), (20, "eq")):
+        model = tiny_model()
+        with torch.no_grad():
+            model.lm_head.weight.zero_()
+        model = oe.wrap_lora(model, grad_ckpt=False)
+        sets = make_sets(equal_len=equal_len)
+        d = tmp_path / sub / "dpo" / "edl"
+        assert run(model, sets, d, ckpt="dpo", lrs=[1e-2], orders=2) == 0
+        res = an.analyze(tmp_path / sub, B=50)["checkpoints"]["dpo"]
+        norm = res["by_lr"]["0.01"]["EDL64"]["norm"]["total"]
+        assert abs(norm) < 1e-9
+        for seg in ("total", "think", "answer"):
+            assert res["EDL_star"]["norm"]["mdl"][seg]["nats"] == pytest.approx(
+                0.0, abs=1e-9
+            )  # ln(1 lr) = 0
+        r = oe.read_rows(d / "edl_rows.jsonl")[0]
+        c = math.log(V)
+        assert r["online"]["think_nats"][0] == pytest.approx(
+            c * r["online"]["n_think"][0], rel=1e-6
+        )
+        s = res["by_lr"]["0.01"]["EDL64"]["sum"]["total"]
+        if equal_len:
+            assert abs(s) < 1e-6
+        else:  # the per-example form charges the length difference
+            n_tr = sum(e.n_tok for e in sets["train"])
+            n_te = np.mean([e.n_tok for e in sets["test"]])
+            assert s == pytest.approx(c * (n_tr - len(sets["train"]) * n_te), rel=1e-5)
+
+
+def test_resume_skips_finished_rows(tmp_path, monkeypatch):
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    sets = make_sets()
+    assert run(model, sets, tmp_path, lrs=[1e-2]) == 0
+    first = (tmp_path / "edl_rows.jsonl").read_text()
+    calls = {"run": 0, "step0": 0}
+    real_run, real_s0 = oe.run_one, oe.compute_step0
+
+    def count_run(*a, **k):
+        calls["run"] += 1
+        return real_run(*a, **k)
+
+    def count_s0(*a, **k):
+        calls["step0"] += 1
+        return real_s0(*a, **k)
+
+    monkeypatch.setattr(oe, "run_one", count_run)
+    monkeypatch.setattr(oe, "compute_step0", count_s0)
+    assert run(model, sets, tmp_path, lrs=[1e-2, 3e-2]) == 0
+    assert calls == {"run": 1, "step0": 0}
+    assert (tmp_path / "edl_rows.jsonl").read_text().startswith(first)
+    assert run(model, sets, tmp_path, lrs=[1e-2, 3e-2]) == 0 and calls["run"] == 1
+    assert len(oe.read_rows(tmp_path / "edl_rows.jsonl")) == 2
+    with pytest.raises(SystemExit):  # rows of another checkpoint in the same out dir
+        run(model, sets, tmp_path, ckpt="other", lrs=[1e-2, 3e-2])
+
+
+def test_nonfinite_row_is_recorded_and_next_row_runs(tmp_path, monkeypatch):
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    sets = make_sets()
+    real = oe.train_step
+    seen = {"n": 0}
+
+    def flaky(model_, opt, params, ex, **k):
+        if opt.param_groups[0]["lr"] == 3e-2:
+            seen["n"] += 1
+            if seen["n"] == 2:
+                raise oe.NonFinite("synthetic NaN")
+        return real(model_, opt, params, ex, **k)
+
+    monkeypatch.setattr(oe, "train_step", flaky)
+    assert run(model, sets, tmp_path, lrs=[3e-2, 1e-2]) == 0
+    rows = {r["lr"]: r for r in oe.read_rows(tmp_path / "edl_rows.jsonl")}
+    assert rows[3e-2]["status"] == "nonfinite" and len(rows[3e-2]["online"]["think_nats"]) == 2
+    assert rows[1e-2]["status"] == "ok" and len(rows[1e-2]["online"]["think_nats"]) == 6
+
+
+# ------------------------------------------------------------------------------------------ pool
+
+
+def _ids(think: int, ans: int, mark: bool = True) -> list[int]:
+    return [10] * think + ([524, 27963, 1363] if mark else []) + [20] * ans + [bp.EOS]
+
+
+def test_pool_builder_rules(tmp_path):
+    dan = tmp_path / "dan"
+    (dan / "olmo_ifomega").mkdir(parents=True)
+    (dan / "olmo_ifcurve").mkdir()
+    for d in ("olmo_ladder", "olmo_ifladder", "olmo_transplant", "artifacts/olmo_ifcurve/hand"):
+        (dan / d).mkdir(parents=True, exist_ok=True)
+    arm = [f"ifbench_{k}" for k in range(1, 13)] + ["ifbench_100"]
+    reach = ["ifbench_100", "ifeval_200"]
+    probs = [
+        {
+            "pid": p,
+            "task": p.split("_")[0],
+            "key": 0,
+            "prompt": f"Do {p}.",
+            "instruction_id_list": ["x:y"],
+            "kwargs": [{}],
+        }
+        for p in arm + ["ifeval_200"]
+    ]
+    (dan / "olmo_ifomega/problems.jsonl").write_text("".join(json.dumps(p) + "\n" for p in probs))
+    (dan / "olmo_ifcurve/pids_armA.txt").write_text("\n".join(arm) + "\n")
+    (dan / "olmo_ifcurve/pids_reach.txt").write_text("\n".join(reach) + "\n")
+    job, run_ = "F_s2300_ifb", "olmo_ifomega"
+    draws = []  # (pid, chunk, i, ids, finish, strict, answer text)
+
+    def add(pid, c, i, ids, finish="stop", strict=True, ans="ok"):
+        draws.append((pid, c, i, ids, finish, strict, ans))
+
+    add("ifbench_1", 0, 0, _ids(10, 3))
+    add("ifbench_1", 0, 1, _ids(12, 3), ans="good")  # labelled genuine -> preferred
+    add("ifbench_2", 0, 0, _ids(10, 3))  # gamed
+    add("ifbench_2", 0, 1, _ids(10, 3), strict=False, ans="other")
+    add("ifbench_3", 0, 0, _ids(10, 3, mark=False))  # no </think>
+    add("ifbench_4", 0, 0, _ids(10, 3), finish="length")  # length cut: not a pass
+    add("ifbench_5", 0, 0, _ids(80, 3))  # over the cap (50)
+    add("ifbench_6", 0, 0, _ids(10, 3), ans="same")  # gamed
+    add("ifbench_6", 0, 1, _ids(11, 3), ans="same")  # identical answer: inherits gamed
+    add("ifbench_7", 0, 0, _ids(10, 3))  # screen gamed over a genuine read: gamed (conflict)
+    for k in range(8, 13):
+        add(f"ifbench_{k}", 0, 0, _ids(10 + k, 3, mark=True), ans=f"a{k}")
+        add(f"ifbench_{k}", 0, 1, _ids(12 + k, 3), ans=f"b{k}")
+    add("ifbench_100", 0, 0, _ids(10, 3), ans="r1")
+    add("ifbench_100", 0, 1, _ids(14, 3), ans="r2")  # genuine
+    add("ifeval_200", 0, 0, _ids(10, 3))  # strict-only: dropped from reach by default
+    smp = dan / "artifacts" / run_ / "samples"
+    smp.mkdir(parents=True)
+    (dan / "artifacts" / run_ / "graded").mkdir()
+    (dan / "artifacts" / run_ / "meta").mkdir()
+    with (
+        gzip.open(smp / f"{job}.jsonl.gz", "wt") as f,
+        open(dan / "artifacts" / run_ / "graded" / f"{job}.jsonl", "w") as g,
+    ):
+        for pid, c, i, ids, fin, st, ans in draws:
+            text = ("think </think>\n\n" if 524 in ids else "think ") + ans
+            b64 = base64.b64encode(np.asarray(ids, dtype=np.int32).tobytes()).decode()
+            f.write(
+                json.dumps(
+                    {
+                        "pid": pid,
+                        "model": "s2300",
+                        "rev": "main",
+                        "job": job,
+                        "chunk": c,
+                        "i": i,
+                        "n_tok": len(ids),
+                        "finish": fin,
+                        "text": text,
+                        "ids": b64,
+                    }
+                )
+                + "\n"
+            )
+            g.write(
+                json.dumps(
+                    {
+                        "pid": pid,
+                        "job": job,
+                        "chunk": c,
+                        "i": i,
+                        "n_tok": len(ids),
+                        "finish": fin,
+                        "task": pid.split("_")[0],
+                        "strict": st,
+                    }
+                )
+                + "\n"
+            )
+    meta = {
+        "job": job,
+        "name": "s2300",
+        "rev": "main",
+        "problems": "olmo_ifomega/problems.jsonl",
+        "lora": None,
+        "seed": 1,
+        "template_sha256": bp.TEMPLATE_SHA256,
+    }
+    (dan / "artifacts" / run_ / "meta" / f"{job}.json").write_text(json.dumps(meta) + "\n")
+    (dan / "artifacts/olmo_iffu/meta").mkdir(parents=True)
+    (dan / "artifacts/olmo_iffu/meta/T2_s2300.json").write_text(
+        json.dumps({**meta, "job": "T2_s2300", "problems": "olmo_iffu/problems_hint.jsonl"}) + "\n"
+    )
+
+    def write_csv(rel, header, rows):
+        with open(dan / rel, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(header)
+            w.writerows(rows)
+
+    write_csv(
+        "olmo_ifcurve/handcheck.csv",
+        ["job", "pid", "chunk", "i", "final_label"],
+        [
+            [job, "ifbench_1", 0, 1, "genuine"],
+            [job, "ifbench_2", 0, 0, "gamed"],
+            [job, "ifbench_6", 0, 0, "gamed"],
+            [job, "ifbench_100", 0, 1, "genuine"],
+        ],
+    )
+    write_csv(
+        "olmo_ifomega/handcheck.csv",
+        ["job", "pid", "chunk", "i", "final_label"],
+        [[job, "ifbench_7", 0, 0, "genuine"]],
+    )
+    write_csv("olmo_ifladder/handcheck_src.csv", ["job", "pid", "chunk", "i", "final_label"], [])
+    write_csv(
+        "olmo_transplant/handcheck_src.csv",
+        ["key", "final_label"],
+        [[f"{job}|ifbench_8|0|1", "genuine"]],
+    )
+    write_csv(
+        "artifacts/olmo_ifcurve/hand/screen.csv",
+        ["job", "pid", "chunk", "i", "reason"],
+        [[job, "ifbench_7", 0, 0, "rule 1"]],
+    )
+
+    out = tmp_path / "pool"
+    man = bp.build(dan, out, cap=50, n_train=3, n_test=2, seed=7, tokenizer=None, reach_any=False)
+    st = man["prompt_status"]["arm A minus reach"]
+    assert st == {
+        "ok": 6,
+        "only gamed": 3,
+        "no </think> in any strict pass": 1,
+        "no strict pass": 1,
+        "over cap": 1,
+    }
+    assert [s["job"] for s in man["skipped_s2300_jobs"]] == ["T2_s2300"]
+    assert man["draw_stats"]["label_conflicts"] == 1 and man["draw_stats"]["inherited_gamed"] == 1
+    sets = {
+        k: [json.loads(x) for x in (out / f"{k}.jsonl").read_text().splitlines()]
+        for k in ("train", "test", "reach")
+    }
+    assert len(sets["train"]) == 3 and len(sets["test"]) == 2
+    tr, te = {r["pid"] for r in sets["train"]}, {r["pid"] for r in sets["test"]}
+    assert not tr & te and (tr | te) <= {"ifbench_1"} | {f"ifbench_{k}" for k in range(8, 13)}
+    assert (
+        [r["pid"] for r in sets["reach"]] == ["ifbench_100"]
+        and sets["reach"][0]["i"] == 1
+        and sets["reach"][0]["label"] == "genuine"
+    )
+    for r in sets["train"] + sets["test"]:
+        ids = oe.b64_ids(r["ids"])
+        assert (
+            ids[r["think_end"] - 3 : r["think_end"]] == [524, 27963, 1363]
+            and ids[-1] == bp.EOS
+            and r["n_tok"] <= 50
+        )
+        if r["pid"] == "ifbench_1":
+            assert r["i"] == 1 and r["label"] == "genuine"
+        if r["pid"] == "ifbench_8":
+            assert r["i"] == 1 and r["label"] == "genuine"
+    sha = man["files"]["train.jsonl"]["sha256"]
+    man2 = bp.build(
+        dan,
+        tmp_path / "pool2",
+        cap=50,
+        n_train=3,
+        n_test=2,
+        seed=7,
+        tokenizer=None,
+        reach_any=False,
+    )
+    assert man2["files"]["train.jsonl"]["sha256"] == sha  # deterministic
+    man3 = bp.build(
+        dan, tmp_path / "pool3", cap=50, n_train=3, n_test=2, seed=7, tokenizer=None, reach_any=True
+    )
+    assert man3["files"]["reach.jsonl"]["rows"] == 2
+
+
+def test_extra_epochs_conv_block(tmp_path):
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    sets = make_sets()
+    assert run(model, sets, tmp_path, ckpt="dpo", lrs=[1e-2], extra_epochs=2, save="best") == 0
+    r = oe.read_rows(tmp_path / "edl_rows.jsonl")[0]
+    cv = r["conv"]
+    assert (
+        cv["status"] == "ok"
+        and cv["epochs"] == 2
+        and len(cv["train_loss"]) == 2
+        and len(cv["train_loss"][0]) == 6
+    )
+    assert len(cv["test"]["think_nats"]) == 4 and len(cv["reach"]["answer_nats"]) == 3
+    assert sum(cv["test"]["think_nats"]) != sum(
+        r["evals"]["6"]["test"]["think_nats"]
+    )  # more training moved it
+    assert (tmp_path / "adapters" / "best_order0" / "adapter_config.json").exists()
+    # the saved adapter is theta_n (after the online pass, before the extra epochs)
+    from peft import PeftModel
+
+    m2 = PeftModel.from_pretrained(tiny_model(), str(tmp_path / "adapters" / "best_order0"))
+    sc = oe.score(m2, sets["test"], batch_tokens=64)
+    np.testing.assert_allclose(sc["think_nats"], r["evals"]["6"]["test"]["think_nats"], rtol=1e-5)
+    with pytest.raises(SystemExit):  # rows made with other extra_epochs are another setup
+        run(model, sets, tmp_path, ckpt="dpo", lrs=[1e-2], extra_epochs=0)
+
+
+def test_step0_token_stats_sanity(tmp_path):
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    sets = make_sets()
+    assert run(model, sets, tmp_path, lrs=[1e-2]) == 0
+    s0 = json.loads((tmp_path / "step0.json").read_text())
+    ts = oe.load_token_stats(tmp_path / "step0_tokens.npz")
+    assert s0["token_stats"]["examples"] == 13 and set(ts) == {
+        e.pid for nm in oe.SETS for e in sets[nm]
+    }
+    for nm in oe.SETS:
+        for k, e in enumerate(sets[nm]):
+            d = ts[e.pid]
+            assert (
+                d["set"] == nm
+                and d["think_end"] == e.think_end
+                and d["n_tok"] == e.n_tok == len(d["nll"])
+            )
+            assert d["token"].tolist() == e.resp
+            # same numbers as the step-0 sums (fp32 per position vs the cross-entropy path)
+            assert float(d["nll"].astype(np.float64).sum()) == pytest.approx(
+                s0[nm]["think_nats"][k] + s0[nm]["answer_nats"][k], rel=1e-5
+            )
+            assert float(d["nll"][: e.think_end].astype(np.float64).sum()) == pytest.approx(
+                s0[nm]["think_nats"][k], rel=1e-5
+            )
+            top1 = d["topk_ids"][:, 0] == d["token"]
+            assert ((d["rank"] == 0) == top1).all()
+            assert (np.diff(d["topk_logp"].astype(np.float32), axis=1) <= 1e-3).all()
+            assert (d["entropy"] >= 0).all() and (
+                d["entropy"].astype(np.float32) <= math.log(V) + 1e-2
+            ).all()
+            inside = (
+                d["rank"] < oe.TOPK
+            )  # where the stored token is in the top-20 its log-prob is there too
+            lp = np.take_along_axis(
+                d["topk_logp"].astype(np.float32), np.clip(d["rank"], 0, oe.TOPK - 1)[:, None], 1
+            )[:, 0]
+            np.testing.assert_allclose(lp[inside], -d["nll"][inside], atol=2e-2)
+    # a restart reuses step 0 only when the token file exists
+    (tmp_path / "step0_tokens.npz").unlink()
+    calls = {"n": 0}
+    real = oe.compute_step0
+
+    def count(*a, **k):
+        calls["n"] += 1
+        return real(*a, **k)
+
+    oe.compute_step0 = count
+    try:
+        assert run(model, sets, tmp_path, lrs=[1e-2]) == 0
+    finally:
+        oe.compute_step0 = real
+    assert calls["n"] == 1 and (tmp_path / "step0_tokens.npz").exists()
+
+
+def test_conv_rows_best_equals_in_place_continuation(tmp_path):
+    sets = make_sets()
+    m1 = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    assert (
+        run(
+            m1,
+            sets,
+            tmp_path / "best",
+            lrs=[1e-2, 3e-2],
+            orders=2,
+            extra_epochs=2,
+            conv_rows="best",
+        )
+        == 0
+    )
+    rows = oe.read_rows(tmp_path / "best" / "edl_rows.jsonl")
+    main = [r for r in rows if r.get("schema") == oe.SCHEMA]
+    conv = [r for r in rows if r.get("schema") == oe.CONV_SCHEMA]
+    assert len(main) == 4 and all("conv" not in r for r in main) and len(conv) == 1
+    code = {
+        r["lr"]: sum(r["online"]["think_nats"]) + sum(r["online"]["answer_nats"])
+        for r in main
+        if r["order"] == 0
+    }
+    c = conv[0]
+    assert (
+        c["lr"] == min(code, key=code.get)
+        and c["order"] == 0
+        and c["load_check_max_abs_diff_test_nats"] == 0.0
+    )
+    m2 = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    assert (
+        run(m2, sets, tmp_path / "all", lrs=[c["lr"]], orders=1, extra_epochs=2, conv_rows="all")
+        == 0
+    )
+    ref = oe.read_rows(tmp_path / "all" / "edl_rows.jsonl")[0]["conv"]
+    np.testing.assert_allclose(
+        c["conv"]["test"]["think_nats"], ref["test"]["think_nats"], rtol=1e-6
+    )
+    np.testing.assert_allclose(
+        c["conv"]["reach"]["answer_nats"], ref["reach"]["answer_nats"], rtol=1e-6
+    )
+    # a restart finds everything done (no new conv row)
+    assert (
+        run(
+            m1,
+            sets,
+            tmp_path / "best",
+            lrs=[1e-2, 3e-2],
+            orders=2,
+            extra_epochs=2,
+            conv_rows="best",
+        )
+        == 0
+    )
+    assert len(oe.read_rows(tmp_path / "best" / "edl_rows.jsonl")) == 5
+    d = tmp_path / "ana" / "dpo" / "edl"
+    d.mkdir(parents=True)
+    for f in ("edl_rows.jsonl", "step0.json"):
+        (d / f).write_text((tmp_path / "best" / f).read_text())
+    res = an.analyze(tmp_path / "ana", B=20)["checkpoints"]["dpo"]
+    assert "EDL_conv" in res and res["EDL_conv"]["sum"]["answer"]["lr"] == c["lr"]
+
+
+def test_ce_checkpoint_same_loss_and_grads():
+    ex = make_sets()["train"][0]
+    out = []
+    for flag in (False, True):
+        model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+        oe.reset_lora(model, 3)
+        with torch.no_grad():
+            for mod in oe.lora_layers(model):
+                mod.lora_B["default"].weight.normal_(0, 0.1)  # nonzero, so A gets gradient too
+        params = oe.trainable(model)
+        opt = torch.optim.AdamW(params, lr=1e-3)
+        oe.OPTS["ce_checkpoint"] = flag
+        try:
+            out.append(oe.train_step(model, opt, params, ex, grad_clip=1e9))
+        finally:
+            oe.OPTS["ce_checkpoint"] = False
+    assert out[0][0] == pytest.approx(out[1][0], rel=1e-6) and out[0][1] == pytest.approx(
+        out[1][1], rel=1e-5
+    )
+
+
+def test_analysis_and_figure_on_partial_checkpoints(tmp_path):
+    pytest.importorskip("matplotlib")
+    import fig_edl
+
+    sets = make_sets()
+    for ck, seed, kw in (
+        ("dpo", 0, {"lrs": [1e-2, 3e-2], "orders": 2}),
+        ("s0500", 1, {"lrs": [1e-2]}),
+    ):
+        model = oe.wrap_lora(tiny_model(seed), grad_ckpt=True)
+        assert run(model, sets, tmp_path / "runs" / ck / "edl", ckpt=ck, **kw) == 0
+    s0 = tmp_path / "runs" / "s2300" / "edl"  # only step 0 so far
+    s0.mkdir(parents=True)
+    (s0 / "step0.json").write_text((tmp_path / "runs" / "s0500" / "edl" / "step0.json").read_text())
+    s = an.analyze(tmp_path / "runs", B=30)
+    assert (
+        list(s["checkpoints"]) == ["dpo", "s0500", "s2300"]
+        and "EDL_star" not in s["checkpoints"]["s2300"]
+    )
+    assert set(s["checkpoints"]["dpo"]["gap_share"]) == {"total", "think", "answer"}
+    rows = an.flatten(s["checkpoints"])
+    assert any(r["metric"] == "EDL_star_mdl" and r["segment"] == "answer" for r in rows)
+    from code.ndbench.figures import style as st
+
+    with st.paper_style():
+        fig = fig_edl.make_figure(s)
+        paths = st.save(fig, tmp_path / "fig" / "edl_curve")
+        st.close(fig)
+    assert all(p.exists() and p.stat().st_size > 0 for p in paths)
