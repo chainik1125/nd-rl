@@ -111,3 +111,30 @@
 - `analyze_edl.py` (md5 3bbb6f1c) gains a `posthoc` section (after checkpoints/trends/checks, which are byte-identical to the previous run with the same seed): null-corrected EDL* (paired over test prompts), paired L0/L64 differences to s2300, P4 half-way steps as written and null-corrected (pass@1 read from stage0/repro_summary.csv col `his`, k=1: 29.0/31.5/41.2/57.7/68.3 match the check values), RL-step equivalent of 64 examples, reach transfer. `fig_edl.py` (c2837a54) writes figures/edl_learning.{pdf,svg,png} and notes in panel (b) that s2300 is the null control. Tests 25 passed; ruff clean. EDL.md has a post hoc section.
 - Observed (all post hoc): dEDL* norm total per token dpo 0.0139 [0.0114, 0.0165] -> s1100 0.0044 [0.0027, 0.0062]; answer intervals include 0 (norm). P4 as written: FAIL (EDL* half step 1309 vs pass@1 771); null-corrected: not established (dEDL* 811 and pass@1 771 both in 500-1100). 64 examples ~ RL step 1605 (dpo) to 1881 (s1100) on the total. Reach gap share closed by 64 matches the test one (dpo total 0.81 vs 0.80).
 - Correction to the entry above: "byte-identical" means equal as parsed JSON (only `written_utc` differs).
+
+## 2026-11-25 06:11 PST (stage-2 build agent): overview figure; fig_arms with the real L point (CPU)
+
+- `fig_overview.py` (md5 af38bb3a) writes `olmo_elicit/figures/overview.{pdf,svg,png}`, `overview.csv` (every plotted number, 85 rows: panel-a points with intervals where arms.csv has them, panel-b progress with the raw value and unit, one `halfway` row per curve with its bracket) and `overview.md` (caption, half-way table, reach table). Inputs: `stage0/repro_summary.csv` (`his`), `arms.csv`, `edl_summary.json` (`checkpoints.<ck>.L0.test.{total,answer}.nats_per_tok`; `posthoc.delta_EDL_star.<ck>.norm.total.nats`), `tokens_summary.json` (`checkpoints.<ck>.sets.all.total.share_js_gt_0.1`). Re-runnable as L arrives: missing cells are skipped, L shown only where present (drawn 50 steps left of its checkpoint so it does not hide A1's dpo point; the csv keeps the true step). `test_overview.py`: 6 tests (normalisation rising/falling/missing/degenerate; half-way interpolation, exact hit, first crossing on a non-monotone curve, missing points, never reached, agreement with analyze_edl's half_of_change). 20 passed with the stage-0/pod/stage-L tests; ruff clean.
+- Observed, panel (b) half-way steps (post hoc, descriptive; first step where progress reaches 0.5, linear between checkpoints): A1 288 and T 383 and test L0 answer 341 (all in 100-500); JS>0.1 share 557, arm-A pass@1 771, dEDL* norm total 811, test L0 total 829, H 953, plain reach B 1033 (all in 500-1100). All four that analyze_edl.py also computes (pass@1, L0 total, L0 answer, dEDL* norm total) agree with `posthoc.P4` to 0.01 steps. With five checkpoints only the bracket is located; the interpolated step is not a measurement and has no interval here.
+- `fig_arms.py` (md5 7a6c69e0): L markers were drawn hollow because the L source is "ours (adapter lr …)"; now any source starting "ours" is filled. A single L point gets an interval bar (no band to draw), and the legends moved below the panels (panel (c)'s legend covered the L point once it existed). Re-ran `analyze_arms.py` then `fig_arms.py`: panel (c) shows L at dpo 63.54 % [53.65, 73.18] of draws against 0.0 % for B8 and B.
+
+## 2026-11-25 08:00 PST (orchestrator): stage L at four checkpoints; adapter gate tolerance
+
+- Observed. Stage L (48 reach prompts through each checkpoint's own 64-example adapter, 8 draws,
+  Dan's sampler on vLLM's LoRA path, strict checker), % of draws [prompt bootstrap], and prompts
+  with a pass in 8 draws: `dpo` 63.5 [53.7, 73.2], 91.7 %; `s0100` 64.3 [55.5, 72.9], 93.8 %;
+  `s0500` 65.1 [55.7, 74.5], 93.8 %; `s1100` 66.4 [57.3, 75.5], 95.8 %. Plain prompt at the same
+  checkpoints (Dan's stored draws): 0.0, 0.1, 4.5, 38.5 %; final model plain 69.4 %.
+- Observed. At `dpo` the gate that checks vLLM applies the adapter passed: on two test responses
+  vLLM's loss drop with the adapter is 0.99 and 1.01 times the trainer's (2,152 to 1,871 nats and
+  4,496 to 3,746 nats).
+- Observed (post hoc). Per prompt, the adapter's pass rate follows the final model's plain pass
+  rate: Spearman 0.85, 0.67, 0.79, 0.88 at the four checkpoints over the 48 prompts. The reach
+  prompts are not in the adapter's training set.
+- Fix. The driver refused `s2300` at 7:55 am PT: `stage_adapter.py` required the adapter's
+  recorded code length to equal its row's to 1e-6, but the `s2300` adapter was rebuilt by
+  re-running its row (grid shift), and the re-run differs by 4 nats in 130,624 (bf16 on GPU). The
+  gate now allows 1e-4 for a rebuilt adapter (same learning rate and order still required) and
+  records the difference. Relaunched at 7:56 am PT as `s2300:L,rep`.
+- Observed. The weight shard whose download had stalled at 5:25 am resumed and finished; its
+  sha256 equals the hub's (b90c04a6…6f64).

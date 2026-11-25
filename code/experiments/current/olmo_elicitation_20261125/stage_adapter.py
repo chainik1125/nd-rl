@@ -80,10 +80,14 @@ def check(edl: Path, grid: tuple[float, ...]) -> tuple[dict, dict, dict]:
     if not cand:
         raise SystemExit("no finished order-0 grid row in edl_rows.jsonl")
     win = min(cand, key=code_length)
+    # An adapter rebuilt by re-running its row's online pass (the grid shifted and no state was saved
+    # for the new best rate) carries the re-run's code length: bf16 on a GPU is not bit-exact across
+    # runs (s2300: 4 nats in 130,624, 3e-5). Same lr and order are still required.
+    tol = 1e-4 if str(best.get("rule", "")).startswith("regenerated") else 1e-6
     if (
         int(best.get("order", -1)) != 0
         or not same_lr(float(best["lr"]), float(win["lr"]))
-        or abs(float(best["code_length"]) - code_length(win)) > 1e-6 * code_length(win)
+        or abs(float(best["code_length"]) - code_length(win)) > tol * code_length(win)
     ):
         raise SystemExit(
             f"BEST.json (lr {best.get('lr')}, code {best.get('code_length')}) is not the shortest order-0 "
@@ -159,6 +163,7 @@ def main() -> int:
             "lr": win["lr"],
             "order": win["order"],
             "code_length": code_length(win),
+            "best_minus_row_code_length": float(best["code_length"]) - code_length(win),
             "utc_end": win.get("utc_end"),
             "pool_manifest_sha256": win.get("pool_manifest_sha256"),
             "n": win.get("n"),

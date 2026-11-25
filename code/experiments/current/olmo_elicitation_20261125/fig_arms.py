@@ -36,8 +36,12 @@ def draw(ax, rows, color, marker, label, ls="-"):
     ax.plot(x, y, color=color, ls=ls, lw=1.1, zorder=2)
     ax.plot([], [], color=color, ls=ls, lw=1.1, marker=marker, label=label)  # legend proxy
     ax.fill_between(x, lo, hi, color=color, alpha=S.BAND_ALPHA, lw=0, zorder=1)
+    if len(rows) == 1:  # a single checkpoint: no band, so an interval bar
+        ax.errorbar(
+            x, y, yerr=[[y[0] - lo[0]], [hi[0] - y[0]]], color=color, lw=0.7, capsize=1.8, zorder=2
+        )
     for xi, yi, r in zip(x, y, rows, strict=True):
-        ours = r["source"] == "ours"
+        ours = r["source"].startswith("ours")
         ax.plot(
             [xi],
             [yi],
@@ -62,7 +66,7 @@ def main() -> None:
         return [r for r in rows if r["arm"] == k and r["strict_pct"] not in ("", "None")]
 
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 2.2)
+        fig = S.new_figure(S.FULL_W, 2.75)
         ax1, ax2, ax3 = fig.subplots(1, 3, sharey=True)
         draw(ax1, arm("T"), C["blue"], "o", "transplant, no instruction (T)")
         draw(ax1, arm("A1"), C["vermillion"], "s", "+ answer-only instruction (A1)", ls="--")
@@ -82,7 +86,9 @@ def main() -> None:
             S.pct_axis(ax)
             S.light_grid(ax)
             ax.axvline(200, color=S.REF, lw=0.5, ls=":", zorder=0)
-            ax.legend(loc="lower right" if ax is ax1 else "upper left", fontsize=S.FS_SMALL)
+            ax.legend(
+                loc="upper left", bbox_to_anchor=(0.0, -0.24), fontsize=S.FS_SMALL
+            )  # below the axes: never on data
         ax1.set_ylabel("strict checker passes, % of draws")
         S.save(fig, Path(a.out))
         S.close(fig)
