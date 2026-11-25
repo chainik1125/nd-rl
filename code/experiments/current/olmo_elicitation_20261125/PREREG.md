@@ -119,3 +119,20 @@ ICML 2026, read by the agent in full text; not yet checked by me):
 - **Token-level profile at step 0, descriptive.** Per response position at every checkpoint: NLL and
   rank of the final model's token, entropy, top-20 logprobs. Used for an offline divergence profile
   between checkpoints (how concentrated the difference to the final model is). No prediction.
+
+## Amendment 4 (2026-11-25 3:12 am PT; EDL at `dpo` has been running for a few minutes, no EDL number has been read)
+
+- **Hardware.** The account allows one H200 at a time. The EDL timing test on an H100 (80 GB) at
+  `dpo` fits (peak 69.3 GB at the longest response, with the process capped at 78 GB) and takes
+  7.6 min per (learning rate, order). So EDL runs on H100 pods ($4.39/h), one checkpoint each, all
+  with the same flags (`--ce-checkpoint --max-memory-gb 78`: same loss and gradients, tested by the
+  builder), and the sampling arms run on the one H200.
+- **Two data orders at all five checkpoints** (48 min per checkpoint), not only at three. C3 is still
+  evaluated at `dpo`, `s0500`, `s2300`; the other two are shown beside it.
+- **Extra epochs** (Amendment 3) run once per checkpoint, on the order-0 row with the shortest online
+  code length, continuing from its saved adapter and optimizer state.
+- **Learning-rate grid.** All five checkpoints start on {3e-5, 1e-4, 3e-4} at once. If the best rate
+  at `dpo` is at an edge, the next rate beyond it is added at every checkpoint and the edge rate at
+  the other end is dropped from `EDL*` (its rows stay on file); otherwise the grid stands.
+- **Stage 0c at `dpo` passed** before this amendment (ours 28.2 %, Dan's 29.0 %, difference −0.8
+  points, interval [−2.9, +1.3]); stage 2 started on the H200 at 3:06 am PT.
