@@ -5,7 +5,7 @@ written_by: agent:claude (orchestrator)
 
 # Olmo elicitation curves: readings fixed in advance
 
-Written 2026-11-25 about 3:00 am PT, before any pod exists and before any EDL number. Design and
+Written 2026-11-25 2:20 am PT, before any pod exists and before any EDL number. Design and
 terms: `SPEC.md`. Amendments are appended below with a time stamp, each before the data it changes.
 
 ## What the measurements can and cannot say
