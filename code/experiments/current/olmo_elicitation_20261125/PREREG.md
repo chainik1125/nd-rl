@@ -101,3 +101,21 @@ tokens, median eligible draw 5,190 tokens):
   shortest online code length (the sum of online nats), then `EDL* = EDL at that rate +
   ln(number of rates)`. The minimum of EDL over rates, as first written in `SPEC.md`, is reported
   beside it as secondary; it went spuriously negative on ndbench's null control.
+
+## Amendment 3 (2026-11-25 2:36 am PT, before any EDL number; the first pod exists, nothing has run on its GPU)
+
+From the literature agent's first report (the EDL companion paper, Donoway et al., "Bits That Count",
+ICML 2026, read by the agent in full text; not yet checked by me):
+
+- **Converged residual, secondary.** The paper's residual is the test loss after training to
+  convergence, and it says single-pass results depend most on hyperparameters. After each online pass
+  we train 3 more epochs over the same 64 examples and evaluate once more:
+  `EDL_conv = sum(online) - n * L_test_conv`. Reported beside EDL. Our single-pass EDL is a lower
+  bound in the paper's sense and is described as such.
+- **Answer segment with equal prominence.** The paper scores answer tokens to separate capability
+  from format. Every stage-1 reading is given for the answer segment as well as the total; C1–C3
+  and P1–P4 are evaluated on the total as written, and their answer-segment values are shown next
+  to them without a pass or fail.
+- **Token-level profile at step 0, descriptive.** Per response position at every checkpoint: NLL and
+  rank of the final model's token, entropy, top-20 logprobs. Used for an offline divergence profile
+  between checkpoints (how concentrated the difference to the final model is). No prediction.
