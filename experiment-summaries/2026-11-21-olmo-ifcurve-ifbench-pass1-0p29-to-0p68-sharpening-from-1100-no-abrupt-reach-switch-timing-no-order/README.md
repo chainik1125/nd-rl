@@ -24,6 +24,16 @@ output is natural-language chat, not `lean_seq`. There are no proofs, so neither
 "Strict" is the official IFBench / IFEval strict checker. "Genuine" is strict plus a blinded hand gate (Claude reader
 sub-agents). One RL run (AI2's), so one training seed.
 
+*[olmo-weights review, 2026-11-25]* **`s0200` is off the RL run's lineage.** The review of
+[olmo-weights](../2026-11-25-olmo-weights-rl-total-move-31-185x-below-sft-its-8-9x-lr-per-step-holds-only-at-25-50-step-spacing/README.md) computed distances between the released checkpoints from that run's stored
+per-tensor statistics. It finds that `step_0150` and `step_0200` lie on a branch the run abandoned: the released line
+restarts from `step_0100`, and steps 250–2,300 descend from it. In its words, this run's step-200 point ("pass@1 0.347
+and the rug of 7 first-genuine prompts at step 200") "is on the abandoned branch, not on the lineage of steps
+250–2,300". It adds that the step labels from 250 up "probably overstate the optimizer steps along the released
+lineage by ≈ 100". The review asks for confirmation with direct weight differences and AI2's RL logs.
+*[librarian]* The review did not re-derive this run's readings without `s0200`. `s0200` also appears in the copied
+figure: the left panel's step-200 point and the right panel's 200 column.
+
 Review: [`review_olmo-ifcurve.md`](https://github.com/dan-pandori/nd-takehome/blob/8e744a89/review_olmo-ifcurve.md)
 (fork `dan-pandori/nd-takehome`, branch `dan_olmo-ifcurve`):
 - §Recount, phase 1: [`7c23ec4b`](https://github.com/dan-pandori/nd-takehome/commit/7c23ec4b), 09:53:22 UTC;
@@ -281,7 +291,8 @@ each share carries a binomial SE of ≈ 0.05–0.10 at 20 labels and ≈ 0.03–
 | 2,300 | 8 | 0.683 [0.635, 0.732] | 0.844 | 0.885 [0.844, 0.927] | 0.478 / 0.496 |
 
 - **Strict pass@1 rises at every sampled checkpoint.** All adjacent paired differences are positive; only the first
-  two 95 % intervals (0 → 50, 50 → 100) include 0. `dpo`'s first 8 draws give 0.290 / 0.459.
+  two 95 % intervals (0 → 50, 50 → 100) include 0. `dpo`'s first 8 draws give 0.290 / 0.459. *[olmo-weights review,
+  2026-11-25]* Step 200 is off the lineage of steps 250–2,300 (see the note under the models).
 - **Shape (reading 5): sharpening from 1,100,** on the checker score. The paired 90 % intervals of the remaining gain
   to 2,300 are:
   - from 750: Δpass@1 +0.171 [+0.138, +0.205], Δpass@8 +0.092 [+0.046, +0.138];
@@ -345,7 +356,9 @@ each share carries a binomial SE of ≈ 0.05–0.10 at 20 labels and ≈ 0.03–
   - `ifbench_170`: executor 1,600, review 2,300. The executor's audit u flipped its one `s1600` success, which the
     review's two reads call gamed.
 
-  F1 ≤ 750 on 35 of 48. No prompt has a genuine success at `s0050` in its base 32.
+  F1 ≤ 750 on 35 of 48. No prompt has a genuine success at `s0050` in its base 32. *[olmo-weights review,
+  2026-11-25]* F1 = 200 (7 prompts) is measured on `s0200`, off the lineage of steps 250–2,300 (see the note under the
+  models).
 - **Reword (c), "all 48 reached":**
   - `ifbench_64` (`repeat_simple`, 40 successes, one distinct answer) and `ifbench_284` (`repeat_span`, 16 successes,
     all "code and theory behind") are reached only by the fixed-output copy that rule 5 counts as genuine.
