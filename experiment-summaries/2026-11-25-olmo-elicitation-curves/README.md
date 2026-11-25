@@ -12,6 +12,7 @@ Working folder:
 [`code/experiments/current/olmo_elicitation_20261125/`](../../code/experiments/current/olmo_elicitation_20261125/)
 (branch `leon/olmo-elicitation`; contract in `SPEC.md`, readings fixed in advance in `PREREG.md`,
 what ran in `log.md`). Results and figures: `/scratch/cowifornia/nd-rl/olmo_elicit/` on serrano.
+Blog-style write-up of the same results: [`blog.md`](blog.md).
 Literature review on elicitation measures:
 [`docs/literature/2026-11-25-elicitation-metrics/REVIEW.md`](../../docs/literature/2026-11-25-elicitation-metrics/REVIEW.md).
 
@@ -72,8 +73,8 @@ the starting model `dpo` (step 0) and RL steps 100, 500, 1100 and 2300 (the fina
    added "reply with only your final answer" instruction, 63.3, 72.1, 87.2, 92.0, 95.2 %. A 60-word
    hint on the reach prompts gives 6.2, 9.1, 22.7, 46.1, 74.5 % (plain: 0.0, 0.1, 4.5, 38.5, 69.4 %).
 6. **Showing the model examples in context does not do what the adapter does.** With 1, 2 or 4 of
-   the final model's responses in context, the loss on the thinking gets worse by about 0.02 nats
-   per token at every checkpoint. The answer tokens gain a little at `dpo` and step 100 (4 examples
+   the final model's responses in context, the loss on the thinking gets worse at every checkpoint
+   (with 4 examples: by 0.02 nats per token at `dpo`, rising to 0.05 at the final model). The answer tokens gain a little at `dpo` and step 100 (4 examples
    close 34 % of the answer gap) and nothing from step 1100 on.
 7. **Token by token, the starting model already ranks the final model's choice highly.** The final
    model's top token is in the starting model's top 5 at 99.56 % of positions. The gap sits on few
