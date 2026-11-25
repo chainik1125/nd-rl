@@ -30,8 +30,9 @@ any pod result) fixes the readings. `log.md` records what ran.
 
 ## Checkpoints
 
-`dpo` (0), `s0050`, `s0100`, `s0200`*, `s0500`, `s0750`, `s1100`, `s1600`, `s2300`. Revisions and
-weight digests: Dan's `olmo_ifcurve/checkpoints.csv`. Every job records the commit it loaded.
+Mini run (Leon, 2026-11-25 2:35 am PT: five checkpoints first): `dpo` (0), `s0100`, `s0500`,
+`s1100`, `s2300`. Possible second pass: `s0050`, `s0200`*, `s0750`, `s1600`. Revisions and weight
+digests: Dan's `olmo_ifcurve/checkpoints.csv`. Every job records the commit it loaded.
 
 ## Stage 0: recreate Dan's setup (CPU on serrano, then one pod)
 

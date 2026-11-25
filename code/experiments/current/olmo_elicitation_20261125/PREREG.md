@@ -71,3 +71,19 @@ rate is at an edge; the grid is then frozen and the pilot rows at dropped rates 
   fetch what is running; all pods deleted by $110.
 - Time: 2026-11-25 2:00 pm PT. What is unfinished then is reported as unfinished.
 - Priority if either binds: stage 1 at all nine checkpoints, then T, then H, then L.
+
+## Amendment 1 (2026-11-25 2:36 am PT, before any pod exists)
+
+Leon, 2:35 am PT: "I want you to do a mini run first I suspect 5 checkpoints is sufficent for what we
+need so you dont need to run all 10".
+
+- **Checkpoints of the mini run:** `dpo` (0), `s0100`, `s0500`, `s1100`, `s2300`. They span Dan's
+  curve (reach prompts with a strict pass: 0 / 18.8 / 79.2 / 97.9 / 97.9 % of 48) and leave out
+  step 200, which is off the released line.
+- **Stage 1** runs at all five; two data orders at `dpo`, `s0500`, `s2300`, one at the other two.
+- **Stage 2** (T and H) runs at `s0100`, `s0500`, `s1100`; Dan's stored cells cover `dpo` and
+  `s2300` and are reused. T keeps his design: 115 traces over the 41 prompts, 8 answers per trace.
+- **Stage 0c** unchanged (`dpo`, `s2300`).
+- P1, P2 and the T prediction keep their Spearman thresholds, now over five points (a single
+  adjacent swap gives ±0.9, so the threshold of 0.8 allows one). P4 interpolates between the five.
+- The other four checkpoints are a possible second pass, decided after the mini run.
