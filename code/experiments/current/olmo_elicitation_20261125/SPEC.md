@@ -30,7 +30,7 @@ any pod result) fixes the readings. `log.md` records what ran.
 
 ## Checkpoints
 
-Mini run (Leon, 2026-11-25 2:35 am PT: five checkpoints first): `dpo` (0), `s0100`, `s0500`,
+Mini run (Leon, 2026-11-25 about 2:27 am PT: five checkpoints first): `dpo` (0), `s0100`, `s0500`,
 `s1100`, `s2300`. Possible second pass: `s0050`, `s0200`*, `s0750`, `s1600`. Revisions and weight
 digests: Dan's `olmo_ifcurve/checkpoints.csv`. Every job records the commit it loaded.
 

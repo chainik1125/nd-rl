@@ -72,9 +72,9 @@ rate is at an edge; the grid is then frozen and the pilot rows at dropped rates 
 - Time: 2026-11-25 2:00 pm PT. What is unfinished then is reported as unfinished.
 - Priority if either binds: stage 1 at all nine checkpoints, then T, then H, then L.
 
-## Amendment 1 (2026-11-25 2:36 am PT, before any pod exists)
+## Amendment 1 (2026-11-25 2:28 am PT, before any pod exists)
 
-Leon, 2:35 am PT: "I want you to do a mini run first I suspect 5 checkpoints is sufficent for what we
+Leon, about 2:27 am PT: "I want you to do a mini run first I suspect 5 checkpoints is sufficent for what we
 need so you dont need to run all 10".
 
 - **Checkpoints of the mini run:** `dpo` (0), `s0100`, `s0500`, `s1100`, `s2300`. They span Dan's
@@ -88,7 +88,7 @@ need so you dont need to run all 10".
   adjacent swap gives ±0.9, so the threshold of 0.8 allows one). P4 interpolates between the five.
 - The other four checkpoints are a possible second pass, decided after the mini run.
 
-## Amendment 2 (2026-11-25 2:40 am PT, before any pod exists)
+## Amendment 2 (2026-11-25 2:29 am PT, before any pod exists)
 
 From the pool builder's length table (stored `s2300` strict passes; thinking is 96–98 % of the
 tokens, median eligible draw 5,190 tokens):
