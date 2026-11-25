@@ -137,3 +137,12 @@ ICML 2026, read by the agent in full text; not yet checked by me):
   the other end is dropped from `EDL*` (its rows stay on file); otherwise the grid stands.
 - **Stage 0c at `dpo` passed** before this amendment (ours 28.2 %, Dan's 29.0 %, difference −0.8
   points, interval [−2.9, +1.3]); stage 2 started on the H200 at 3:06 am PT.
+
+## Grid decision under Amendment 4 (4:00 am PT, 2026-11-25)
+
+At `dpo` the shortest online code length is at 3e-4, the top edge, on both orders (3e-5: 147.3k and
+148.6k nats; 1e-4: 141.4k and 141.7k; 3e-4: 139.9k and 140.5k). So the grid for `EDL*` becomes
+{1e-4, 3e-4, 1e-3} at every checkpoint and is frozen there; the 3e-5 rows stay on file. Read at the
+time of this decision, besides those six numbers: the code lengths of the rows finished so far at
+the other four checkpoints (four each), no test losses and no EDL value. The converged-residual row
+is redone from the new best row wherever the best row changes.
