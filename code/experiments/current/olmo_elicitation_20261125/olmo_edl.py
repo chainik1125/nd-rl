@@ -977,6 +977,9 @@ def run_edl(
             if r.get("status") in ("ok", "nonfinite"):
                 done[(float(r["lr"]), int(r["order"]))] = r
         todo = [(lr, o) for o in range(orders) for lr in lrs if (float(lr), o) not in done]
+        (out / "DONE").unlink(
+            missing_ok=True
+        )  # re-validated (and rewritten) at the end of this call
         print(
             f"[{utc()}] {ckpt}: {len(todo)} runs to do, {len(done)} already in {rows_path}",
             flush=True,
@@ -1018,8 +1021,37 @@ def run_edl(
                 flush=True,
             )
 
+        req = {float(x) for x in lrs}
+        best_dir = out / "adapters" / "best_order0"
         best_path = out / "adapters" / "BEST.json"
-        best = json.loads(best_path.read_text()) if best_path.exists() else None
+
+        def code_of(r: dict) -> float:
+            return sum(r["online"]["think_nats"]) + sum(r["online"]["answer_nats"])
+
+        def saved_lr() -> float | None:
+            """lr of the saved best_order0 state (adapter, and optimizer.pt when conv_best needs it), else None."""
+            if not best_path.exists() or not (best_dir / "adapter_model.safetensors").exists():
+                return None
+            if conv_best and not (best_dir / "optimizer.pt").exists():
+                return None
+            return float(json.loads(best_path.read_text())["lr"])
+
+        def grid_best(rows: dict) -> tuple[float, float] | None:
+            """(lr, code length) of the shortest-code-length order-0 ok row among the REQUESTED lrs."""
+            c = {
+                k[0]: code_of(v)
+                for k, v in rows.items()
+                if k[1] == 0 and v["status"] == "ok" and k[0] in req
+            }
+            if not c:
+                return None
+            b = min(c, key=c.get)
+            return b, c[b]
+
+        # the incumbent among the requested lrs comes from the rows on file, not from BEST.json (a grid shift can leave
+        # BEST.json pointing at an lr outside the grid)
+        gb = grid_best(done)
+        best = {"lr": gb[0], "code_length": gb[1]} if gb else None
         for lr, order in todo:
             hb.progress(phase="run", lr=lr, order=order, i=0)
             t0 = utc()
@@ -1033,17 +1065,22 @@ def run_edl(
                     and order == 0
                     and (best is None or code < best["code_length"])
                 ):
-                    save_adapter(
-                        model_, out / "adapters" / "best_order0", opt=opt_ if conv_best else None
+                    save_adapter(model_, best_dir, opt=opt_ if conv_best else None)
+                    best = {"lr": lr, "code_length": code}
+                    atomic_write(
+                        best_path,
+                        json.dumps(
+                            {
+                                "lr": lr,
+                                "order": 0,
+                                "code_length": code,
+                                "grid_lrs": sorted(req),
+                                "rule": "smallest online code length among order-0 rows of the requested lrs; theta_n after the online pass (before extra epochs)",
+                                "utc": utc(),
+                            }
+                        )
+                        + "\n",
                     )
-                    best = {
-                        "lr": lr,
-                        "order": 0,
-                        "code_length": code,
-                        "rule": "smallest online code length among order-0 runs so far; theta_n after the online pass (before extra epochs)",
-                        "utc": utc(),
-                    }
-                    atomic_write(best_path, json.dumps(best) + "\n")
 
             fields, model = run_one(
                 model,
@@ -1078,47 +1115,46 @@ def run_edl(
                 **fields,
             }
             append_row(rows_path, row)
-            code = sum(fields["online"]["think_nats"]) + sum(fields["online"]["answer_nats"])
+            code = code_of(fields)
             print(
                 f"[{utc()}] ROW {ckpt} lr={lr:g} order={order} status={row['status']} code_length={code:.1f} nats "
                 f"reset_diff={row.get('reset_check', {}).get('abs_diff')} times={row['times']} peak={row['peak_gpu_gb']}GB",
                 flush=True,
             )
+        file_rows = read_rows(rows_path)
         all_rows = {
             (float(r["lr"]), int(r["order"])): r
-            for r in read_rows(rows_path)
+            for r in file_rows
             if r.get("schema") == SCHEMA and r.get("status") in ("ok", "nonfinite")
         }
-        missing = [(lr, o) for o in range(orders) for lr in lrs if (float(lr), o) not in all_rows]
-        if conv_best and not missing:
-            ok0 = {k: v for k, v in all_rows.items() if k[1] == 0 and v["status"] == "ok"}
-            if ok0:
-                code = {
-                    k: sum(v["online"]["think_nats"]) + sum(v["online"]["answer_nats"])
-                    for k, v in ok0.items()
-                }
-                blr = min(code, key=code.get)[0]
-                have = [
-                    r
-                    for r in read_rows(rows_path)
-                    if r.get("schema") == CONV_SCHEMA
-                    and float(r["lr"]) == blr
-                    and r.get("epochs") == extra_epochs
-                ]
-                if not have:
-                    best = json.loads(best_path.read_text()) if best_path.exists() else None
-                    if (
-                        best is None
-                        or float(best["lr"]) != blr
-                        or not (out / "adapters" / "best_order0" / "optimizer.pt").exists()
-                    ):
-                        raise SystemExit(
-                            f"--conv-rows best: no saved state for lr {blr:g} order 0 (BEST.json {best}); rerun that row"
-                        )
-                    hb.progress(phase="conv_best", lr=blr, order=0)
+        grid_rows = {k: v for k, v in all_rows.items() if k[0] in req}
+        missing: list = [
+            (lr, o) for o in range(orders) for lr in lrs if (float(lr), o) not in all_rows
+        ]
+        gb = grid_best(all_rows)
+        if conv_best and not missing and gb is not None:
+            blr = gb[0]
+            conv_on_file = [
+                r
+                for r in file_rows
+                if r.get("schema") == CONV_SCHEMA and r.get("epochs") == extra_epochs
+            ]
+            have = [
+                r for r in conv_on_file if float(r["lr"]) == blr and int(r.get("order", 0)) == 0
+            ]
+            if have:
+                print(
+                    f"[{utc()}] conv-best: the conv row for the grid's best lr {blr:g} is already on file",
+                    flush=True,
+                )
+            else:
+                hb.progress(phase="conv_best", lr=blr, order=0)
+                t0 = utc()
+                ref_row = all_rows[(blr, 0)]
+                if saved_lr() == blr:
                     params = trainable(model)
-                    opt = load_state(model, params, out / "adapters" / "best_order0", blr)
-                    ref = all_rows[(blr, 0)]["evals"][str(n)]["test"]
+                    opt = load_state(model, params, best_dir, blr)
+                    ref = ref_row["evals"][str(n)]["test"]
                     chk = score(model, sets["test"], batch_tokens=batch_tokens, pad_id=pad_id)
                     diff = max(
                         abs(a - b)
@@ -1128,7 +1164,6 @@ def run_edl(
                             strict=True,
                         )
                     )
-                    t0 = utc()
                     conv, t_conv = extra_epochs_pass(
                         model,
                         opt,
@@ -1145,39 +1180,94 @@ def run_edl(
                         ckpt=ckpt,
                     )
                     del opt
-                    crow = {
-                        "schema": CONV_SCHEMA,
-                        **{k: v for k, v in key.items() if k != "extra_epochs"},
-                        "lr": blr,
-                        "order": 0,
-                        "epochs": extra_epochs,
-                        "mode": "best: after all online rows, the shortest-code-length order-0 row's saved theta_n adapter and AdamW state "
-                        "were loaded (exact continuation of that row, no re-run of its online pass)",
+                    how = {
+                        "mode": "best: after all online rows, the saved theta_n adapter and AdamW state of the grid's "
+                        "shortest-code-length order-0 row were loaded (exact continuation, no re-run of its online pass)",
                         "load_check_max_abs_diff_test_nats": diff,
-                        "code_length": code[(blr, 0)],
-                        "identity": ident,
-                        "env": env_info(),
-                        "utc_start": t0,
-                        "utc_end": utc(),
-                        "times": t_conv,
-                        "peak_gpu_gb": peak_gb(),
-                        "conv": conv,
                     }
-                    append_row(rows_path, crow)
-                    print(
-                        f"[{utc()}] CONV ROW {ckpt} lr={blr:g} order=0 status={conv['status']} load_check={diff:.3g} times={t_conv}",
-                        flush=True,
+                else:
+                    # no saved state for this lr (the grid moved away from the lr whose state was saved): re-run the
+                    # row's online pass (same seeds), save its theta_n as the best adapter, and continue in place
+                    def regen(model_, code, opt_, blr=blr):
+                        save_adapter(model_, best_dir, opt=opt_)
+                        atomic_write(
+                            best_path,
+                            json.dumps(
+                                {
+                                    "lr": blr,
+                                    "order": 0,
+                                    "code_length": code,
+                                    "grid_lrs": sorted(req),
+                                    "rule": "regenerated by re-running the grid's best order-0 row",
+                                    "utc": utc(),
+                                }
+                            )
+                            + "\n",
+                        )
+
+                    fields, model = run_one(
+                        model,
+                        sets,
+                        step0,
+                        lr=blr,
+                        order=0,
+                        seed=seed,
+                        evals=[n],
+                        reach_evals=[],
+                        batch_tokens=batch_tokens,
+                        pad_id=pad_id,
+                        grad_clip=RECIPE["grad_clip"],
+                        hb=hb,
+                        ckpt=ckpt,
+                        extra_epochs=extra_epochs,
+                        on_online_done=regen,
                     )
-        has_conv = any(
-            r.get("schema") == CONV_SCHEMA and r.get("epochs") == extra_epochs
-            for r in read_rows(rows_path)
-        )
-        if (
-            conv_best
-            and not has_conv
-            and any(v["status"] == "ok" for k, v in all_rows.items() if k[1] == 0)
-        ):
-            missing.append(("conv", 0))
+                    conv, t_conv = (
+                        fields.get(
+                            "conv", {"status": fields["status"], "error": fields.get("error")}
+                        ),
+                        fields["times"],
+                    )
+                    how = {
+                        "mode": "best: no saved state for the grid's best lr, so its online pass was re-run (same seeds) "
+                        "and continued in place",
+                        "rerun_code_length_diff": code_of(fields) - code_of(ref_row),
+                    }
+                crow = {
+                    "schema": CONV_SCHEMA,
+                    **{k: v for k, v in key.items() if k != "extra_epochs"},
+                    "lr": blr,
+                    "order": 0,
+                    "epochs": extra_epochs,
+                    "grid_lrs": sorted(req),
+                    "current": True,
+                    "supersedes": [
+                        {"lr": float(r["lr"]), "utc_end": r.get("utc_end")} for r in conv_on_file
+                    ],
+                    **how,
+                    "code_length": gb[1],
+                    "identity": ident,
+                    "env": env_info(),
+                    "utc_start": t0,
+                    "utc_end": utc(),
+                    "times": t_conv,
+                    "peak_gpu_gb": peak_gb(),
+                    "conv": conv,
+                }
+                append_row(rows_path, crow)
+                print(
+                    f"[{utc()}] CONV ROW {ckpt} lr={blr:g} order=0 status={conv.get('status')} {how} times={t_conv}",
+                    flush=True,
+                )
+        if conv_best and not missing and gb is not None:
+            has_conv = any(
+                r.get("schema") == CONV_SCHEMA
+                and r.get("epochs") == extra_epochs
+                and float(r["lr"]) == gb[0]
+                for r in read_rows(rows_path)
+            )
+            if not has_conv:
+                missing.append(("conv", gb[0]))
         if missing:
             hb.stop("incomplete")
             print(f"INCOMPLETE {ckpt}: missing {missing}", flush=True)
@@ -1188,14 +1278,19 @@ def run_edl(
                 {
                     "ckpt": ckpt,
                     "utc": utc(),
-                    "rows": len(all_rows),
-                    "status": {f"{k[0]:g}/{k[1]}": v["status"] for k, v in all_rows.items()},
+                    "lrs": sorted(req),
+                    "rows": len(grid_rows),
+                    "status": {f"{k[0]:g}/{k[1]}": v["status"] for k, v in grid_rows.items()},
+                    "off_grid_rows_on_file": sorted(
+                        f"{k[0]:g}/{k[1]}" for k in all_rows if k[0] not in req
+                    ),
+                    "conv_best_lr": gb[0] if (conv_best and gb) else None,
                 }
             )
             + "\n",
         )
         hb.stop("done")
-        print(f"[{utc()}] DONE {ckpt}: {len(all_rows)} rows", flush=True)
+        print(f"[{utc()}] DONE {ckpt}: {len(grid_rows)} rows of the requested lrs", flush=True)
         return 0
     except BaseException:
         hb.stop("error")

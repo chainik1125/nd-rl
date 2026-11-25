@@ -10,10 +10,16 @@ Arms (one row per checkpoint and arm):
         prompt). Else ours: runs/<c>/H (8 or 4 draws).
   B     plain prompt on the 48 reach prompts (his olmo-ifcurve arm B, first 32 base draws; dpo: his olmo-ifomega
         F_dpo_ifb / F_dpo_ife draws on these prompts, 16 per prompt), for the hint's gain.
+  B8    the same cells cut to their first 8 draws (draw order): the like-for-like 8-draw comparison for L and H.
+  L     the 48 reach prompts, plain prompts (as his arm B sent them), sampled through the checkpoint's stage-1 adapter
+        (runs/<c>/edl/adapters/best_order0 = theta_64 of the shortest-code-length order-0 EDL row) on vLLM's LoRA
+        path, 8 draws per prompt (ours at every checkpoint: runs/<c>/L). The adapter was trained on 64 arm-A
+        non-reach prompts' final-model responses, so L measures transfer to the reach prompts.
 Columns: strict_pct = mean over prompts of the prompt's strict pass share (all its draws), lo95 / hi95 = prompt
 bootstrap (10,000 resamples, seed 0); solved_pct = prompts with >= 1 strict pass among their first `solved_n` draws (in
 draw order), as % of the set (solved_n = the draws per prompt of our own cells, so stored cells with more draws are
-compared at equal tries); ans_words_median over draws with an answer; n_prompts, n_draws, source.
+compared at equal tries); solved_all_pct = the same over all the cell's draws; ans_words_median over draws with an
+answer; n_prompts, n_draws, source; grade = "strict checker pass" (no genuine / gamed reading in this pass).
 Usage: python analyze_arms.py [--runs /scratch/cowifornia/nd-rl/olmo_elicit/runs] [--out .../arms.csv] [--n-h 8]
 """
 
@@ -72,6 +78,7 @@ def summarize(
             100 * sum(any(s for s, _ in cells[p][:solved_n]) for p in pids) / n_set, 2
         ),
         "solved_n": solved_n,
+        "solved_all_pct": round(100 * sum(any(s for s, _ in cells[p]) for p in pids) / n_set, 2),
         "ans_words_median": st.median(words) if words else None,
     }
 
@@ -141,6 +148,7 @@ def main() -> None:
                 "arm": arm,
                 "source": source,
                 **summarize(cells, solved_n, n_set, a.reps),
+                "grade": "strict checker pass (no genuine / gamed reading)",
             }
         )
 
@@ -194,13 +202,25 @@ def main() -> None:
                 a.n_h,
                 len(reach),
             )
-        # plain B
+        # plain B (all stored base draws) and B8 (their first 8)
+        bc = b_cells(c, reach)
+        src_b = "dan:olmo-ifcurve arm B" if c != "dpo" else "dan:olmo-ifomega F_dpo_ifb/ife (16)"
+        add(c, "B", src_b, bc, a.n_h, len(reach))
+        add(c, "B8", src_b + ", first 8", {p: v[:8] for p, v in bc.items()}, 8, len(reach))
+        # L: through the stage-1 adapter
+        lsrc = "ours"
+        sj = runs / c / "L" / "adapter_source.json"
+        if sj.exists():
+            row = json.loads(sj.read_text())["row"]
+            lsrc = f"ours (adapter lr {row['lr']:g}, order {row['order']})"
         add(
             c,
-            "B",
-            "dan:olmo-ifcurve arm B" if c != "dpo" else "dan:olmo-ifomega F_dpo_ifb/ife (16)",
-            b_cells(c, reach),
-            a.n_h,
+            "L",
+            lsrc,
+            h_cells(
+                [(runs / c / "L" / "samples.jsonl.gz", runs / c / "L" / "graded.jsonl")], reach
+            ),
+            8,
             len(reach),
         )
     keys = [
@@ -215,7 +235,9 @@ def main() -> None:
         "hi95",
         "solved_pct",
         "solved_n",
+        "solved_all_pct",
         "ans_words_median",
+        "grade",
     ]
     with open(a.out, "w", newline="") as fh:
         wr = csv.DictWriter(fh, fieldnames=keys)

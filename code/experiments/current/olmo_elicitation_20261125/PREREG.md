@@ -146,3 +146,28 @@ At `dpo` the shortest online code length is at 3e-4, the top edge, on both order
 time of this decision, besides those six numbers: the code lengths of the rows finished so far at
 the other four checkpoints (four each), no test losses and no EDL value. The converged-residual row
 is redone from the new best row wherever the best row changes.
+
+## Amendment 5 (4:26 am PT, 2026-11-25; before any stage-L or in-context number)
+
+What I had seen when writing this: the pilot rows at `dpo` (lr 3e-5 to 3e-4). There, 64 examples lower
+the test loss from 0.620 to 0.526 nats per token (answer segment 0.270 to 0.102), the single-pass
+EDL is small (0.02 nats per token, interval through 0), and the 3 extra epochs overfit the thinking
+tokens (test loss back to 0.627), so `EDL_conv` is negative. `EDL_conv` stays in the tables as
+run; a post hoc `L_min` (lowest test loss over the evaluated points) is added and labelled post hoc.
+
+- **Stage L is run** (it was optional). At each of the five checkpoints the 48 reach prompts are
+  sampled through that checkpoint's own stage-1 adapter (order 0, the shortest code length on the
+  frozen grid, 64 examples, one pass), 8 draws, Dan's sampler on vLLM's LoRA path, strict checker.
+  Comparison: Dan's first 8 stored plain draws at the same checkpoint (and all 32). At `dpo` a
+  teacher-forced check that vLLM really applies the adapter gates the sampling.
+  - **P5.** At `dpo` and `s0100` the adapter raises the share of reach prompts with at least one
+    strict pass in 8 draws by more than 10 points (interval above 0). At `s2300` it changes that
+    share by less than 10 points.
+  - Descriptive: the adapter's gain per checkpoint, as a curve. Checker passes only.
+- **In-context description length** (literature review R2; forward passes only). Test and reach
+  responses are scored with k = 0, 1, 2, 4 of the final model's responses to other prompts in
+  context, same demonstrations at every checkpoint, two demonstration draws per k. Descriptive: the
+  loss per token against k and RL step, and the share of the gap to `s2300` that k demonstrations
+  close. Expected direction, not a pass or fail: the in-context gain is largest at `dpo` and near
+  zero at `s2300`.
+- **Token-level profile** (Amendment 3) is computed for all five checkpoints against `s2300`.

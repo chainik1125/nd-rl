@@ -48,7 +48,7 @@ class FakeTok:
         return [2, 3] + [6 + (ord(ch) % 50) for ch in msgs[-1]["content"]] + [0, 5]
 
 
-def tiny_model(seed: int = 0, sliding: int = 8):
+def tiny_model(seed: int = 0, sliding: int = 8, max_pos: int = 512):
     from transformers import Olmo3Config, Olmo3ForCausalLM
 
     torch.manual_seed(seed)
@@ -59,7 +59,7 @@ def tiny_model(seed: int = 0, sliding: int = 8):
         num_hidden_layers=2,
         num_attention_heads=4,
         num_key_value_heads=2,
-        max_position_embeddings=512,
+        max_position_embeddings=max_pos,
         sliding_window=sliding,
         layer_types=["sliding_attention", "full_attention"],
         pad_token_id=0,
@@ -781,3 +781,298 @@ def test_analysis_and_figure_on_partial_checkpoints(tmp_path):
         paths = st.save(fig, tmp_path / "fig" / "edl_curve")
         st.close(fig)
     assert all(p.exists() and p.stat().st_size > 0 for p in paths)
+
+
+def _scaled_run_one(monkeypatch, factor: dict, calls: list):
+    """Wrap run_one so that a row's online nats (and the code length its callback sees) are scaled by factor[lr]:
+    a deterministic way to choose which lr has the shortest code length."""
+    real = oe.run_one
+
+    def wrapped(model, sets, step0, **kw):
+        f = factor.get(kw["lr"], 1.0)
+        calls.append((kw["lr"], kw["order"]))
+        cb = kw.get("on_online_done")
+        if cb is not None:
+            kw["on_online_done"] = lambda m, code, opt, cb=cb: cb(m, code * f, opt)
+        fields, model = real(model, sets, step0, **kw)
+        for k in ("think_nats", "answer_nats"):
+            fields["online"][k] = [x * f for x in fields["online"][k]]
+        return fields, model
+
+    monkeypatch.setattr(oe, "run_one", wrapped)
+
+
+def _sha(p: Path) -> str:
+    import hashlib
+
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+@pytest.mark.parametrize("scenario", ["new_wins", "new_loses", "best_left_grid"])
+def test_grid_shift_extension(tmp_path, monkeypatch, scenario):
+    a, b, c, d = 1e-4, 3e-4, 1e-3, 3e-3
+    factor = {a: 1.0, b: 0.9, c: 0.8, d: 0.5 if scenario == "new_wins" else 1.2}
+    calls: list = []
+    _scaled_run_one(monkeypatch, factor, calls)
+    sets = make_sets(n=4, m=2, r=1)
+    kw = dict(
+        orders=2, extra_epochs=1, conv_rows="best", save="best", evals=[0, 2, 4], reach_evals=[0, 4]
+    )
+    model = oe.wrap_lora(tiny_model(), grad_ckpt=True)
+    out = tmp_path / "dpo" / "edl"
+    assert run(model, sets, out, ckpt="dpo", lrs=[a, b, c], **kw) == 0
+    rows0 = oe.read_rows(out / "edl_rows.jsonl")
+    conv0 = [r for r in rows0 if r["schema"] == oe.CONV_SCHEMA]
+    assert len(conv0) == 1 and conv0[0]["lr"] == c
+    best_dir = out / "adapters" / "best_order0"
+    sha0 = _sha(best_dir / "adapter_model.safetensors")
+    calls.clear()
+    grid = [b, c, d] if scenario != "best_left_grid" else [a, b, d]
+    assert run(model, sets, out, ckpt="dpo", lrs=grid, **kw) == 0
+    rows1 = oe.read_rows(out / "edl_rows.jsonl")
+    assert rows1[: len(rows0)] == rows0  # nothing rewritten
+    main_new = [r for r in rows1[len(rows0) :] if r["schema"] == oe.SCHEMA]
+    conv_new = [r for r in rows1[len(rows0) :] if r["schema"] == oe.CONV_SCHEMA]
+    assert sorted((r["lr"], r["order"]) for r in main_new) == [(d, 0), (d, 1)]
+    best_json = json.loads((out / "adapters" / "BEST.json").read_text())
+    done = json.loads((out / "DONE").read_text())
+    assert done["lrs"] == sorted(grid)
+    if scenario == "new_wins":
+        assert (
+            len(conv_new) == 1
+            and conv_new[0]["lr"] == d
+            and conv_new[0]["load_check_max_abs_diff_test_nats"] == 0.0
+        )
+        assert conv_new[0]["supersedes"][0]["lr"] == c and best_json["lr"] == d
+        assert _sha(best_dir / "adapter_model.safetensors") != sha0
+        assert calls == [(d, 0), (d, 1)]
+        want = d
+    elif scenario == "new_loses":
+        assert (
+            conv_new == []
+            and best_json["lr"] == c
+            and _sha(best_dir / "adapter_model.safetensors") == sha0
+        )
+        assert calls == [(d, 0), (d, 1)]
+        want = c
+    else:  # the saved best (c) is outside the new grid: b is the grid's best; its online pass is re-run for the conv row
+        assert len(conv_new) == 1 and conv_new[0]["lr"] == b and "re-run" in conv_new[0]["mode"]
+        assert (
+            conv_new[0]["rerun_code_length_diff"] == pytest.approx(0.0, abs=1e-6)
+            and best_json["lr"] == b
+        )
+        assert calls == [(d, 0), (d, 1), (b, 0)]
+        want = b
+    calls.clear()
+    assert (
+        run(model, sets, out, ckpt="dpo", lrs=grid, **kw) == 0 and calls == []
+    )  # nothing left to do
+    s = an.analyze(tmp_path, B=20, lrs=grid)["checkpoints"]["dpo"]
+    assert (
+        s["lr_mdl"]["total"] == want
+        and s["grid"]["lrs"] == sorted(grid)
+        and s["grid"]["ln_k"] == pytest.approx(math.log(3))
+    )
+    assert set(s["by_lr"]) == {f"{x:g}" for x in grid}
+    off = {a, b, c} - set(grid)
+    assert set(s["off_grid"]) == {f"{x:g}" for x in off}
+    assert s["EDL_conv"]["sum"]["total"]["lr"] == want
+    if scenario != "new_loses":
+        assert any(x["lr"] == c for x in s["conv_ignored"])
+
+
+# ------------------------------------------------------------------------------------------ in-context (olmo_icl.py)
+
+
+class ICLTok(FakeTok):
+    """FakeTok whose chat template is the piecewise encoding olmo_icl builds (as the real tokenizer's is, checked on the pool)."""
+
+    eos_token_id = 1
+
+    def encode(self, s, add_special_tokens=False):
+        return [6 + (ord(ch) % 50) for ch in s]
+
+    def apply_chat_template(
+        self, msgs, add_generation_prompt, tokenize, return_dict, chat_template
+    ):
+        import olmo_icl as icl
+
+        return (
+            self.encode(icl.SYS)
+            + self.encode("<|im_start|>user\n" + msgs[-1]["content"] + icl.END)
+            + self.encode(icl.HEAD)
+            + [0]
+        )
+
+
+def icl_sets(seed=0, n=8, m=3, r=2):
+    rng = np.random.default_rng(seed)
+    tok = ICLTok()
+    out, prompts = {}, {}
+    for name, k in (("train", n), ("test", m), ("reach", r)):
+        exs = []
+        for j in range(k):
+            pid = f"{name}{j}"
+            prompts[pid] = f"Do {pid}."
+            T = int(rng.integers(10, 20))
+            resp = rng.integers(6, V, size=T).tolist()
+            resp[-1] = 1
+            exs.append(
+                oe.Example(
+                    pid,
+                    oe.prompt_ids(tok, prompts[pid]),
+                    resp,
+                    int(rng.integers(2, T - 2)),
+                    "genuine" if j % 2 == 0 or name != "train" else "strict-only",
+                )
+            )
+        out[name] = exs
+    return out, prompts
+
+
+def test_icl_k0_reproduces_step0_and_demos_fixed(tmp_path):
+    import olmo_icl as icl
+
+    sets, prompts = icl_sets()
+    rows = {}
+    for ck, seed in (("dpo", 0), ("s2300", 1)):
+        model = oe.wrap_lora(tiny_model(seed, max_pos=2048), grad_ckpt=True)
+        edl = tmp_path / ck / "edl"
+        assert (
+            oe.run_edl(
+                model,
+                ICLTok(),
+                sets,
+                POOL_INFO,
+                edl,
+                ckpt=ck,
+                ident={},
+                lrs=[1e-2],
+                orders=1,
+                seed=0,
+                evals=[0, 6],
+                reach_evals=[0, 6],
+                batch_tokens=300,
+                heartbeat_secs=3600,
+                token_stats_on=False,
+            )
+            == 0
+        )
+        step0 = json.loads((edl / "step0.json").read_text())
+        oe.reset_lora(model, 5)
+        assert (
+            icl.run_icl(
+                model,
+                ICLTok(),
+                sets,
+                prompts,
+                tmp_path / ck / "icl",
+                ckpt=ck,
+                ks=[0, 1, 2],
+                draws=2,
+                seed=0,
+                step0=step0,
+                k0_batch_tokens=300,
+                heartbeat_secs=3600,
+            )
+            == 0
+        )
+        rows[ck] = {
+            (r["k"], r["draw"]): r for r in oe.read_rows(tmp_path / ck / "icl" / "icl_rows.jsonl")
+        }
+        assert rows[ck][(0, 0)]["k0_check_max_abs_diff"] == {"test": 0.0, "reach": 0.0}
+        assert set(rows[ck]) == {(0, 0), (1, 0), (1, 1), (2, 0), (2, 1)}
+    targets = {e.pid for e in sets["test"] + sets["reach"]}
+    for key in rows["dpo"]:
+        a, b = rows["dpo"][key], rows["s2300"][key]
+        assert a["demo_pids"] == b["demo_pids"]  # identical demo sets at every checkpoint
+        assert not set(a["demo_pids"]) & targets  # no target is its own demo
+        assert all(p in {e.pid for e in sets["train"]} for p in a["demo_pids"])
+    assert rows["dpo"][(2, 0)]["demo_pids"][:1] == rows["dpo"][(1, 0)]["demo_pids"]  # nested
+    assert not set(rows["dpo"][(2, 0)]["demo_pids"]) & set(
+        rows["dpo"][(2, 1)]["demo_pids"]
+    )  # draws disjoint
+    assert all(
+        p.startswith("train") and int(p[5:]) % 2 == 0
+        for r in rows["dpo"].values()
+        for p in r["demo_pids"]
+    )  # genuine only
+    k1 = rows["dpo"][(1, 0)]["test"]
+    assert k1["context_len"][0] > rows["dpo"][(0, 0)]["test"]["context_len"][0]
+    # resumable: nothing left to do
+    model = oe.wrap_lora(tiny_model(0, max_pos=2048), grad_ckpt=True)
+    assert (
+        icl.run_icl(
+            model,
+            ICLTok(),
+            sets,
+            prompts,
+            tmp_path / "dpo" / "icl",
+            ckpt="dpo",
+            ks=[0, 1, 2],
+            draws=2,
+            seed=0,
+            step0=None,
+            k0_batch_tokens=300,
+            heartbeat_secs=3600,
+        )
+        == 0
+    )
+    assert len(oe.read_rows(tmp_path / "dpo" / "icl" / "icl_rows.jsonl")) == 5
+
+
+def test_icl_prefix_cache_matches_full_forward():
+    import olmo_icl as icl
+
+    sets, prompts = icl_sets()
+    model = oe.wrap_lora(
+        tiny_model(0, sliding=16, max_pos=2048), grad_ckpt=False
+    )  # contexts run past the sliding window
+    oe.reset_lora(model, 0)
+    model.eval()
+    pc = icl.pieces(ICLTok())
+    dem = icl.demo_order(sets["train"], 0, 0, 2)
+    prefix = list(pc.sys)
+    for e in dem:
+        prefix += pc.user(prompts[e.pid]) + pc.head + e.resp[:-1] + pc.end
+    with torch.inference_mode():
+        cache = icl.build_cache(model, prefix)
+        for e in sets["test"]:
+            ctx = icl.context_ids(pc, prompts, dem, prompts[e.pid], 1)
+            a = icl.score_one(model, ctx, e, pad_id=0)
+            b = icl.score_one(model, ctx, e, pad_id=0, cache=cache, prefix_len=len(prefix))
+            np.testing.assert_allclose(a, b, rtol=1e-4)
+
+
+def test_icl_context_matches_chat_template_text():
+    import olmo_icl as icl
+    from olmo_template import TEMPLATE as T
+
+    tdir = Path("/scratch/cowifornia/nd-rl/olmo_elicit/tok/s2300")
+    pool = Path("/scratch/cowifornia/nd-rl/olmo_elicit/pool")
+    if not (tdir.exists() and pool.exists()):
+        pytest.skip("real tokenizer / pool not on this machine")
+    from transformers import AutoTokenizer
+
+    tok = AutoTokenizer.from_pretrained(str(tdir))
+    sets, _ = oe.load_pool(pool, tok, n=64, m=32, max_tok=None)
+    prompts = icl.raw_prompts(pool)
+    pc = icl.pieces(tok)
+    dem = icl.demo_order(sets["train"], 0, 0, 2)
+    tgt = sets["test"][0]
+    ctx = icl.context_ids(pc, prompts, dem, prompts[tgt.pid], tok.eos_token_id)
+    msgs = []
+    for e in dem:
+        msgs += [
+            {"role": "user", "content": prompts[e.pid]},
+            {
+                "role": "assistant",
+                "content": "<think>" + tok.decode(e.resp[:-1], clean_up_tokenization_spaces=False),
+            },
+        ]
+    msgs.append({"role": "user", "content": prompts[tgt.pid]})
+    text = tok.apply_chat_template(
+        msgs, add_generation_prompt=True, tokenize=False, chat_template=T
+    )
+    assert tok.decode(ctx, clean_up_tokenization_spaces=False) == text
+    assert pc.sys + pc.user(prompts[tgt.pid]) + pc.head == tgt.prompt

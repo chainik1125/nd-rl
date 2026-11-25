@@ -7,7 +7,10 @@
 #   olmo_pod.sh setup  <alias> [--no-wait]       push our folder + inputs to /workspace/oe (md5), run pod/oe_setup.sh
 #                                                detached (Dan's versions + peft; ~10 min), wait for SETUP_DONE
 #   olmo_pod.sh push   <alias>                   push again (code / inputs changed); md5 both sides
-#   olmo_pod.sh run    <alias> <ckpt> [--stages edl,T,H,rep] [--edl-args "<flags>"] [--n-h 8|4] [--keep-weights]
+#   olmo_pod.sh run    <alias> <ckpt> [--stages edl,T,H,L,rep] [--edl-args "<flags>"] [--n-h 8|4] [--keep-weights]
+#                      [--lora-check]            (stage L: stage_adapter.py checks runs/<ckpt>/edl and stages
+#                                                best_order0 + source.json, pushed md5-checked; --lora-check runs
+#                                                lora_check.py at this checkpoint too; at dpo it always runs)
 #                      [--verify-sha]            (--stages download: fetch + verify only, weights kept)
 #                                                push, then start pod/oe_chain.sh for ONE checkpoint under
 #                                                setsid + nohup + timeout (download -> edl -> T -> H -> rep -> weights
@@ -49,6 +52,9 @@ push() {  # stage our folder (code), stage2 inputs and the EDL pool; rsync to /w
   cp -p "$P"/*.sh "$P"/*.py "$ST/pod/"
   [[ -d $OE_DATA/stage2 ]] && cp -rp "$OE_DATA/stage2/." "$ST/stage2/"
   if [[ -d $OE_DATA/pool ]]; then mkdir -p "$ST/pool"; cp -rp "$OE_DATA/pool/." "$ST/pool/"; fi
+  if [[ -n ${ADAPTER_CK:-} ]]; then  # stage L: this checkpoint's staged adapter (hard links, same filesystem)
+    mkdir -p "$ST/adapters"; cp -al "$OE_DATA/adapters_stage/$ADAPTER_CK" "$ST/adapters/$ADAPTER_CK"
+  fi
   find "$ST" -name __pycache__ -prune -exec rm -rf {} +
   (cd "$ST" && find . -type f | sed 's|^\./||' | sort > "$MAN")
   echo "staged $(wc -l < "$MAN") files, $(du -sh "$ST" | cut -f1) for $h"
@@ -87,7 +93,7 @@ case $cmd in
   run)
     ck=${1:?run <alias> <ckpt> [--stages ...]}; shift
     [[ " $CKPTS " == *" $ck "* ]] || { echo "unknown checkpoint $ck (one of: $CKPTS)"; exit 2; }
-    stages=edl,T,H; edl_args="--max-tok 6144"; nh=8; keep=0; vsha=0
+    stages=edl,T,H; edl_args="--max-tok 6144"; nh=8; keep=0; vsha=0; lcheck=0
     while [[ $# -gt 0 ]]; do
       case $1 in
         --stages) stages=$2; shift 2 ;;
@@ -95,10 +101,11 @@ case $cmd in
         --n-h) nh=$2; shift 2 ;;
         --keep-weights) keep=1; shift ;;
         --verify-sha) vsha=1; shift ;;
+        --lora-check) lcheck=1; shift ;;
         *) echo "unknown option $1"; exit 2 ;;
       esac
     done
-    [[ $stages =~ ^(edl|T|H|rep)(,(edl|T|H|rep))*$ || $stages == download ]] || { echo "--stages: comma list of edl,T,H,rep, or download"; exit 2; }
+    [[ $stages =~ ^(edl|T|H|L|rep)(,(edl|T|H|L|rep))*$ || $stages == download ]] || { echo "--stages: comma list of edl,T,H,L,rep, or download"; exit 2; }
     [[ $nh == 8 || $nh == 4 ]] || { echo "--n-h 8 or 4"; exit 2; }
     [[ $edl_args =~ ^[-A-Za-z0-9_.,=/\ ]*$ ]] || { echo "--edl-args: plain flags only"; exit 2; }
     # inputs present on serrano for the asked stages
@@ -106,6 +113,11 @@ case $cmd in
     [[ ,$stages, == *,T,* ]] && { [[ -s $OE_DATA/stage2/T_$ck.jsonl.gz ]] || { echo "no $OE_DATA/stage2/T_$ck.jsonl.gz (make_stage2.py)"; exit 2; }; }
     [[ ,$stages, == *,H,* ]] && { [[ -s $OE_DATA/stage2/pids_H_n$nh.txt ]] || { echo "no H inputs (make_stage2.py)"; exit 2; }; }
     [[ ,$stages, == *,rep,* ]] && { [[ -s $OE_DATA/stage2/pids_rep.txt ]] || { echo "no rep inputs (make_stage2.py)"; exit 2; }; }
+    if [[ ,$stages, == *,L,* ]]; then
+      [[ -s $OE_DATA/stage2/pids_L.txt && -s $OE_DATA/stage2/seeds_L.csv ]] || { echo "no L inputs (make_stage2.py)"; exit 2; }
+      python3 "$X/stage_adapter.py" "$ck" "$OE_DATA/adapters_stage/$ck" --runs "$OE_DATA/runs" || { echo "stage L refused for $ck"; exit 2; }
+      ADAPTER_CK=$ck
+    fi
     grep -q "^$ck," "$OE_DATA/stage2/seeds.csv" || { echo "no seeds for $ck in $OE_DATA/stage2/seeds.csv"; exit 2; }
     # one chain per pod: refuse if any chain is alive
     if [[ $DRY != 1 ]]; then
@@ -120,7 +132,9 @@ case $cmd in
     [[ ,$stages, == *,T,* ]] && total=$((total + TO_T + 1800))
     [[ ,$stages, == *,H,* ]] && total=$((total + TO_H + 1800))
     [[ ,$stages, == *,rep,* ]] && total=$((total + TO_REP + 1800))
-    envs="VERIFY_SHA=$vsha KEEP_WEIGHTS=$keep N_H=$nh TO_DOWNLOAD=$TO_DOWNLOAD TO_EDL=$TO_EDL TO_T=$TO_T TO_H=$TO_H TO_REP=$TO_REP"
+    TO_L=${TO_L:-7200}
+    [[ ,$stages, == *,L,* ]] && total=$((total + TO_L + 3600))
+    envs="VERIFY_SHA=$vsha KEEP_WEIGHTS=$keep N_H=$nh TO_DOWNLOAD=$TO_DOWNLOAD TO_EDL=$TO_EDL TO_T=$TO_T TO_H=$TO_H TO_REP=$TO_REP TO_L=$TO_L L_CHECK=$lcheck"
     out=$(xs "mkdir -p /workspace/oe/runs/$ck/logs && cd /workspace/oe && (setsid nohup timeout --signal=TERM --kill-after=120 $total env $envs EDL_ARGS='$edl_args' bash pod/oe_chain.sh $ck $stages >> runs/$ck/logs/nohup.log 2>&1 < /dev/null &) ; sleep 3; tail -3 runs/$ck/logs/chain.log 2>/dev/null")
     echo "$out"
     if grep -q "LOCKED\|GPU_BAD" <<< "$(tail -1 <<< "$out")"; then echo "NOT STARTED: $ck on $h ($(utc))"; exit 1; fi

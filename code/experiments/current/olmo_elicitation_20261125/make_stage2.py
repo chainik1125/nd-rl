@@ -14,6 +14,7 @@ H (60-word hint on the 48 reach prompts): problems_H.jsonl = his olmo_iffu/probl
   60 words."; every other field equals olmo_ifomega/problems.jsonl's row, checked); pids_H_n8.txt / pids_H_n4.txt.
 rep (Stage 0c): pids_rep.txt = the 218 arm-A prompts x 2 draws, on olmo_ifomega/problems.jsonl (no new file).
 seeds.csv: our engine seeds, new (Dan's were < 60,000): T 610000 + step, H 620000 + step, rep 630000 + step.
+L (stage L): pids_L.txt = the 48 reach prompts x 8 on olmo_ifomega/problems.jsonl; seeds_L.csv: 640000 + step.
 manifest.json: sha256 of every input read and every file written.
 Usage: python make_stage2.py [--ckpts dpo,s0050,...]   (default: all nine)
 """
@@ -137,6 +138,11 @@ def main() -> None:
             f"{c},{STEP[c]},{610000 + STEP[c]},{620000 + STEP[c]},{630000 + STEP[c]}\n"
             for c in CKPTS
         )
+    )
+    # stage L: the 48 reach prompts, plain prompts (olmo_ifomega/problems.jsonl, as his arm B), 8 draws, seed_L new
+    (OUT / "pids_L.txt").write_text("".join(f"{p}:8\n" for p in reach))
+    (OUT / "seeds_L.csv").write_text(
+        "ckpt,step,seed_L\n" + "".join(f"{c},{STEP[c]},{640000 + STEP[c]}\n" for c in CKPTS)
     )
     for f in sorted(OUT.iterdir()):
         if f.name != "manifest.json":

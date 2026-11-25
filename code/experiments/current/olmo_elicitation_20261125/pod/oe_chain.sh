@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # oe_chain.sh <ckpt> <stages> (POD side; started by olmo_pod.sh run under setsid + nohup + timeout).
-# One checkpoint, in SPEC order: download -> edl -> T -> H -> rep -> weights deleted. <stages> is a comma list from
-# edl,T,H,rep (download always runs first), or `download` alone (weights kept). Every stage is resumable: a stage with state/<stage>.DONE is skipped, the
+# One checkpoint, in SPEC order: download -> edl -> T -> H -> L -> rep -> weights deleted. <stages> is a comma list
+# from edl,T,H,L,rep (download always runs first), or `download` alone (weights kept). Every stage is resumable: a stage with state/<stage>.DONE is skipped, the
 # samplers resume their own output files. Per stage: logs/<stage>.log, state/<stage>.{RUNNING,DONE,FAILED},
 # state/<stage>.expected (draws expected, sampling stages). A heartbeat (state/heartbeat: "<epoch> <stage>") and a GPU
 # line (logs/gpu.log) are written every 60 s. One chain per pod at a time (flock on /workspace/oe/gpu.lock), so never
@@ -9,7 +9,8 @@
 # env: OE_ROOT / DAN_ROOT / DAO_ROOT / MODELS_ROOT override the /workspace paths (local dry runs),
 #      VERIFY_SHA=1 (sha256 every shard against the Hub's LFS sha256; default 0: commit + shard count + bytes only),
 #      EDL_ARGS (extra olmo_edl.py flags, e.g. "--lrs 3e-5,1e-4,3e-4 --orders 0,1"), KEEP_WEIGHTS=1,
-#      TO_DOWNLOAD / TO_EDL / TO_T / TO_H / TO_REP (seconds), N_H (H draws per prompt, 8 or 4), DRY_RUN=1 (print only).
+#      TO_DOWNLOAD / TO_EDL / TO_T / TO_H / TO_L / TO_REP (seconds), N_H (H draws per prompt, 8 or 4), DRY_RUN=1 (print only),
+#      L_CHECK=1 (stage L: run lora_check.py also at a checkpoint other than dpo; at dpo it always runs).
 set -uo pipefail
 CK=${1:?usage: oe_chain.sh <ckpt> <stages>}
 STAGES=${2:-edl,T,H}
@@ -28,6 +29,7 @@ TO_EDL=${TO_EDL:-14400}
 TO_T=${TO_T:-3600}
 TO_H=${TO_H:-7200}
 TO_REP=${TO_REP:-7200}
+TO_L=${TO_L:-7200}
 N_H=${N_H:-8}
 utc() { date -u +%FT%TZ; }
 mkdir -p "$ST" "$LG"
@@ -43,7 +45,8 @@ row=$(awk -F, -v c="$CK" '$1==c' $DAN/olmo_ifcurve/checkpoints.csv)
 [ -n "$row" ] || { log "UNKNOWN_CKPT $CK"; exit 2; }
 IFS=, read -r _ REPO REV STEP COMMIT NSH WBYTES _ <<< "$row"
 SEEDS=$(awk -F, -v c="$CK" '$1==c' $OE/stage2/seeds.csv)
-IFS=, read -r _ _ SEED_T SEED_H SEED_REP <<< "$SEEDS"
+IFS=, read -r _ _ SEED_T SEED_H SEED_REP _ <<< "$SEEDS"
+SEED_L=$(awk -F, -v c="$CK" '$1==c {print $3}' $OE/stage2/seeds_L.csv 2>/dev/null)
 
 # ---- one chain per pod
 if [ "${DRY_RUN:-0}" != 1 ]; then
@@ -62,7 +65,7 @@ if [ "${DRY_RUN:-0}" != 1 ]; then
   echo "$(date +%s) download" > "$ST/heartbeat"
   trap 'kill $HB 2>/dev/null' EXIT
 fi
-log "CHAIN_START $CK repo=$REPO rev=$REV commit=$COMMIT stages=$STAGES seeds T=$SEED_T H=$SEED_H rep=$SEED_REP"
+log "CHAIN_START $CK repo=$REPO rev=$REV commit=$COMMIT stages=$STAGES seeds T=$SEED_T H=$SEED_H rep=$SEED_REP L=${SEED_L:-none}"
 
 begin() { echo "$1" > "$ST/current"; rm -f "$ST/$1.FAILED"; echo "$(utc)" > "$ST/$1.RUNNING"; log "STAGE_START $1"; }
 finish() {  # finish <stage> <rc> [note]
@@ -148,6 +151,47 @@ if want H; then
       --meta "$R/H/meta.json" && \
     run 1800 python olmo_ifomega/grade.py "$R/H/samples.jsonl.gz" $OE/stage2/problems_H.jsonl "$R/H/graded.jsonl" ) >> "$LG/H.log" 2>&1
   finish H $?
+fi
+
+# ---- stage L: the 48 reach prompts, plain (as Dan's arm B sent them), through this checkpoint's stage-1 adapter on
+# vLLM's LoRA path (his olmo_ifladder/sample.py --lora, as his LoRA evaluations ran; never a merge). Adapter staged
+# from serrano (stage_adapter.py: DONE lists the grid, BEST.json = the shortest order-0 row) and md5-checked here;
+# at dpo (or with L_CHECK=1) lora_check.py first confirms the adapter is applied (teacher-forced nats vs PEFT's).
+if want L; then
+  begin L; mkdir -p "$R/L"
+  AD=$OE/adapters/$CK/best_order0
+  SRCJ=$OE/adapters/$CK/source.json
+  awk -F: '{s+=$2} END {print s}' $OE/stage2/pids_L.txt > "$ST/L.expected"
+  rc=0; note=""
+  if [ ! -f "$AD/adapter_model.safetensors" ] || [ ! -f "$SRCJ" ] || [ -z "${SEED_L:-}" ]; then
+    rc=7; note="no staged adapter, source.json or seed"
+  else
+    ( cd "$AD" && md5sum adapter_config.json adapter_model.safetensors ) > "$R/L/adapter_md5.txt"
+    cp "$SRCJ" "$R/L/adapter_source.json"
+    python3 - "$SRCJ" "$R/L/adapter_md5.txt" >> "$LG/L.log" 2>&1 <<'PYEOF'
+import json, sys
+src = json.load(open(sys.argv[1]))
+got = {f: m for m, f in (ln.split() for ln in open(sys.argv[2]) if ln.strip())}
+bad = [f for f, v in src["files"].items() if got.get(f) != v["md5"]]
+print("ADAPTER_MD5", "ok" if not bad else f"MISMATCH {bad}", src["row"])
+sys.exit(1 if bad else 0)
+PYEOF
+    [ $? = 0 ] || { rc=8; note="adapter md5 differs from serrano's"; }
+  fi
+  if [ $rc = 0 ] && { [ "$CK" = dpo ] || [ "${L_CHECK:-0}" = 1 ]; } && ! grep -q '"verdict": "PASS"' "$R/L/lora_check.json" 2>/dev/null; then
+    run 1800 python -u $OE/lora_check.py --model "$MD" --tokenizer $MODELS/tok --adapter "$AD" --source "$SRCJ" \
+      --pool $OE/pool --out "$R/L/lora_check.json" >> "$LG/L.log" 2>&1 || { rc=9; note="lora_check FAILED: adapter not applied as in PEFT"; }
+  fi
+  if [ $rc = 0 ]; then
+    ( cd $DAN && VLLM_ATTENTION_BACKEND=FLASH_ATTN run "$TO_L" python -u olmo_ifladder/sample.py --model "$MD" \
+        --tokenizer $MODELS/tok --name "$CK" --rev "$REV" --problems olmo_ifomega/problems.jsonl \
+        --pids "@$OE/stage2/pids_L.txt" --n 0 --chunk 4 --seed "$SEED_L" --job "L_$CK" --tp 1 --order given \
+        --lora "$AD" --lora_name "${CK}_edl64" --lora_rank 16 --out "$R/L/samples.jsonl.gz" --meta "$R/L/meta.json" && \
+      run 1800 python olmo_ifomega/grade.py "$R/L/samples.jsonl.gz" olmo_ifomega/problems.jsonl "$R/L/graded.jsonl" ) >> "$LG/L.log" 2>&1
+    rc=$?
+    [ $rc = 0 ] || note="sampler or grader failed (see logs/L.log; a rejected adapter fails here)"
+  fi
+  finish L $rc "$note"
 fi
 
 # ---- Stage 0c replication draw: arm-A prompts x 2, plain prompts, new seed (only when asked)

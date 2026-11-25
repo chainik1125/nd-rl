@@ -24,7 +24,7 @@ import time
 import zlib
 from pathlib import Path
 
-STAGES = ["download", "edl", "T", "H", "rep"]
+STAGES = ["download", "edl", "T", "H", "L", "rep"]
 LINE = re.compile(r"^(?P<ckpt>\S+) (?P<stage>\S+) (?P<kv>.*)$")
 
 

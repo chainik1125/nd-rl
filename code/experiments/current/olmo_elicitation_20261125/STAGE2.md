@@ -60,6 +60,50 @@ His olmo-ifcurve arm A at dpo and s2300: the 218 IFBench prompts, plain prompt, 
 `pids_rep.txt` = 218 × 2 draws, chunk 2, `olmo_ifomega/problems.jsonl`, new seed. Compared with his stored arm-A
 cells (dpo 16 draws per prompt from `F_dpo_ifb`, s2300 8 from `F_s2300_ifb`) by `analyze_rep.py` under the PREREG rule.
 
+### L: the reach prompts through each checkpoint's stage-1 adapter (SPEC "L, LoRA-elicited reach")
+
+Not one of his arms; built from his parts. Prompts: the 48 reach prompts, plain, exactly as his arm B sent them
+(`olmo_ifomega/problems.jsonl`, his sampler, chunk 4), 8 draws (`pids_L.txt`), seed 640000 + step (`seeds_L.csv`).
+Model: the checkpoint plus its stage-1 adapter `runs/<ckpt>/edl/adapters/best_order0` (θ_64 of the order-0 EDL row with
+the shortest online code length on the frozen grid {1e-4, 3e-4, 1e-3}; trained on 64 arm-A non-reach prompts, so L
+measures transfer to the reach prompts) on vLLM's LoRA path: his `olmo_ifladder/sample.py --lora <dir> --lora_name
+<ckpt>_edl64 --lora_rank 16`, as his olmo-ifladder LoRA evaluations ran (`Leval_main`, vLLM 0.11.0). Never a merge:
+his merged model missed his 1 % merge check (1.12 %). Our adapters have the same PEFT config as his `lora/main` (r 16,
+α 32, q/k/v/o/gate/up/down, bias none) and the same 896 tensor names, shapes and dtype (F32); only dropout differs (0 vs
+0.05, inert at inference). Grader: his `grade.py`, strict.
+
+- **Staging (serrano, `stage_adapter.py`, called by `olmo_pod.sh run … --stages L`).** Refuses unless
+  `runs/<ckpt>/edl/DONE` lists lrs 1e-4, 3e-4, 1e-3 with status ok (order 0, and every other order it lists), BEST.json
+  names the shortest-code-length order-0 grid row of `edl_rows.jsonl`, and the adapter config is the one above. Copies
+  only `adapter_config.json` and `adapter_model.safetensors` (no optimizer state) plus `source.json` (BEST.json, DONE,
+  the row's lr / code length, md5 and sha256 of both files, two check examples); pushed md5-checked; re-checked by md5 on
+  the pod before use. The job writes `L/adapter_source.json` and `L/adapter_md5.txt` next to his sampler's meta (which
+  records the adapter's sha256 itself).
+- **Sanity gate (`lora_check.py`, at dpo; any checkpoint with `--lora-check`).** Teacher-forced on the first two test
+  examples of the adapter's EDL row (prompt ids and the final model's response ids from the pool, as the EDL runner
+  scored them): vLLM's response nats without and with the adapter (prompt log-probs, bf16, eager, no prefix cache),
+  against the EDL runner's PEFT nats at n' = 0 and n' = 64. PASS needs vLLM's drop to be 0.75–1.33 × PEFT's (where PEFT's
+  drop is at least 2 %), the relative change to agree within 2 points, and the base path unchanged after the adapter
+  ran. An adapter that is not applied gives no drop and fails; the stage then does not sample. Tested on serrano only
+  against a stub vLLM (applied → PASS, not applied → FAIL); the real check runs on the pod.
+- **Comparison (`analyze_arms.py`, `fig_arms.py` panel c).** L against his plain arm B at the same checkpoint, cut to
+  its first 8 draws (`B8`, like for like) and in full (`B`, 32 per prompt; 16 at dpo from olmo-ifomega): strict pass
+  rate with a prompt-bootstrap interval, and prompts with ≥ 1 strict pass in 8 as % of 48. Checker passes only.
+- **Cost (estimate, `cost_table.py`):** 384 draws per checkpoint at his plain arm-B tokens per draw at that checkpoint
+  (lower) or the final model's 6,863 (upper; the adapter pulls toward the final model's long thinking), 1,400 tok/s
+  (his LoRA jobs: 1,568 and 1,335), 2 min load, 3 min for the dpo check:
+
+| ckpt | step | tokens / draw (plain arm B at this ckpt / s2300) | Mtok | H200 min (low / high) | $ (low / high) |
+|---|---|---|---|---|---|
+| dpo | 0 | 4477 / 6863 | 1.72–2.64 | 25 / 36 | 2.25 / 3.21 |
+| s0100 | 100 | 4753 / 6863 | 1.83–2.64 | 24 / 33 | 2.09 / 2.94 |
+| s0500 | 500 | 4994 / 6863 | 1.92–2.64 | 25 / 33 | 2.19 / 2.94 |
+| s1100 | 1100 | 6940 / 6940 | 2.67–2.67 | 34 / 34 | 2.97 / 2.97 |
+| s2300 | 2300 | 6863 / 6863 | 2.64–2.64 | 33 / 33 | 2.94 / 2.94 |
+
+  Sum: 141–170 min, $12.44–$15.01, plus a download (0.5–3 min) for each checkpoint whose weights are no longer on the
+  pod.
+
 ## What he already has, reused rather than re-sampled
 
 | checkpoint | T (no instruction) | A1 | H | plain reach (arm B) |
@@ -82,6 +126,7 @@ all draws.
 | T | s0100, s0500, s1100 / s0050, s0200, s0750, s1600 | 230 requests × 8 = 1,840 answers | 610000 + step |
 | H | same | 48 × 8 = 384 (or 48 × 4 = 192) | 620000 + step |
 | rep | dpo, s2300 | 218 × 2 = 436 | 630000 + step |
+| L | dpo, s0100, s0500, s1100, s2300 | 48 × 8 = 384 | 640000 + step (`seeds_L.csv`) |
 
 `stage2/seeds.csv` holds them; every job's meta records its seed, revision and the prompt token sha256s.
 
@@ -124,6 +169,6 @@ Sum: 260 min ($22.91) with H at 8, 227 min ($19.97) at 4; sampling stages 128 mi
 ## Order on a pod (per checkpoint)
 
 download (pinned commit, verified) → edl (exit code is the gate; a failure is recorded and the chain continues) → T →
-H → rep (only when asked) → weights deleted (unless `--keep-weights`, or a `download`-only run). Each stage writes
+H → L → rep (L and rep only when asked) → weights deleted (unless `--keep-weights`, or a `download`-only run). Each stage writes
 `state/<stage>.{RUNNING,DONE,FAILED}`, a log `logs/<stage>.log`, and the chain a heartbeat every 60 s; a stage marked
 DONE is skipped on a rerun, and the samplers resume their own output files.

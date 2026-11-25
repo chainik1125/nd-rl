@@ -154,8 +154,21 @@ class Ckpt:
     per-example nats of the test set after n' steps; test_conv(lr, order, seg) -> after the extra epochs."""
 
     def __init__(
-        self, name: str, step0: dict | None, rows: list[dict], conv_rows: list[dict] | None = None
+        self,
+        name: str,
+        step0: dict | None,
+        rows: list[dict],
+        conv_rows: list[dict] | None = None,
+        grid: list[float] | None = None,
     ):
+        """grid: the lrs of the frozen grid; rows of other lrs go to `off_grid_rows` and never enter EDL* (None: every
+        lr on file). ln(#lrs) uses the grid's size. A --conv-rows best conv row counts only if it was made at the grid's
+        shortest-code-length order-0 lr; others stay on file and are listed in `conv_ignored`."""
+        self.grid = sorted(float(x) for x in grid) if grid else None
+        self.off_grid_rows = [
+            r for r in rows if self.grid is not None and float(r["lr"]) not in self.grid
+        ]
+        rows = [r for r in rows if self.grid is None or float(r["lr"]) in self.grid]
         self.name, self.step0, self.rows = name, step0, rows
         ok = [r for r in rows if r["status"] == "ok"]
         self.lrs = sorted({float(r["lr"]) for r in rows})
@@ -174,9 +187,30 @@ class Ckpt:
         for k, r in self.ok.items():
             if r.get("conv", {}).get("status") == "ok":
                 self.conv[k] = r["conv"]
+        self.conv_ignored: list[dict] = []
+        code0 = {
+            k[0]: sum(v["online"]["think_nats"]) + sum(v["online"]["answer_nats"])
+            for k, v in self.ok.items()
+            if k[1] == 0
+        }
+        best0 = min(code0, key=code0.get) if code0 else None
         for r in conv_rows or []:
-            if r["conv"].get("status") == "ok" and (float(r["lr"]), int(r["order"])) in self.ok:
-                self.conv[(float(r["lr"]), int(r["order"]))] = {**r["conv"], "mode": r.get("mode")}
+            k = (float(r["lr"]), int(r.get("order", 0)))
+            if r["conv"].get("status") == "ok" and k in self.ok and k[0] == best0:
+                self.conv[k] = {**r["conv"], "mode": r.get("mode")}  # the latest such row wins
+            else:
+                self.conv_ignored.append(
+                    {
+                        "lr": k[0],
+                        "order": k[1],
+                        "utc_end": r.get("utc_end"),
+                        "status": r["conv"].get("status"),
+                        "why": "not the grid's shortest-code-length order-0 lr"
+                        if k[0] != best0
+                        else "row not usable",
+                    }
+                )
+        self.n_lrs = len(self.grid) if self.grid is not None else len(self.lrs)
 
     def online(self, lr: float, order: int, seg: str) -> tuple[np.ndarray, np.ndarray]:
         r = self.ok[(lr, order)]
@@ -327,7 +361,30 @@ def analyze_ckpt(c: Ckpt, rng, B: int) -> dict:
     if not c.ok:
         return out
     n = c.n
-    ln_k = math.log(len(c.lrs)) if c.lrs else 0.0
+    ln_k = math.log(c.n_lrs) if c.n_lrs else 0.0
+    out["grid"] = {
+        "lrs": c.grid if c.grid is not None else c.lrs,
+        "from": "--lrs" if c.grid is not None else "all lrs on file",
+        "ln_k": ln_k,
+        "missing_lrs": sorted(set(c.grid or []) - set(c.lrs)),
+    }
+    if c.conv_ignored:
+        out["conv_ignored"] = c.conv_ignored
+    if c.off_grid_rows:
+        off = Ckpt(c.name, c.step0, c.off_grid_rows)
+        out["off_grid"] = {}
+        for lr in off.lrs:
+            d = {
+                "orders": off.orders_of(lr),
+                "status": {k: v for k, v in off.status.items() if k.startswith(f"{lr:g}/")},
+                "code_length_nats": {seg: off.code_length(lr, seg) for seg in SEGS},
+            }
+            if off.has_eval(lr, off.n):
+                d["EDL64"] = {
+                    conv: {seg: float(edl_point(off, lr, off.n, seg, conv)) for seg in SEGS}
+                    for conv in CONVS
+                }
+            out["off_grid"][f"{lr:g}"] = d
     ok_lrs = [lr for lr in c.lrs if c.orders_of(lr)]
     n_orders = max(len(c.orders_of(lr)) for lr in ok_lrs)
     ti, oi = boot_indices(rng, len(c.test_pids), n_orders, B)
@@ -439,6 +496,26 @@ def analyze_ckpt(c: Ckpt, rng, B: int) -> dict:
                 }
             pc, bc = test_rate(c, lr, seg, ti, conv_test=True)
             out["L_conv"][seg] = {"lr": lr, "nats_per_tok": pc, "ci": ci(bc), "epochs": eps}
+    # POST HOC (not pre-registered; added 2026-11-25 after the dpo pilot showed the extra epochs overfitting): the lowest
+    # test loss over the evaluated points at the segment's lr (n' in evals, and the extra-epochs point when present)
+    out["L_min_posthoc"] = {}
+    for seg in SEGS:
+        lr = lr_mdl[seg]
+        pts = {f"n={e}": test_rate(c, lr, seg, ti, e) for e in c.evals if c.has_eval(lr, e)}
+        if c.orders_of(lr, need_conv=True):
+            pts[
+                f"conv ({c.conv[(lr, c.orders_of(lr, need_conv=True)[0])]['epochs']} extra epochs)"
+            ] = test_rate(c, lr, seg, ti, conv_test=True)
+        if pts:
+            at = min(pts, key=lambda k, pts=pts: pts[k][0])
+            out["L_min_posthoc"][seg] = {
+                "lr": lr,
+                "nats_per_tok": pts[at][0],
+                "ci": ci(pts[at][1]),
+                "at": at,
+                "all_points": {k: v[0] for k, v in pts.items()},
+                "note": "post hoc: minimum over evaluated points, chosen after seeing them (optimistic)",
+            }
     return out
 
 
@@ -649,9 +726,26 @@ def flatten(res: dict) -> list[dict]:
                         "nats/token",
                         f"lr {cv['lr']:g}; {cv['shape']}",
                     )
-        for key in ("L64", "L_conv", "C2_test_drop"):
+        for key in ("L64", "L_conv", "C2_test_drop", "L_min_posthoc"):
             for seg, v in r.get(key, {}).items():
-                add(ck, key, "", seg, v["nats_per_tok"], *v["ci"], "nats/token", f"lr {v['lr']:g}")
+                note = f"lr {v['lr']:g}" + (
+                    f"; POST HOC, at {v['at']}" if key == "L_min_posthoc" else ""
+                )
+                add(ck, key, "", seg, v["nats_per_tok"], *v["ci"], "nats/token", note)
+        for lr, d in r.get("off_grid", {}).items():
+            for conv, segd in d.get("EDL64", {}).items():
+                for seg, v in segd.items():
+                    add(
+                        ck,
+                        "off_grid_EDL64",
+                        conv,
+                        seg,
+                        v,
+                        None,
+                        None,
+                        "nats",
+                        f"lr {lr} (not in the EDL* grid)",
+                    )
         for key in ("gap_share", "gap_share_conv"):
             for seg, v in r.get(key, {}).items():
                 if isinstance(v, dict) and "share" in v:
@@ -659,10 +753,10 @@ def flatten(res: dict) -> list[dict]:
     return rows
 
 
-def analyze(runs: Path, B: int = 2000, seed: int = 0) -> dict:
+def analyze(runs: Path, B: int = 2000, seed: int = 0, lrs: list[float] | None = None) -> dict:
     rng = np.random.default_rng(seed)
     found = discover(runs)
-    cs = {k: Ckpt(k, s0, rows, conv) for k, (s0, rows, conv) in found.items()}
+    cs = {k: Ckpt(k, s0, rows, conv, grid=lrs) for k, (s0, rows, conv) in found.items()}
     res = {k: analyze_ckpt(c, rng, B) for k, c in cs.items()}
     gap_share(cs, res, rng, B)
     return {
@@ -670,6 +764,7 @@ def analyze(runs: Path, B: int = 2000, seed: int = 0) -> dict:
         "runs": str(runs),
         "B": B,
         "seed": seed,
+        "lrs_grid": lrs,
         "conventions": __doc__.split("EDL, two unit conventions")[1]
         .split("Readouts per checkpoint")[0]
         .strip(),
@@ -689,8 +784,14 @@ def main() -> None:
     )
     ap.add_argument("--B", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument(
+        "--lrs",
+        default=None,
+        help="the frozen lr grid for EDL*, e.g. 1e-4,3e-4,1e-3 (default: every lr on file); other rows are reported as off_grid",
+    )
     a = ap.parse_args()
-    s = analyze(a.runs, a.B, a.seed)
+    grid = [float(x) for x in a.lrs.split(",") if x.strip()] if a.lrs else None
+    s = analyze(a.runs, a.B, a.seed, grid)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.with_suffix(".json").write_text(json.dumps(s, indent=1, default=float) + "\n")
     rows = flatten(s["checkpoints"])

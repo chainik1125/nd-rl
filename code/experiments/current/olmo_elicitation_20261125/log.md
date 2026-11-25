@@ -48,3 +48,26 @@
 - 03:03 rep at dpo done on rp-ol1 (436 / 436, 0 cut, seed 630000; template sha and all 218 prompt-token sha256s equal
   his olmo-ifcurve meta); fetched md5-equal to `olmo_elicit/runs/dpo/`. `analyze_rep.py`: ours 28.2 % [22.7, 33.9]
   vs his 29.0 % (16 per prompt), difference −0.8 points [−2.9, +1.3]: **PASS** (PREREG stage 0c rule).
+
+## 2026-11-25 04:10 PST — EDL agent: grid-shift extension (PREREG Amendment 4)
+
+- `olmo_edl.py` (md5 aadb18bf): a re-run with a shifted `--lrs` runs only the missing (lr, order) rows; rows of other lrs stay in the file. The best_order0 incumbent is the shortest-code-length order-0 row among the REQUESTED lrs on file (not BEST.json); the adapter + optimizer are replaced only if a new order-0 row is shorter. Conv-best: nothing if a conv row exists for the grid's best lr; else load the saved state (if it is that lr) or re-run that row's online pass and continue; the new conv row carries grid_lrs, current, supersedes. DONE/exit refer to the requested lrs; a stale DONE is removed at start.
+- `analyze_edl.py` (md5 375c88a8): `--lrs` fixes the EDL* grid (ln k = its size); other lrs go to `off_grid`; only the conv row at the grid's best order-0 lr is used (others in `conv_ignored`).
+- Tests: 3 extension scenarios (new lr wins / loses / saved best left the grid); 18 CPU tests pass.
+
+## 2026-11-25 04:15–04:40 PST — stage-0 / stage-2 / pod-tooling agent: stage L
+
+- Built stage L (SPEC "L, LoRA-elicited reach"): `stage_adapter.py` (serrano: refuses unless `edl/DONE` lists the grid
+  {1e-4, 3e-4, 1e-3} ok and BEST.json is the shortest order-0 grid row; stages adapter_config + adapter_model only, with
+  `source.json`), `lora_check.py` (pod: teacher-forced vLLM nats without / with the adapter vs the EDL runner's PEFT
+  nats at n' = 0 / 64, 2 examples; PASS / FAIL gate), `oe_chain.sh` stage L (md5 re-check, lora_check at dpo, his
+  `sample.py --lora … --lora_name <ckpt>_edl64`, his grader), `olmo_pod.sh run … --stages L [--lora-check]`,
+  `oe_status.py` stage L; `make_stage2.py` → `stage2/pids_L.txt`, `seeds_L.csv` (640000 + step; other stage-2 files
+  unchanged, same md5). `analyze_arms.py`: arms L and B8 (his first 8 base draws), `solved_all_pct`, `grade` column;
+  `fig_arms.py` panel (c); `cost_table.py` stage-L table; `STAGE2.md` section L.
+- Our dpo adapter has the same config, 896 tensor names, shapes and dtype as Dan's `lora/main` (loaded by vLLM 0.11.0 in
+  his Leval_main). Scripts that running drivers use were replaced by atomic rename (`olmo_chain.sh` untouched).
+- Tested: bash -n; chain simulation with a stub python (L DONE; md5 mismatch → FAILED rc 8); `olmo_pod.sh run … --stages
+  L --dry-run` refused on the real dpo DONE (no 1e-3 rows yet) and staged on a synthesized complete grid; lora_check
+  against a stub vLLM (applied → PASS, not applied → FAIL); `test_stage_l.py` + earlier tests: 14 passed; ruff clean.
+  Not tested: vLLM's real LoRA path with our adapter (first run on the pod).

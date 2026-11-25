@@ -142,11 +142,49 @@ def table(plan: dict[str, list[str]], title: str) -> list[str]:
     return L
 
 
+L_RATE = 1400.0  # his vLLM-LoRA jobs on 1 x H200: Leval_main 1568 tok/s (3,552 draws), Lchk_main 1335 (288)
+L_LOAD = 2.0  # engine with enable_lora (his Lchk_main t_load_s 120 s)
+L_CHECK_MIN = (
+    3.0  # lora_check.py at dpo: an eager engine, 2 x 3 teacher-forced passes of about 5k tokens
+)
+
+
+def table_l(ckpts: list[str]) -> list[str]:
+    """Stage L: 48 reach prompts x 8 through the adapter. Tokens per draw: his plain arm-B mean at the checkpoint (lower)
+    and the final model's (s2300, upper: the adapter pulls toward the final model's long thinking)."""
+    pt = plain_tok()
+    L = [
+        "**Stage L (48 reach prompts x 8 = 384 draws through the stage-1 adapter, vLLM LoRA path)**",
+        "",
+        "| ckpt | step | tokens / draw (plain arm B at this ckpt / s2300) | Mtok | H200 min (low / high) | $ (low / high) |",
+        "|---|---|---|---|---|---|",
+    ]
+    lo_t = hi_t = 0.0
+    for c in ckpts:
+        lo, hi = pt[c], max(pt[c], pt["s2300"])
+        extra = L_LOAD + (L_CHECK_MIN if c == "dpo" else 0.0)
+        mlo, mhi = extra + 384 * lo / (L_RATE * 60), extra + 384 * hi / (L_RATE * 60)
+        lo_t += mlo
+        hi_t += mhi
+        L.append(
+            f"| {c} | {STEP[c]} | {lo:.0f} / {hi:.0f} | {384 * lo / 1e6:.2f}–{384 * hi / 1e6:.2f} | {mlo:.0f} / {mhi:.0f} | "
+            f"{mlo * PRICE:.2f} / {mhi * PRICE:.2f} |"
+        )
+    L += [
+        "",
+        f"Sum over {', '.join(ckpts)}: {lo_t:.0f}–{hi_t:.0f} min, ${lo_t * PRICE:.2f}–${hi_t * PRICE:.2f}, plus a "
+        f"download per checkpoint whose weights are no longer on the pod (about 0.5–3 min each).",
+        "",
+    ]
+    return L
+
+
 def main() -> None:
     print(
         "\n".join(
             table(MINI, "Mini run (Amendment 1): dpo, s0100, s0500, s1100, s2300")
             + table(SECOND, "Possible second pass: s0050, s0200, s0750, s1600")
+            + table_l(["dpo", "s0100", "s0500", "s1100", "s2300"])
         )
     )
 
