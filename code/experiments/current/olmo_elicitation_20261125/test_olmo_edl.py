@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import csv
 import gzip
+import importlib.util
 import json
 import math
 import sys
@@ -772,6 +773,14 @@ def test_analysis_and_figure_on_partial_checkpoints(tmp_path):
         and "EDL_star" not in s["checkpoints"]["s2300"]
     )
     assert set(s["checkpoints"]["dpo"]["gap_share"]) == {"total", "think", "answer"}
+    lm = s["checkpoints"]["dpo"]["L_min_posthoc"][
+        "answer"
+    ]  # post hoc minimum over the evaluated points
+    assert (
+        lm["nats_per_tok"] == min(lm["all_points"].values())
+        and lm["at"] in lm["all_points"]
+        and "post hoc" in lm["note"]
+    )
     rows = an.flatten(s["checkpoints"])
     assert any(r["metric"] == "EDL_star_mdl" and r["segment"] == "answer" for r in rows)
     from code.ndbench.figures import style as st
@@ -1019,6 +1028,42 @@ def test_icl_k0_reproduces_step0_and_demos_fixed(tmp_path):
         == 0
     )
     assert len(oe.read_rows(tmp_path / "dpo" / "icl" / "icl_rows.jsonl")) == 5
+    # analysis: k = 0 equals step 0's L0 rate; share defined except at s2300; gain = L0 - Lk; figure renders
+    import analyze_icl as ai
+
+    res = ai.analyze(tmp_path, B=40)
+    d = res["checkpoints"]["dpo"]
+    step0 = json.loads((tmp_path / "dpo" / "edl" / "step0.json").read_text())
+    for seg in ("total", "think", "answer"):
+        l0 = float(an.seg_vals(step0["test"], seg).sum() / an.seg_toks(step0["test"], seg).sum())
+        assert abs(d["test"][seg]["0"]["L"] - l0) < 1e-12
+        e = d["test"][seg]["2"]
+        assert (
+            abs(e["gain"] - (l0 - e["L"])) < 1e-12 and e["draws"] == 2 and len(e["per_draw"]) == 2
+        )
+        assert abs(e["L"] - np.mean(e["per_draw"])) < 1e-9  # equal targets in both draws
+        assert "share" in e and "share" not in res["checkpoints"]["s2300"]["test"][seg]["2"]
+        lf = float(
+            an.seg_vals(
+                json.loads((tmp_path / "s2300" / "edl" / "step0.json").read_text())["test"], seg
+            ).sum()
+            / an.seg_toks(step0["test"], seg).sum()
+        )
+        assert abs(e["share"] - (l0 - e["L"]) / (l0 - lf)) < 1e-9
+    assert any(
+        r["metric"] == "gap_share" and r["segment"] == "answer"
+        for r in ai.flatten(res["checkpoints"])
+    )
+    if importlib.util.find_spec("matplotlib") is not None:
+        import fig_icl
+
+        from code.ndbench.figures import style as st
+
+        with st.paper_style():
+            fig = fig_icl.make_figure(res)
+            paths = st.save(fig, tmp_path / "fig" / "icl_curve")
+            st.close(fig)
+        assert all(p.exists() and p.stat().st_size > 0 for p in paths)
 
 
 def test_icl_prefix_cache_matches_full_forward():
@@ -1076,3 +1121,259 @@ def test_icl_context_matches_chat_template_text():
     )
     assert tok.decode(ctx, clean_up_tokenization_spaces=False) == text
     assert pc.sys + pc.user(prompts[tgt.pid]) + pc.head == tgt.prompt
+
+
+# ------------------------------------------------------------------------------------------ token profile (analyze_tokens.py)
+
+
+def _full_js(p, q):
+    m = 0.5 * (p + q)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        a = np.where(p > 0, p * np.log(p / m), 0.0).sum()
+        b = np.where(q > 0, q * np.log(q / m), 0.0).sum()
+    return 0.5 * (a + b)
+
+
+def test_tokens_js_topk_against_full_vocabulary():
+    import analyze_tokens as at
+
+    rng = np.random.default_rng(0)
+    for V in (20, 60):
+        P = rng.dirichlet(np.full(V, 0.3), size=200)
+        Q = 0.6 * P + 0.4 * rng.dirichlet(np.full(V, 0.3), size=200)
+        ids = lambda X: np.argsort(-X, axis=1)[:, :20].astype(np.int32)  # noqa: E731
+        pi, qi = ids(P), ids(Q)
+        pl = np.log(np.take_along_axis(P, pi, 1)).astype(np.float16)
+        ql = np.log(np.take_along_axis(Q, qi, 1)).astype(np.float16)
+        out = at.js_topk(pi, pl, qi, ql, chunk=64)
+        full = np.array([_full_js(P[j], Q[j]) for j in range(200)])
+        assert (out["js_lb"] <= full + 2e-3).all()  # a lower bound (fp16 log-probs)
+        assert (out["js"] >= 0).all() and (out["js"] <= np.log(2) + 1e-9).all()
+        if V == 20:  # top 20 = the whole vocabulary: both equal the exact JS
+            np.testing.assert_allclose(out["js"], full, atol=2e-3)
+            np.testing.assert_allclose(out["js_lb"], full, atol=2e-3)
+        else:  # empirical (not a proven bound): the truncation error stays below the discarded top-20 mass
+            miss = np.maximum(1 - out["mass_p"], 1 - out["mass_q"])
+            assert (np.abs(out["js"] - full) <= miss + 2e-3).all()
+    same = at.js_topk(pi, pl, pi, pl)
+    assert np.abs(same["js"]).max() < 1e-12 and np.abs(same["js_lb"]).max() < 1e-12
+    v = np.array([5.0, -1.0, 3.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    assert at.top_share(v, 0.1) == 5 / 10 and at.top_share(v, 0.2) == 8 / 10
+    assert at.top_share(np.clip(v, 0, None), 0.2) == 8 / 11
+    assert at.top_share(v, 0.1, order_by=-np.arange(10.0)) == 5 / 10  # first position ranked top
+
+
+def test_tokens_profile_end_to_end(tmp_path):
+    import analyze_tokens as at
+
+    sets = make_sets()
+    for ck, seed in (("dpo", 0), ("s0500", 3), ("s2300", 1)):
+        model = oe.wrap_lora(tiny_model(seed), grad_ckpt=True)
+        assert run(model, sets, tmp_path / ck / "edl", ckpt=ck, evals=[0, 6], lrs=[1e-2]) == 0
+    res = at.analyze(tmp_path, B=30)
+    assert list(res["checkpoints"]) == ["dpo", "s0500", "s2300"]
+    ref = res["checkpoints"]["s2300"]["sets"]["all"]
+    for seg in ("total", "think", "answer"):
+        assert (
+            ref[seg]["excess_mean"] == 0
+            and ref[seg]["js_mean"] < 1e-12
+            and ref[seg]["share_argmax_agree"] == 1
+        )
+    s0 = {
+        c: json.loads((tmp_path / c / "edl" / "step0.json").read_text()) for c in ("dpo", "s2300")
+    }
+    for r in res["checkpoints"].values():
+        assert r["step0_check_max_abs_diff_nats"] < 1e-3
+        for seg in ("total", "think", "answer"):
+            d = r["sets"]["all"][seg]
+            n = sum(int(an.seg_toks(s0["dpo"][s], seg).sum()) for s in ("train", "test", "reach"))
+            assert d["n_positions"] == n and sum(b["n"] for b in d["entropy_deciles"]) == n
+            assert (
+                0 <= d["share_top1"] <= d["share_top5"] <= 1
+                and 0 <= d["js_lb_mean"] <= d["js_mean"] + 1e-6
+            )
+            assert d["js_mean_ci"][0] <= d["js_mean"] <= d["js_mean_ci"][1]
+    d = res["checkpoints"]["dpo"]["sets"]["all"]["answer"]
+
+    def tot(c):
+        return sum(float(an.seg_vals(s0[c][s], "answer").sum()) for s in ("train", "test", "reach"))
+
+    toks = sum(float(an.seg_toks(s0["dpo"][s], "answer").sum()) for s in ("train", "test", "reach"))
+    assert (
+        abs(d["excess_mean"] - (tot("dpo") - tot("s2300")) / toks) < 1e-6
+    )  # = the L0 gap per token
+    assert (
+        abs(sum(b["share_of_net_excess"] for b in d["entropy_deciles"]) - 1) < 1e-9
+        if d["excess_sum"] > 0
+        else True
+    )
+    assert set(res["checkpoints"]["dpo"]["sets"]) == {"all", "train", "test", "reach"}
+    rows = at.flatten(res["checkpoints"])
+    assert any(r["metric"] == "excess_share_top5pct_net" and r["segment"] == "answer" for r in rows)
+    if importlib.util.find_spec("matplotlib") is not None:
+        import fig_tokens
+
+        from code.ndbench.figures import style as st
+
+        with st.paper_style():
+            fig = fig_tokens.make_figure(res)
+            paths = st.save(fig, tmp_path / "fig" / "tokens_profile")
+            st.close(fig)
+        assert all(p.exists() and p.stat().st_size > 0 for p in paths)
+
+
+# ------------------------------------------------------------------------------------------ post hoc readouts (analyze_edl.posthoc)
+
+
+def test_posthoc_crossing_arithmetic(tmp_path):
+    steps = [0, 100, 500, 1100, 2300]
+    h = an.half_step(steps, [10, 9, 6, 2, 1], "half_of_first", "down")
+    assert h["target"] == 5 and h["bracket"] == [500, 1100] and abs(h["step"] - 650) < 1e-9
+    p = an.half_step(steps, [29.0, 31.5, 41.2, 57.7, 68.3], "half_of_change", "up")
+    assert (
+        p["bracket"] == [500, 1100]
+        and abs(p["step"] - (500 + (48.65 - 41.2) / (57.7 - 41.2) * 600)) < 1e-9
+    )
+    assert an.half_step(steps, [10, 9, 8, 7, 6], "half_of_first")["step"] is None
+    early = {"step": 300.0, "bracket": [100.0, 500.0]}
+    late = {"step": 1500.0, "bracket": [1100.0, 2300.0]}
+    same = {"step": 900.0, "bracket": [500.0, 1100.0]}
+    assert an.p4_verdict(early, p) == "pass" and an.p4_verdict(late, p) == "fail"
+    assert an.p4_verdict(same, p).startswith("not established") and an.p4_verdict(
+        {"step": None}, p
+    ).startswith("undetermined")
+    l0 = [0.62, 0.61, 0.58, 0.54, 0.50]
+    e = an.step_equivalent(steps, l0, 0.52)
+    assert abs(e["step"] - 1700) < 1e-9 and e["label"] == "between 1100 and 2300"
+    assert an.step_equivalent(steps, l0, 0.49)["label"].startswith("beyond s2300")
+    assert an.step_equivalent(steps, l0, 0.63)["label"].startswith("at or above")
+    assert not an.first_crossing(steps, [5, 6, 4, 3, 2], 3.5, "down")["curve_monotone"]
+    csv_p = tmp_path / "repro_summary.csv"
+    csv_p.write_text(
+        "ckpt,step,k,his,ours_regrade,ours_own,diff_pts\ndpo,0,1,0.289851,0,0,0\ndpo,0,2,0.3,0,0,0\ns0050,50,8,nan,nan,nan,nan\ns2300,2300,1,0.683486,0,0,0\n"
+    )
+    p1 = an.load_pass1(csv_p)
+    assert (
+        set(p1) == {"dpo", "s2300"}
+        and abs(p1["dpo"] - 28.9851) < 1e-9
+        and abs(p1["s2300"] - 68.3486) < 1e-9
+    )
+
+
+def test_posthoc_paired_null_correction_end_to_end(tmp_path):
+    import shutil
+
+    sets = make_sets()
+    runs = tmp_path / "runs"
+    for ck, seed, k in (("dpo", 0, 2), ("s0500", 3, 1), ("s2300", 1, 1)):
+        model = oe.wrap_lora(tiny_model(seed), grad_ckpt=True)
+        assert run(model, sets, runs / ck / "edl", ckpt=ck, lrs=[1e-2, 3e-2], orders=k) == 0
+    # identical to s2300 with one order (only the test prompts are resampled): a paired difference is exactly 0 in every
+    # replicate. With two orders, the orders are resampled independently per checkpoint, by design.
+    shutil.copytree(runs / "s2300" / "edl", runs / "s1100" / "edl")
+    pass1 = tmp_path / "p.csv"
+    pass1.write_text(
+        "ckpt,step,k,his\ndpo,0,1,0.29\ns0500,500,1,0.41\ns1100,1100,1,0.58\ns2300,2300,1,0.68\n"
+    )
+    s = an.analyze(runs, B=40, pass1=pass1)
+    assert (
+        list(s)[-1] == "posthoc"
+        and "POST HOC" in s["posthoc"]["note"]
+        and "NOT resampled" in s["posthoc"]["resampled"]
+    )
+    ph, res = s["posthoc"], s["checkpoints"]
+    assert ph["checkpoints"] == ["dpo", "s0500", "s1100", "s2300"]
+    for conv in ("sum", "norm"):
+        for seg in ("total", "think", "answer"):
+            for c in ("s1100", "s2300"):
+                d = ph["delta_EDL_star"][c][conv][seg]
+                assert (
+                    d["nats"] == 0 and d["ci"] == [0.0, 0.0] and d["per_tok_ci"] == [0.0, 0.0]
+                )  # paired
+            d = ph["delta_EDL_star"]["dpo"][conv][seg]
+            a, b = (
+                res["dpo"]["EDL_star"][conv]["mdl"][seg],
+                res["s2300"]["EDL_star"][conv]["mdl"][seg],
+            )
+            assert (
+                abs(d["nats"] - (a["nats"] - b["nats"])) < 1e-9
+                and abs(d["per_tok"] - (a["per_tok"] - b["per_tok"])) < 1e-12
+            )
+            assert d["ci"][0] <= d["nats"] <= d["ci"][1]
+    for key in ("L0_test", "L0_train", "L0_reach", "L64_test"):
+        assert ph["delta_L"]["s1100"][key]["total"] == {"nats_per_tok": 0.0, "ci": [0.0, 0.0]} or (
+            key == "L64_test" and ph["delta_L"]["s1100"][key]["total"]["ci"] == [0.0, 0.0]
+        )
+    dl = ph["delta_L"]["dpo"]["L0_test"]["answer"]["nats_per_tok"]
+    assert (
+        abs(
+            dl
+            - (
+                res["dpo"]["L0"]["test"]["answer"]["nats_per_tok"]
+                - res["s2300"]["L0"]["test"]["answer"]["nats_per_tok"]
+            )
+        )
+        < 1e-12
+    )
+    # P4: the ΔEDL* curve ends at 0, the verdict field exists, the steps match half_step on the stored values
+    p4 = ph["P4"]
+    vals = p4["delta_EDL_star"]["norm"]["total"]["values_nats"]
+    assert vals[-1] == 0 and vals[-2] == 0
+    if vals[0] > 0:
+        assert (
+            p4["delta_EDL_star"]["norm"]["total"]["step"]
+            == an.half_step([0, 500, 1100, 2300], vals, "half_of_first")["step"]
+        )
+    assert (
+        abs(
+            p4["pass1"]["step"]
+            - an.half_step([0, 500, 1100, 2300], [29.0, 41.0, 58.0, 68.0], "half_of_change", "up")[
+                "step"
+            ]
+        )
+        < 1e-9
+    )
+    assert p4["P4_as_written"] is not None and p4["P4_null_corrected"] is not None
+    # RL-step equivalent: the same function on the stored L0 curve
+    eq = ph["rl_step_equivalent_of_64"]["total"]
+    l0 = [eq["L0_test_curve"][c] for c in ("dpo", "s0500", "s1100", "s2300")]
+    assert (
+        eq["dpo"]["step"]
+        == an.step_equivalent([0, 500, 1100, 2300], l0, res["dpo"]["L64"]["total"]["nats_per_tok"])[
+            "step"
+        ]
+    )
+    # reach transfer by hand at dpo
+    s0d = json.loads((runs / "dpo" / "edl" / "step0.json").read_text())
+    s0f = json.loads((runs / "s2300" / "edl" / "step0.json").read_text())
+    lr = res["dpo"]["lr_mdl"]["total"]
+    rows = [
+        r
+        for r in oe.read_rows(runs / "dpo" / "edl" / "edl_rows.jsonl")
+        if r.get("schema") == oe.SCHEMA and r["lr"] == lr
+    ]
+    tt = an.seg_toks(s0d["reach"], "total")
+    a0 = an.seg_vals(s0d["reach"], "total").sum() / tt.sum()
+    a64 = (
+        np.mean([an.seg_vals(r["evals"]["6"]["reach"], "total") for r in rows], axis=0).sum()
+        / tt.sum()
+    )
+    af = an.seg_vals(s0f["reach"], "total").sum() / tt.sum()
+    rt = ph["reach_transfer"]["dpo"]["total"]
+    assert abs(rt["L_reach_0"] - a0) < 1e-12 and abs(rt["L_reach_64"] - a64) < 1e-12
+    assert abs(rt["gap_share_reach"] - (a0 - a64) / (a0 - af)) < 1e-9 and "gap_share_test" in rt
+    assert any(r["metric"] == "posthoc_delta_EDL_star" for r in an.flatten_posthoc(ph))
+    if importlib.util.find_spec("matplotlib") is not None:
+        import fig_edl
+
+        from code.ndbench.figures import style as st
+
+        with st.paper_style():
+            for make, name in (
+                (fig_edl.make_figure, "edl_curve"),
+                (fig_edl.make_learning_figure, "edl_learning"),
+            ):
+                fig = make(s)
+                paths = st.save(fig, tmp_path / "fig" / name)
+                st.close(fig)
+                assert all(p.exists() and p.stat().st_size > 0 for p in paths)

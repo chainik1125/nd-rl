@@ -71,3 +71,43 @@
   L --dry-run` refused on the real dpo DONE (no 1e-3 rows yet) and staged on a synthesized complete grid; lora_check
   against a stub vLLM (applied → PASS, not applied → FAIL); `test_stage_l.py` + earlier tests: 14 passed; ruff clean.
   Not tested: vLLM's real LoRA path with our adapter (first run on the pod).
+
+## 2026-11-25 04:34 PST (EDL build agent): L_min readout and in-context arm (A) built
+
+- `analyze_edl.py`: new `L_min_posthoc` per segment: the lowest test L over the evaluated n' and the conv point at the segment's code-length lr, with the point it came from and all points; labelled post hoc in the JSON and CSV. On the dpo pilot rows (lr grid 3e-5..3e-4, before the grid shift): total at n=64 0.5257, think at n=64 0.5338, answer at n=32 0.1017 nats/token (observed; pilot grid).
+- New `olmo_icl.py` (run, bench), `analyze_icl.py`, `fig_icl.py`, `ICL.md`; tests `-k icl` (3) plus L_min assertions. k in {0,1,2,4}, 2 disjoint nested demo draws from the 26 genuine train rows (seed 0), 32 test + 38 reach targets, 490 scored responses, 5.39M tokens without cache; longest context 21,848 (< 65,536); sliding window 4,096 on 48/64 layers recorded, not worked around. k=0 checked against step0.json (tol 0). CPU checks only; no GPU run. 32B timing is an inference from the dpo step-0 throughput (~3.95k tok/s): ~23 min/ckpt uncached, ~10-12 min with --prefix-cache; to be replaced by the pod bench.
+
+## 2026-11-25 04:47 PST (EDL build agent): token-level profile (B) built and run on the five mini-run token files
+
+- New `analyze_tokens.py`, `fig_tokens.py`, `TOKENS.md`; tests `-k tokens` (2). Full CPU suite: 23 passed; ruff check + format clean on all my files.
+- Ran on serrano (CPU, ~45 s) on runs/{dpo,s0100,s0500,s1100,s2300}/edl/step0_tokens.npz vs s2300: outputs olmo_elicit/tokens_summary.{json,csv}, figures/tokens_profile.{pdf,svg,png}. npz NLL sums match step0.json to 1.2e-11 nats.
+- Observed (all 134 responses): total excess 0.117/0.109/0.081/0.040 nats/token at dpo/s0100/s0500/s1100, answer 0.157/0.126/0.059/0.013; s2300 argmax in t top-5 at 99.56%/99.95% (dpo/s1100, total); top 5% of positions carry 69% -> 110% of net excess (total); top s2300-entropy decile carries 29-31% (total) and 44-79% (answer). Details and caveats (forward direction only; truncated JS) in TOKENS.md.
+
+## 2026-11-25 05:27 PST (orchestrator): mini run, stage 1 complete; pods
+
+- Observed. EDL on the frozen grid {1e-4, 3e-4, 1e-3}, two orders, plus extra epochs on the best
+  order-0 row, at `dpo`, `s0100`, `s0500`, `s1100`, `s2300`: all rows `ok`, `reset_diff` 0.0,
+  every fetch md5-equal between pod and serrano. One H100 pod per checkpoint. The first pass ran
+  {3e-5, 1e-4, 3e-4}; `dpo`'s shortest code length was at 3e-4 on both orders, so the pre-set rule
+  added 1e-3 and dropped 3e-5 from `EDL*` (PREREG, grid decision at 4:00 am PT). 1e-3 is clearly
+  worse everywhere (code length about 150k nats against 140k at `dpo`), so the best rate is interior.
+- Observed. At `s2300` the best rate on the new grid is 1e-4, not the 3e-5 of the first pass, so the
+  runner re-ran that row's online pass to rebuild the adapter and then the extra epochs. The re-run's
+  code length is 130,619.7 nats against 130,624 in the first pass (bf16 on GPU is not bit-exact
+  across runs; 0.003 %).
+- Observed. The in-context scorer ran on the same pods right after EDL (weights kept by a hard-link
+  copy so nothing was downloaded twice): k = 0, 1, 2, 4 at two demonstration draws, 7 rows per
+  checkpoint, k = 0 equal to step 0 at every checkpoint.
+- Pods: `nd-rl-olmo-2`, `-4`, `-5`, `-6` deleted 13:02:36Z, `nd-rl-olmo-3` deleted 13:22:35Z,
+  each after its results were on serrano and checked. Ledger: `olmo_elicit/pods.tsv`
+  ($58.64 at 13:22Z). Only the H200 (`nd-rl-olmo-1`) is left.
+- Observed. On the H200 the `s2300` weight download for the replication draw stalled on one shard
+  (24 of 25 files in 54 s, then nothing for 25 min). I ended that download at 5:25 am PT; the chain
+  marked the stage failed and nothing ran on the GPU. Order on the H200 is now: stage L at the five
+  checkpoints, then the `s2300` replication draw.
+
+## 2026-11-25 05:36 PST (EDL build agent): POST HOC readouts on the five checkpoints (CPU)
+
+- `analyze_edl.py` (md5 3bbb6f1c) gains a `posthoc` section (after checkpoints/trends/checks, which are byte-identical to the previous run with the same seed): null-corrected EDL* (paired over test prompts), paired L0/L64 differences to s2300, P4 half-way steps as written and null-corrected (pass@1 read from stage0/repro_summary.csv col `his`, k=1: 29.0/31.5/41.2/57.7/68.3 match the check values), RL-step equivalent of 64 examples, reach transfer. `fig_edl.py` (c2837a54) writes figures/edl_learning.{pdf,svg,png} and notes in panel (b) that s2300 is the null control. Tests 25 passed; ruff clean. EDL.md has a post hoc section.
+- Observed (all post hoc): dEDL* norm total per token dpo 0.0139 [0.0114, 0.0165] -> s1100 0.0044 [0.0027, 0.0062]; answer intervals include 0 (norm). P4 as written: FAIL (EDL* half step 1309 vs pass@1 771); null-corrected: not established (dEDL* 811 and pass@1 771 both in 500-1100). 64 examples ~ RL step 1605 (dpo) to 1881 (s1100) on the total. Reach gap share closed by 64 matches the test one (dpo total 0.81 vs 0.80).
+- Correction to the entry above: "byte-identical" means equal as parsed JSON (only `written_utc` differs).

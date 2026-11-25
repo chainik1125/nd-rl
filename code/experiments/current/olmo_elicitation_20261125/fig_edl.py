@@ -9,8 +9,17 @@ Reads analyze_edl.py's summary; works with any subset of checkpoints (a checkpoi
     prompts), total / thinking / answer, 95 % prompt-bootstrap bands.
 (b) EDL* per response token (default: length-normalised, lr by the shortest online code length, + ln(#lrs)), total /
     thinking / answer, each segment with its own lr; 95 % intervals over test prompts (and orders where there are two).
+    s2300 is the null control (PREREG C1: its EDL* should be near 0); the panel says so.
 (c, d) EDL per token over n' (examples seen), one line per checkpoint (colour = RL step), total and answer.
 Hollow markers: a checkpoint off the released line (step 200). Drawn through code/ndbench/figures/style.py.
+
+Second figure (POST HOC readouts, --learning-out, default figures/edl_learning):
+(a, b) L_test against n' in {0, 8, 16, 32, 64} per checkpoint at the segment's code-length lr, total and answer, with
+    s2300's L_0 (test) as a horizontal line; no per-point intervals (the unpaired prompt intervals are in the JSON and
+    are shared by all checkpoints; the paired comparisons are (c) and posthoc.delta_L);
+(c) delta EDL* = EDL*(t) - EDL*(s2300) per token (length-normalised) over RL step, total and answer, paired intervals;
+(d) share of the gap to s2300 closed by 64 examples, (L_0(t) - L_64(t)) / (L_0(t) - L_0(s2300)), test (filled) and
+    reach (hollow), total and answer.
 """
 
 from __future__ import annotations
@@ -34,6 +43,8 @@ from code.ndbench.figures import style as st  # noqa: E402
 
 SUMMARY = Path("/scratch/cowifornia/nd-rl/olmo_elicit/edl_summary.json")
 OUT = Path("/scratch/cowifornia/nd-rl/olmo_elicit/figures/edl_curve")
+OUT_LEARNING = Path("/scratch/cowifornia/nd-rl/olmo_elicit/figures/edl_learning")
+FINAL = "s2300"
 CKPTS = ["dpo", "s0050", "s0100", "s0200", "s0500", "s0750", "s1100", "s1600", "s2300"]
 # segment encodings (Okabe-Ito): never colour alone
 SEG_STYLE = {
@@ -156,6 +167,19 @@ def make_figure(summary: dict, conv: str = "norm", rule: str = "mdl"):
         )
     if any_b:
         ax_b.axhline(0, color=st.REF, lw=0.6, ls=":", zorder=0)
+        fe = res.get(FINAL, {}).get("EDL_star", {}).get(conv, {}).get(rule, {})
+        if fe:  # between the answer line and the thinking / total lines, left of s2300's intervals
+            ys = [fe[g]["per_tok"] for g in ("total", "think") if g in fe]
+            y = 0.5 * (fe["answer"]["per_tok"] + max(ys)) if "answer" in fe and ys else 0.0
+            ax_b.text(
+                1700,
+                y,
+                "s2300 = null control\n(C1 expects EDL* near 0)",
+                ha="center",
+                va="center",
+                fontsize=st.FS_TICK - 1,
+                color=st.REF,
+            )
     else:
         _empty(ax_b, "no EDL rows yet")
     st.panel_title(ax_b, "b", f"EDL* per token ({lab})")
@@ -268,6 +292,193 @@ def make_figure(summary: dict, conv: str = "norm", rule: str = "mdl"):
     return fig
 
 
+def _step_axis(ax) -> None:
+    ax.set_xlabel("RL step")
+    ax.set_xlim(-80, 2380)
+    ax.set_xticks([0, 500, 1000, 1500, 2000, 2300])
+    ax.set_xticklabels(["0", "500", "1000", "1500", "", "2300"])
+    st.light_grid(ax)
+
+
+def make_learning_figure(summary: dict):
+    """POST HOC readouts of analyze_edl.py's `posthoc` section (see the module docstring)."""
+    res = summary.get("checkpoints", {})
+    ph = summary.get("posthoc", {})
+    fig = st.new_figure(st.FULL_W, 4.9)
+    axs = fig.subplots(2, 2)
+    curves = ph.get("L_test_curve", {})
+    drawn: list[str] = []
+    for ax, seg, letter in ((axs[0, 0], "total", "a"), (axs[0, 1], "answer", "b")):
+        for c in [x for x in CKPTS if x in curves]:
+            cv = curves[c].get(seg)
+            if not cv or not cv["n"]:
+                continue
+            col = ckpt_colour(c)
+            off = res.get(c, {}).get("off_released_line")
+            # no per-point intervals: the unpaired prompt intervals (in the JSON) are shared by all checkpoints and
+            # hide the curves; the paired comparisons are panel (c) and posthoc.delta_L
+            x = np.asarray(cv["n"], float)
+            y = np.asarray(cv["L"], float)
+            ax.plot(x, y, color=col, lw=1.0, ls="--" if off else "-", zorder=2)
+            ax.plot(
+                x,
+                y,
+                marker="o",
+                ms=2.8,
+                color=col,
+                mfc="white" if off else col,
+                mew=0.7,
+                ls="none",
+                zorder=3,
+            )
+            if c not in drawn:
+                drawn.append(c)
+        l0f = res.get(FINAL, {}).get("L0", {}).get("test", {}).get(seg)
+        if l0f:
+            ax.axhline(l0f["nats_per_tok"], color=st.REF, lw=0.8, ls=":", zorder=1)
+        if not any(seg in curves[c] for c in curves):
+            _empty(ax, "no post hoc readouts yet")
+        ax.set_xticks([0, 8, 16, 32, 64])
+        st.panel_title(ax, letter, f"$L_{{test}}$ over $n'$, {SEG_STYLE[seg]['label']}")
+        ax.set_xlabel("training examples seen, $n'$")
+        ax.set_ylabel("nats per token")
+        st.light_grid(ax)
+
+    ax = axs[1, 0]
+    d = ph.get("delta_EDL_star", {})
+    any_c = False
+    for seg in ("total", "answer"):
+        ck = [c for c in CKPTS if c in d and seg in d[c].get("norm", {})]
+        if not ck:
+            continue
+        any_c = True
+        e = [d[c]["norm"][seg] for c in ck]
+        series(
+            ax,
+            [
+                res[c]["step"] + (-15 if seg == "total" else 15) for c in ck
+            ],  # dodge: the intervals overlap
+            [x["per_tok"] for x in e],
+            [x["per_tok_ci"] for x in e],
+            SEG_STYLE[seg],
+            [res[c].get("off_released_line") for c in ck],
+            band=False,
+        )
+    ax.axhline(0, color=st.REF, lw=0.6, ls=":", zorder=0)
+    if any_c:
+        ax.legend(
+            handles=[
+                Line2D(
+                    [],
+                    [],
+                    color=SEG_STYLE[s]["color"],
+                    ls=SEG_STYLE[s]["ls"],
+                    marker=SEG_STYLE[s]["marker"],
+                    ms=3.2,
+                    lw=1.0,
+                    label=SEG_STYLE[s]["label"],
+                )
+                for s in ("total", "answer")
+            ],
+            fontsize=st.FS_TICK - 0.5,
+            loc="upper right",
+        )
+    else:
+        _empty(ax, "no post hoc readouts yet")
+    st.panel_title(ax, "c", r"$\Delta$EDL* = EDL*$(t)$ $-$ EDL*(s2300), per token")
+    ax.set_ylabel("nats per token")
+    _step_axis(ax)
+
+    ax = axs[1, 1]
+    rt = ph.get("reach_transfer", {})
+    any_d = False
+    for seg in ("total", "answer"):
+        sty = SEG_STYLE[seg]
+        for key, hollow, ls, dx in (("test", False, sty["ls"], -12), ("reach", True, ":", 12)):
+            ck = [c for c in CKPTS if c in rt and f"gap_share_{key}" in rt[c].get(seg, {})]
+            if not ck:
+                continue
+            any_d = True
+            xs = np.array([res[c]["step"] + dx for c in ck], float)
+            ys = np.array([rt[c][seg][f"gap_share_{key}"] for c in ck])
+            cis = [rt[c][seg][f"gap_share_{key}_ci"] for c in ck]
+            ax.plot(xs, ys, color=sty["color"], ls=ls, lw=1.0, zorder=2)
+            for x, y, cc in zip(xs, ys, cis, strict=True):
+                ax.errorbar(
+                    [x],
+                    [y],
+                    yerr=_yerr(y, cc),
+                    fmt="none",
+                    ecolor=sty["color"],
+                    elinewidth=0.6,
+                    capsize=1.2,
+                    zorder=2,
+                )
+            ax.plot(
+                xs,
+                ys,
+                marker=sty["marker"],
+                ms=3.0,
+                color=sty["color"],
+                mfc="white" if hollow else sty["color"],
+                mew=0.8,
+                ls="none",
+                zorder=3,
+            )
+    ax.axhline(1, color=st.REF, lw=0.6, ls=":", zorder=0)
+    ax.axhline(0, color=st.REF, lw=0.6, ls=":", zorder=0)
+    if any_d:
+        ax.legend(
+            handles=[
+                Line2D(
+                    [], [], color=st.INK, marker="o", ms=3.0, ls="-", lw=1.0, label="test prompts"
+                ),
+                Line2D(
+                    [],
+                    [],
+                    color=st.INK,
+                    marker="o",
+                    mfc="white",
+                    ms=3.0,
+                    ls=":",
+                    lw=1.0,
+                    label="reach prompts",
+                ),
+            ],
+            fontsize=st.FS_TICK - 0.5,
+            loc="lower left",
+        )
+    else:
+        _empty(ax, "no post hoc readouts yet")
+    st.panel_title(ax, "d", "gap to s2300 closed by 64 examples")
+    ax.set_ylabel("share of the $L_0$ gap")
+    _step_axis(ax)
+    if drawn:
+        hs = [
+            Line2D(
+                [],
+                [],
+                color=ckpt_colour(c),
+                marker="o",
+                ms=2.8,
+                lw=1.0,
+                mfc="white" if res.get(c, {}).get("off_released_line") else ckpt_colour(c),
+                ls="--" if res.get(c, {}).get("off_released_line") else "-",
+                label=f"{c} ({res.get(c, {}).get('step', '')})",
+            )
+            for c in drawn
+        ]
+        fig.legend(
+            handles=hs,
+            fontsize=st.FS_TICK,
+            loc="outside lower center",
+            title="(a, b) checkpoint (RL step); dotted line: s2300's $L_0$ on the test prompts. All panels are POST HOC readouts",
+            title_fontsize=st.FS_TICK,
+            ncol=len(hs) if len(hs) <= 6 else 5,
+        )
+    return fig
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -276,12 +487,22 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=OUT)
     ap.add_argument("--conv", choices=["norm", "sum"], default="norm")
     ap.add_argument("--rule", choices=["mdl", "min"], default="mdl")
+    ap.add_argument(
+        "--learning-out",
+        type=Path,
+        default=OUT_LEARNING,
+        help="the post hoc learning figure (written when the summary has a posthoc section)",
+    )
     a = ap.parse_args()
     summary = json.loads(a.summary.read_text())
     with st.paper_style():
         fig = make_figure(summary, a.conv, a.rule)
         paths = st.save(fig, a.out)
         st.close(fig)
+        if summary.get("posthoc", {}).get("L_test_curve"):
+            fig = make_learning_figure(summary)
+            paths += st.save(fig, a.learning_out)
+            st.close(fig)
     print("wrote", ", ".join(str(p) for p in paths))
 
 

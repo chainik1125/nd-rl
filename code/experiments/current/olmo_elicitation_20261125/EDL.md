@@ -210,3 +210,40 @@ content flattened to (ckpt, metric, convention, segment, value, lo, hi, unit, no
   - Outputs: `/scratch/cowifornia/nd-rl/olmo_elicit/smoke7b/`. Details in [log.md](log.md).
 - Memory knobs for an 80 GB card (defaults unchanged): `--ce-checkpoint`, `--loss-chunk 512`,
   `--eval-batch-tokens 0`. `--max-memory-gb 78` emulates the cap on an H200.
+
+## Post hoc readouts (added 2026-11-25 after the five-checkpoint readings; not pre-registered)
+
+`analyze_edl.py` adds a `posthoc` section to the summary JSON. It comes after `checkpoints`, `trends` and `checks`, which stay first.
+Those three sections are unchanged by this addition: with the same seed they are identical to the earlier run. The CSV rows of this section have metric names starting `posthoc_`.
+The reason for the section: C1 failed in the length-normalised form, and the train responses are harder per token than the test responses at every checkpoint, which makes the EDL of s2300 itself positive.
+
+The section contains:
+
+- **`delta_EDL_star`.** EDL*(t) − EDL*(s2300) for the lead lr rule, both conventions, total / think / answer, in nats and per token.
+- **`delta_L`.** L0 (test, train, reach) and L64 (test) minus s2300's.
+- **`L_test_curve`.** The test loss over n' at the segment's lr.
+- **`P4`.** The step at which each of the following reaches its half-way point, by linear interpolation over the five checkpoints:
+  - EDL*: half of its dpo value;
+  - ΔEDL*: half of its dpo value;
+  - L0 test: half of the dpo → s2300 drop;
+  - Dan's stored arm-A pass@1: half of its gain. This is read from `stage0/repro_summary.csv`, column `his`, at k = 1.
+
+  The PREREG P4 verdict is given for the length-normalised total, both as written and null-corrected. Replicate step intervals and replicate shares are reported beside it. A sensitivity run puts the pass@1 half-way point on all of Dan's on-line checkpoints.
+- **`rl_step_equivalent_of_64`.** The step at which the piecewise-linear L0 test curve equals each checkpoint's L64. It reads "beyond s2300" when L64 is below s2300's L0.
+- **`reach_transfer`.** L_reach at n' = 0 and 64, and the reach gap share closed, beside the test gap share.
+
+**Intervals.** These use a paired percentile bootstrap:
+
+- Test prompts: the same resampled indices at t and at s2300, and at every checkpoint.
+- Orders: resampled independently per checkpoint.
+- The 64 online examples are not resampled, as in the pre-registered intervals.
+
+The summary's `posthoc.resampled` states this.
+
+**Figure.** `fig_edl.py` also writes `figures/edl_learning.{pdf,svg,png}` from this section:
+
+- (a, b) L_test over n', total and answer.
+- (c) ΔEDL* per token.
+- (d) The gap closed by 64 examples, on the test and reach prompts.
+
+Tests: `test_posthoc_crossing_arithmetic` and `test_posthoc_paired_null_correction_end_to_end`. In the second, a copy of s2300 gives ΔEDL* = 0 with the interval [0, 0], which shows the pairing works.

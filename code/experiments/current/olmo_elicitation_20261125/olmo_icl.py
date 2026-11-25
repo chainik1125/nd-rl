@@ -491,6 +491,9 @@ def cmd_bench(a) -> int:
         sync()
         if r > 0:
             ts.append(time.time() - t)
+    with torch.inference_mode():
+        full = score_one(model, ctx, e, pad_id=pad_id)
+        cached = score_one(model, ctx, e, pad_id=pad_id, cache=cache, prefix_len=plen)
     del cache
     tail = L - plen
     rate = (
@@ -512,6 +515,7 @@ def cmd_bench(a) -> int:
         "build_secs": round(t_build, 2),
         "tail_tokens": tail,
         "tail_secs_median": round(float(np.median(ts)), 3),
+        "abs_diff_nats": abs(sum(full) - sum(cached)),
         "peak_gpu_gb": oe.peak_gb(),
     }
     res["projection"] = {
@@ -529,6 +533,9 @@ def cmd_bench(a) -> int:
                 "footprint_gb": res["footprint_gb"],
                 "peak_longest_gb": res["seqs"]["longest"]["peak_gpu_gb"],
                 "longest_tokens": x2,
+                "peak_prefix_cache_gb": res["prefix_cache"]["peak_gpu_gb"],
+                "longest_prefix_tokens": res["prefix_cache"]["longest_prefix_tokens"],
+                "cache_vs_full_abs_diff_nats": res["prefix_cache"]["abs_diff_nats"],
             }
         ),
         flush=True,

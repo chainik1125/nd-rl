@@ -24,6 +24,13 @@ Intervals: 95 % percentile bootstrap, B replicates, resampling test prompts (and
   the orders, jointly); the online code length is a fixed sequence and is not resampled. L_0 intervals resample the
   prompts of the set they describe. The gap share resamples the test prompts of the checkpoint and of s2300 with the
   same indices (paired).
+POST HOC section ("posthoc", added 2026-11-25 after the five-checkpoint readings, not pre-registered; the PREREG
+  readings stay first): delta_EDL_star = EDL*(t) - EDL*(s2300) (lead lr rule, both conventions, nats and per token,
+  paired test-prompt bootstrap); delta_L (L0 test / train / reach and L64 test minus s2300's, paired); L_test_curve
+  (test loss over n'); P4 half-way steps (EDL*, delta EDL*, L0 test, Dan's stored arm-A pass@1; linear interpolation
+  over the checkpoints; verdict as PREREG P4) with replicate step intervals; rl_step_equivalent_of_64 (the step where
+  the L0 test curve equals a checkpoint's L64); reach_transfer (L_reach at n' = 0 and 64, reach gap share beside the
+  test one). L_min_posthoc per checkpoint is also post hoc.
 Readouts per checkpoint: L_0 (train stream / test / reach / train+test, nats per token, by segment); EDL* (both lr
   rules x both conventions); the EDL-per-token curve over n' at the EDL* lr and its shape; L_64 (test, at the EDL*
   lr); the share of the gap to s2300 closed by 64 examples, (L_0(t) - L_64(t)) / (L_0(t) - L_0(s2300)), per token on
@@ -661,6 +668,473 @@ def checks(res: dict) -> dict:
     return out
 
 
+# ------------------------------------------------------------------------------------- POST HOC readouts
+# Added 2026-11-25 after the five-checkpoint readings (C1 failed in the pre-registered length-normalised form because the
+# train responses are harder per token than the test responses at every checkpoint). Not pre-registered. The PREREG
+# readings (checkpoints / trends / checks) are unchanged and come first in the summary.
+
+PASS1 = Path("/scratch/cowifornia/nd-rl/olmo_elicit/stage0/repro_summary.csv")
+POSTHOC_NOTE = (
+    "POST HOC: added 2026-11-25 after the five-checkpoint readings; not pre-registered. The PREREG readings "
+    "(checkpoints, trends, checks) are unchanged and come first."
+)
+RESAMPLED = (
+    "Paired 95 % percentile bootstrap: the test prompts are resampled with the SAME indices at t and at s2300 (and "
+    "at every checkpoint, so the curves share them); where a checkpoint has two data orders, its orders are resampled "
+    "independently per checkpoint; the 64 online (train) examples are a fixed sequence and are NOT resampled (as in the "
+    "pre-registered EDL* intervals). L0 train / reach differences resample that set's prompts with the same indices at "
+    "t and s2300. Crossing steps: computed per replicate on the same paired replicates."
+)
+
+
+def load_pass1(path: Path) -> dict[str, float]:
+    """Dan's stored arm-A strict pass@1 in % of the 218 prompts: column `his` at k = 1 of stage0/repro_summary.csv
+    (written by stage0_compare.py from his olmo_ifcurve/passk.csv)."""
+    out: dict[str, float] = {}
+    if not path.exists():
+        return out
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            if r.get("k") == "1" and r.get("his") not in (None, "", "nan"):
+                v = float(r["his"])
+                if math.isfinite(v):
+                    out[r["ckpt"]] = 100.0 * v
+    return out
+
+
+def first_crossing(steps, vals, target: float, direction: str) -> dict:
+    """First RL step at which the piecewise-linear curve through (steps, vals) reaches `target`, walking from the first
+    point; direction "down" (value <= target) or "up" (value >= target). Linear interpolation inside the bracketing
+    pair of checkpoints. step None if the curve never reaches the target."""
+    steps, vals = [float(x) for x in steps], [float(x) for x in vals]
+    reached = (lambda v: v <= target) if direction == "down" else (lambda v: v >= target)
+    d = np.diff(vals)
+    mono = bool((d <= 0).all()) if direction == "down" else bool((d >= 0).all())
+    for i, v in enumerate(vals):
+        if not math.isfinite(v):
+            continue
+        if reached(v):
+            if i == 0:
+                return {"step": steps[0], "bracket": [steps[0], steps[0]], "curve_monotone": mono}
+            v0, s0, s1 = vals[i - 1], steps[i - 1], steps[i]
+            x = s0 + (target - v0) / (v - v0) * (s1 - s0) if v != v0 else s1
+            return {"step": float(x), "bracket": [s0, s1], "curve_monotone": mono}
+    return {"step": None, "bracket": None, "curve_monotone": mono}
+
+
+def half_step(steps, vals, kind: str, direction: str = "down") -> dict:
+    """kind "half_of_first": the step where the value has lost half of its first value (target vals[0] / 2);
+    kind "half_of_change": where half of the first-to-last change is made (target vals[0] + (vals[-1] - vals[0]) / 2)."""
+    v0 = float(vals[0])
+    target = 0.5 * v0 if kind == "half_of_first" else v0 + 0.5 * (float(vals[-1]) - v0)
+    out = first_crossing(steps, vals, target, direction)
+    return {**out, "target": target, "kind": kind}
+
+
+def p4_verdict(edl: dict, pas: dict) -> str:
+    if edl.get("step") is None or pas.get("step") is None:
+        return "undetermined (a curve never reaches its half-way point)"
+    if edl["bracket"] == pas["bracket"]:
+        return "not established (both steps fall between the same pair of checkpoints)"
+    return "pass" if edl["step"] <= pas["step"] else "fail"
+
+
+def step_equivalent(steps, l0, target: float) -> dict:
+    """RL step at which the L0 curve (piecewise linear over the checkpoints) equals `target` (a checkpoint's L64)."""
+    if target >= l0[0]:
+        return {
+            "step": float(steps[0]) if target == l0[0] else None,
+            "label": "at or above dpo's L0",
+            "bracket": None,
+        }
+    c = first_crossing(steps, l0, target, "down")
+    if c["step"] is None:
+        return {**c, "label": "beyond s2300 (below s2300's L0)"}
+    return {**c, "label": f"between {c['bracket'][0]:g} and {c['bracket'][1]:g}"}
+
+
+def _rate(v: np.ndarray, t: np.ndarray, ix: np.ndarray | None = None):
+    return float(v.sum() / t.sum()) if ix is None else v[ix].sum(axis=1) / t[ix].sum(axis=1)
+
+
+def posthoc(cs: dict[str, Ckpt], res: dict, rng, B: int, pass1: dict[str, float]) -> dict:
+    out: dict = {"note": POSTHOC_NOTE, "resampled": RESAMPLED}
+    f = cs.get(FINAL)
+    names = [
+        c for c in CKPTS if c in cs and cs[c].ok and "EDL_star" in res[c] and c not in OFF_LINE
+    ]
+    if f is None or FINAL not in names or f.step0 is None:
+        out["error"] = f"needs {FINAL} with EDL rows"
+        return out
+    m = len(f.test_pids)
+    for c in names:
+        if cs[c].test_pids != f.test_pids:
+            out["error"] = f"{c}: test prompts differ from {FINAL}'s"
+            return out
+    ti = rng.integers(0, m, size=(B, m))
+    oi = {
+        c: (
+            rng.integers(0, len(cs[c].orders), size=(B, len(cs[c].orders)))
+            if len(cs[c].orders) > 1
+            else np.zeros((B, 1), int)
+        )
+        for c in names
+    }
+    steps = [STEP[c] for c in names]
+    out["checkpoints"] = names
+    # EDL* replicates (lead rule: shortest online code length), paired over test prompts
+    star_pt: dict = {c: {conv: {} for conv in CONVS} for c in names}
+    star_b: dict = {c: {conv: {} for conv in CONVS} for c in names}
+    for c in names:
+        cc, r = cs[c], res[c]
+        for conv in CONVS:
+            for seg in SEGS:
+                e = r["EDL_star"][conv]["mdl"].get(seg)
+                if e is None:
+                    continue
+                star_pt[c][conv][seg] = (e["nats"], e["tokens"], e["lr"])
+                star_b[c][conv][seg] = (
+                    edl_point(cc, e["lr"], cc.n, seg, conv, ti, oi[c]) + e["ln_k"]
+                )
+    # 1. null-corrected EDL* and paired differences in L0 / L64
+    d_edl: dict = {}
+    for c in names:
+        d_edl[c] = {}
+        for conv in CONVS:
+            d_edl[c][conv] = {}
+            for seg in SEGS:
+                if seg not in star_pt[c][conv] or seg not in star_pt[FINAL][conv]:
+                    continue
+                (a, ta, la), (b, tb, lb) = star_pt[c][conv][seg], star_pt[FINAL][conv][seg]
+                ba, bb = star_b[c][conv][seg], star_b[FINAL][conv][seg]
+                d_edl[c][conv][seg] = {
+                    "nats": a - b,
+                    "ci": ci(ba - bb),
+                    "per_tok": a / ta - b / tb,
+                    "per_tok_ci": ci(ba / ta - bb / tb),
+                    "lr_t": la,
+                    "lr_s2300": lb,
+                    "EDLstar_t": a,
+                    "EDLstar_s2300": b,
+                }
+    out["delta_EDL_star"] = d_edl
+    d_l: dict = {}
+    for c in names:
+        d_l[c] = {}
+        for nm in ("test", "train", "reach"):
+            bt, bf = (cs[c].step0 or {}).get(nm), f.step0.get(nm)
+            if not bt or not bf or bt["pids"] != bf["pids"]:
+                continue
+            k = len(bt["pids"])
+            ix = ti if nm == "test" else rng.integers(0, k, size=(B, k))
+            d_l[c][f"L0_{nm}"] = {}
+            for seg in SEGS:
+                tt = seg_toks(bt, seg)
+                va, vb = seg_vals(bt, seg), seg_vals(bf, seg)
+                d_l[c][f"L0_{nm}"][seg] = {
+                    "nats_per_tok": _rate(va, tt) - _rate(vb, tt),
+                    "ci": ci(_rate(va, tt, ix) - _rate(vb, tt, ix)),
+                }
+        d_l[c]["L64_test"] = {}
+        for seg in SEGS:
+            if seg in res[c].get("L64", {}) and seg in res[FINAL].get("L64", {}):
+                pa, ba = test_rate(cs[c], res[c]["L64"][seg]["lr"], seg, ti, cs[c].n)
+                pb, bb = test_rate(f, res[FINAL]["L64"][seg]["lr"], seg, ti, f.n)
+                d_l[c]["L64_test"][seg] = {
+                    "nats_per_tok": pa - pb,
+                    "ci": ci(ba - bb),
+                    "lr_t": res[c]["L64"][seg]["lr"],
+                    "lr_s2300": res[FINAL]["L64"][seg]["lr"],
+                }
+    out["delta_L"] = d_l
+    # L_test over n' at the segment's code-length lr (for the learning figure), on the shared indices
+    curves: dict = {}
+    for c in names:
+        curves[c] = {}
+        for seg in SEGS:
+            lr = res[c]["lr_mdl"][seg]
+            ns = [e for e in cs[c].evals if cs[c].has_eval(lr, e)]
+            pts = [test_rate(cs[c], lr, seg, ti, e) for e in ns]
+            curves[c][seg] = {
+                "lr": lr,
+                "n": ns,
+                "L": [p for p, _ in pts],
+                "ci": [ci(b) for _, b in pts],
+            }
+    out["L_test_curve"] = curves
+    # 2. P4 as written and null-corrected, plus L0 and pass@1 half-way steps
+    p4: dict = {"steps": steps, "pass1_source": str(PASS1)}
+    pas = None
+    if all(c in pass1 for c in names):
+        pv = [pass1[c] for c in names]
+        pas = half_step(steps, pv, "half_of_change", "up")
+        p4["pass1"] = {"values_pct": dict(zip(names, pv, strict=True)), **pas}
+        on_line = [c for c in CKPTS if c in pass1 and c not in OFF_LINE]
+        p4["pass1_sensitivity_all_on_line_ckpts"] = {
+            "ckpts": on_line,
+            **half_step(
+                [STEP[c] for c in on_line], [pass1[c] for c in on_line], "half_of_change", "up"
+            ),
+        }
+    for seg in SEGS:
+        l0 = [res[c]["L0"]["test"][seg]["nats_per_tok"] for c in names]
+        p4.setdefault("L0_test", {})[seg] = {
+            "values": l0,
+            **half_step(steps, l0, "half_of_change", "down"),
+        }
+        for conv in CONVS:
+            if not all(seg in star_pt[c][conv] for c in names):
+                continue
+            raw = [star_pt[c][conv][seg][0] for c in names]
+            dl = [d_edl[c][conv][seg]["nats"] for c in names]
+            for key, vals, bfun in (
+                ("EDL_star", raw, lambda c, conv=conv, seg=seg: star_b[c][conv][seg]),
+                (
+                    "delta_EDL_star",
+                    dl,
+                    lambda c, conv=conv, seg=seg: star_b[c][conv][seg] - star_b[FINAL][conv][seg],
+                ),
+            ):
+                h = (
+                    half_step(steps, vals, "half_of_first", "down")
+                    if vals[0] > 0
+                    else {"step": None, "bracket": None, "note": "dpo value <= 0: undefined"}
+                )
+                e = {"values_nats": vals, **h}
+                if vals[0] > 0:
+                    reps = np.stack([bfun(c) for c in names], axis=1)  # (B, ckpts)
+                    # replicates whose dpo value is <= 0 have no "half of the dpo value": counted apart
+                    pos = reps[:, 0] > 0
+                    bs = [
+                        half_step(steps, row, "half_of_first", "down")["step"] for row in reps[pos]
+                    ]
+                    fin = np.array([x for x in bs if x is not None], float)
+                    e["step_ci"] = ci(fin) if fin.size else [float("nan")] * 2
+                    e["share_replicates_dpo_value_nonpositive"] = float(1 - pos.mean())
+                    e["share_replicates_never_half"] = float(
+                        np.sum([x is None for x in bs]) / len(reps)
+                    )
+                    if pas is not None and pas["step"] is not None:
+                        e["share_replicates_step_le_pass1_step"] = float(
+                            np.sum([x is not None and x <= pas["step"] for x in bs]) / len(reps)
+                        )
+                        e["share_replicates_same_bracket_as_pass1"] = float(
+                            np.sum(
+                                [
+                                    x is not None and pas["bracket"][0] < x <= pas["bracket"][1]
+                                    for x in bs
+                                ]
+                            )
+                            / len(reps)
+                        )
+                if pas is not None and seg == "total":
+                    e["verdict_vs_pass1"] = (
+                        p4_verdict(h, pas)
+                        if conv == "norm"
+                        else "(sum convention: shown, no verdict)"
+                    )
+                elif pas is not None:
+                    e["verdict_vs_pass1"] = (
+                        "(answer / thinking segment: shown next to the total without a pass or fail, Amendment 3)"
+                    )
+                p4.setdefault(key, {}).setdefault(conv, {})[seg] = e
+    p4["P4_as_written"] = (
+        p4.get("EDL_star", {}).get("norm", {}).get("total", {}).get("verdict_vs_pass1")
+    )
+    p4["P4_null_corrected"] = (
+        p4.get("delta_EDL_star", {}).get("norm", {}).get("total", {}).get("verdict_vs_pass1")
+    )
+    out["P4"] = p4
+    # 3. RL-step equivalent of 64 examples
+    eq: dict = {}
+    for seg in SEGS:
+        l0 = [res[c]["L0"]["test"][seg]["nats_per_tok"] for c in names]
+        eq[seg] = {"L0_test_curve": dict(zip(names, l0, strict=True))}
+        for c in names:
+            if seg in res[c].get("L64", {}):
+                t = res[c]["L64"][seg]["nats_per_tok"]
+                se = step_equivalent(steps, l0, t)
+                eq[seg][c] = {
+                    "L64": t,
+                    **se,
+                    "extra_steps_vs_own": (se["step"] - STEP[c])
+                    if se.get("step") is not None
+                    else None,
+                }
+    out["rl_step_equivalent_of_64"] = eq
+    # 4. reach transfer
+    rt: dict = {}
+    fr = f.step0.get("reach")
+    for c in names:
+        cc, b0 = cs[c], (cs[c].step0 or {}).get("reach")
+        if not b0 or not fr or b0["pids"] != fr["pids"]:
+            continue
+        k = len(b0["pids"])
+        ix = rng.integers(0, k, size=(B, k))
+        rt[c] = {}
+        for seg in SEGS:
+            lr = res[c]["lr_mdl"][seg]
+            os_ = [
+                o for o in cc.orders_of(lr) if "reach" in cc.ok[(lr, o)]["evals"].get(str(cc.n), {})
+            ]
+            if not os_:
+                continue
+            for o in os_:
+                assert cc.ok[(lr, o)]["reach"]["pids"] == b0["pids"], (
+                    f"{c}: reach pids differ between step 0 and the rows"
+                )
+            tt = seg_toks(b0, seg)
+            v0, vf = seg_vals(b0, seg), seg_vals(fr, seg)
+            v64 = np.mean(
+                [seg_vals(cc.ok[(lr, o)]["evals"][str(cc.n)]["reach"], seg) for o in os_], axis=0
+            )
+            a0, a64, af = _rate(v0, tt), _rate(v64, tt), _rate(vf, tt)
+            b_0, b_64, b_f = _rate(v0, tt, ix), _rate(v64, tt, ix), _rate(vf, tt, ix)
+            e = {
+                "lr": lr,
+                "orders": os_,
+                "L_reach_0": a0,
+                "L_reach_0_ci": ci(b_0),
+                "L_reach_64": a64,
+                "L_reach_64_ci": ci(b_64),
+                "drop": a64 - a0,
+                "drop_ci": ci(b_64 - b_0),
+            }
+            if c != FINAL:
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    e["gap_share_reach"] = (a0 - a64) / (a0 - af) if a0 != af else float("nan")
+                    e["gap_share_reach_ci"] = ci((b_0 - b_64) / (b_0 - b_f))
+                g = res[c].get("gap_share", {}).get(seg)
+                if g:
+                    e["gap_share_test"], e["gap_share_test_ci"] = g["share"], g["ci"]
+            rt[c][seg] = e
+    out["reach_transfer"] = rt
+    return out
+
+
+def flatten_posthoc(ph: dict) -> list[dict]:
+    rows = []
+
+    def add(ck, metric, conv, seg, val, lo=None, hi=None, unit="", note="POST HOC"):
+        rows.append(
+            {
+                "ckpt": ck,
+                "step": STEP.get(ck, ""),
+                "metric": "posthoc_" + metric,
+                "convention": conv,
+                "segment": seg,
+                "value": val,
+                "lo": lo,
+                "hi": hi,
+                "unit": unit,
+                "note": note,
+            }
+        )
+
+    for c, convs in ph.get("delta_EDL_star", {}).items():
+        for conv, segd in convs.items():
+            for seg, v in segd.items():
+                add(
+                    c,
+                    "delta_EDL_star",
+                    conv,
+                    seg,
+                    v["nats"],
+                    *v["ci"],
+                    "nats",
+                    f"POST HOC; minus s2300 (paired); lr {v['lr_t']:g} vs {v['lr_s2300']:g}",
+                )
+                add(
+                    c,
+                    "delta_EDL_star",
+                    conv,
+                    seg,
+                    v["per_tok"],
+                    *v["per_tok_ci"],
+                    "nats/token",
+                    "POST HOC; minus s2300 (paired)",
+                )
+    for c, d in ph.get("delta_L", {}).items():
+        for key, segd in d.items():
+            for seg, v in segd.items():
+                add(
+                    c,
+                    f"delta_{key}",
+                    "",
+                    seg,
+                    v["nats_per_tok"],
+                    *v["ci"],
+                    "nats/token",
+                    "POST HOC; minus s2300 (paired)",
+                )
+    for seg, d in ph.get("rl_step_equivalent_of_64", {}).items():
+        for c, v in d.items():
+            if isinstance(v, dict) and "L64" in v:
+                add(
+                    c,
+                    "rl_step_equivalent_of_64",
+                    "",
+                    seg,
+                    v.get("step"),
+                    None,
+                    None,
+                    "RL step",
+                    f"POST HOC; {v['label']}",
+                )
+    for c, segd in ph.get("reach_transfer", {}).items():
+        for seg, v in segd.items():
+            add(c, "L_reach_0", "", seg, v["L_reach_0"], *v["L_reach_0_ci"], "nats/token")
+            add(
+                c,
+                "L_reach_64",
+                "",
+                seg,
+                v["L_reach_64"],
+                *v["L_reach_64_ci"],
+                "nats/token",
+                f"POST HOC; lr {v['lr']:g}",
+            )
+            if "gap_share_reach" in v:
+                add(
+                    c,
+                    "gap_share_reach",
+                    "",
+                    seg,
+                    v["gap_share_reach"],
+                    *v["gap_share_reach_ci"],
+                    "fraction",
+                )
+    p4 = ph.get("P4", {})
+    for key in ("EDL_star", "delta_EDL_star"):
+        for conv, segd in p4.get(key, {}).items():
+            for seg, v in segd.items():
+                add(
+                    "",
+                    f"P4_half_step_{key}",
+                    conv,
+                    seg,
+                    v.get("step"),
+                    *(v.get("step_ci") or [None, None]),
+                    "RL step",
+                    f"POST HOC; {v.get('verdict_vs_pass1', '')}",
+                )
+    for seg, v in p4.get("L0_test", {}).items():
+        add("", "P4_half_step_L0_test", "", seg, v.get("step"), None, None, "RL step")
+    if "pass1" in p4:
+        add(
+            "",
+            "P4_half_step_pass1",
+            "",
+            "",
+            p4["pass1"].get("step"),
+            None,
+            None,
+            "RL step",
+            "POST HOC; Dan's stored arm-A pass@1",
+        )
+    return rows
+
+
 def flatten(res: dict) -> list[dict]:
     rows = []
 
@@ -753,12 +1227,19 @@ def flatten(res: dict) -> list[dict]:
     return rows
 
 
-def analyze(runs: Path, B: int = 2000, seed: int = 0, lrs: list[float] | None = None) -> dict:
+def analyze(
+    runs: Path,
+    B: int = 2000,
+    seed: int = 0,
+    lrs: list[float] | None = None,
+    pass1: Path | None = PASS1,
+) -> dict:
     rng = np.random.default_rng(seed)
     found = discover(runs)
     cs = {k: Ckpt(k, s0, rows, conv, grid=lrs) for k, (s0, rows, conv) in found.items()}
     res = {k: analyze_ckpt(c, rng, B) for k, c in cs.items()}
     gap_share(cs, res, rng, B)
+    ph = posthoc(cs, res, np.random.default_rng(seed + 1), B, load_pass1(pass1) if pass1 else {})
     return {
         "written_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "runs": str(runs),
@@ -771,6 +1252,7 @@ def analyze(runs: Path, B: int = 2000, seed: int = 0, lrs: list[float] | None = 
         "checkpoints": res,
         "trends": trends(res),
         "checks": checks(res),
+        "posthoc": ph,
     }
 
 
@@ -789,12 +1271,18 @@ def main() -> None:
         default=None,
         help="the frozen lr grid for EDL*, e.g. 1e-4,3e-4,1e-3 (default: every lr on file); other rows are reported as off_grid",
     )
+    ap.add_argument(
+        "--pass1",
+        type=Path,
+        default=PASS1,
+        help="Dan's stored arm-A pass@1 (stage0/repro_summary.csv, column `his`, k = 1) for the post hoc P4 reading",
+    )
     a = ap.parse_args()
     grid = [float(x) for x in a.lrs.split(",") if x.strip()] if a.lrs else None
-    s = analyze(a.runs, a.B, a.seed, grid)
+    s = analyze(a.runs, a.B, a.seed, grid, a.pass1)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.with_suffix(".json").write_text(json.dumps(s, indent=1, default=float) + "\n")
-    rows = flatten(s["checkpoints"])
+    rows = flatten(s["checkpoints"]) + flatten_posthoc(s["posthoc"])
     with open(a.out.with_suffix(".csv"), "w", newline="") as f:
         w = csv.DictWriter(
             f,
@@ -830,6 +1318,11 @@ def main() -> None:
                 )
             )
     print("trends:", json.dumps(s["trends"]))
+    ph = s["posthoc"]
+    if "P4" in ph:
+        print(
+            f"POST HOC P4 as written: {ph['P4'].get('P4_as_written')}; null-corrected: {ph['P4'].get('P4_null_corrected')}"
+        )
 
 
 if __name__ == "__main__":
