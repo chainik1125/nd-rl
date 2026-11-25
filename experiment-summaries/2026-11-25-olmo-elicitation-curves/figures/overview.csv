@@ -1,0 +1,90 @@
+panel,measure,label,kind,ckpt,step,value,unit,lo95,hi95,raw,raw_unit,source
+a,armA_pass1,arm A pass@1 (218),point,dpo,0,28.985100000000003,% of draws,,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+b,armA_pass1,arm A pass@1 (218),point,dpo,0,0.0,"progress (0 = dpo, 1 = s2300)",,,28.985100000000003,% of draws,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass1,arm A pass@1 (218),point,s0100,100,31.479400000000002,% of draws,,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+b,armA_pass1,arm A pass@1 (218),point,s0100,100,0.06336580842658805,"progress (0 = dpo, 1 = s2300)",,,31.479400000000002,% of draws,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass1,arm A pass@1 (218),point,s0500,500,41.1697,% of draws,,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+b,armA_pass1,arm A pass@1 (218),point,s0500,500,0.3095405642282824,"progress (0 = dpo, 1 = s2300)",,,41.1697,% of draws,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass1,arm A pass@1 (218),point,s1100,1100,57.7408,% of draws,,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+b,armA_pass1,arm A pass@1 (218),point,s1100,1100,0.7305168493655289,"progress (0 = dpo, 1 = s2300)",,,57.7408,% of draws,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass1,arm A pass@1 (218),point,s2300,2300,68.3486,% of draws,,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+b,armA_pass1,arm A pass@1 (218),point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,68.3486,% of draws,"dan: stored arm A (stage0/repro_summary.csv, his)"
+b,armA_pass1,arm A pass@1 (218),halfway,,771.4539167586945,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (500.0, 1100.0); monotone True"
+a,armA_pass8,arm A pass@8 (218),point,dpo,0,46.1403,% of prompts (unbiased pass@8),,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass8,arm A pass@8 (218),point,s0100,100,50.4587,% of prompts (unbiased pass@8),,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass8,arm A pass@8 (218),point,s0500,500,65.5963,% of prompts (unbiased pass@8),,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass8,arm A pass@8 (218),point,s1100,1100,87.156,% of prompts (unbiased pass@8),,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,armA_pass8,arm A pass@8 (218),point,s2300,2300,88.5321,% of prompts (unbiased pass@8),,,,,"dan: stored arm A (stage0/repro_summary.csv, his)"
+a,B,"plain prompt, B (48)",point,dpo,0,0.0,% of draws,0.0,0.0,,,dan:olmo-ifomega F_dpo_ifb/ife (16)
+b,B,"plain prompt, B (48)",point,dpo,0,0.0,"progress (0 = dpo, 1 = s2300)",,,0.0,% of draws,dan:olmo-ifomega F_dpo_ifb/ife (16)
+a,B,"plain prompt, B (48)",point,s0100,100,0.13,% of draws,0.0,0.33,,,dan:olmo-ifcurve arm B
+b,B,"plain prompt, B (48)",point,s0100,100,0.0018731988472622477,"progress (0 = dpo, 1 = s2300)",,,0.13,% of draws,dan:olmo-ifcurve arm B
+a,B,"plain prompt, B (48)",point,s0500,500,4.49,% of draws,2.73,6.45,,,dan:olmo-ifcurve arm B
+b,B,"plain prompt, B (48)",point,s0500,500,0.06469740634005763,"progress (0 = dpo, 1 = s2300)",,,4.49,% of draws,dan:olmo-ifcurve arm B
+a,B,"plain prompt, B (48)",point,s1100,1100,38.48,% of draws,30.92,46.48,,,dan:olmo-ifcurve arm B
+b,B,"plain prompt, B (48)",point,s1100,1100,0.5544668587896253,"progress (0 = dpo, 1 = s2300)",,,38.48,% of draws,dan:olmo-ifcurve arm B
+a,B,"plain prompt, B (48)",point,s2300,2300,69.4,% of draws,60.74,77.67,,,dan:olmo-ifcurve arm B
+b,B,"plain prompt, B (48)",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,69.4,% of draws,dan:olmo-ifcurve arm B
+b,B,"plain prompt, B (48)",halfway,,1033.2744924977935,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (500.0, 1100.0); monotone True"
+a,H,"60-word hint, H (48)",point,dpo,0,6.22,% of draws,2.64,10.58,,,dan:olmo-iffu T2_dpo + T2c_dpo
+b,H,"60-word hint, H (48)",point,dpo,0,0.0,"progress (0 = dpo, 1 = s2300)",,,6.22,% of draws,dan:olmo-iffu T2_dpo + T2c_dpo
+a,H,"60-word hint, H (48)",point,s0100,100,9.11,% of draws,4.43,14.32,,,ours
+b,H,"60-word hint, H (48)",point,s0100,100,0.04233811895692938,"progress (0 = dpo, 1 = s2300)",,,9.11,% of draws,ours
+a,H,"60-word hint, H (48)",point,s0500,500,22.66,% of draws,14.84,30.99,,,ours
+b,H,"60-word hint, H (48)",point,s0500,500,0.24084383240550836,"progress (0 = dpo, 1 = s2300)",,,22.66,% of draws,ours
+a,H,"60-word hint, H (48)",point,s1100,1100,46.09,% of draws,36.2,56.25,,,ours
+b,H,"60-word hint, H (48)",point,s1100,1100,0.5840902431878113,"progress (0 = dpo, 1 = s2300)",,,46.09,% of draws,ours
+a,H,"60-word hint, H (48)",point,s2300,2300,74.48,% of draws,66.54,81.64,,,dan:olmo-iffu T2_s2300 + T2c_s2300
+b,H,"60-word hint, H (48)",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,74.48,% of draws,dan:olmo-iffu T2_s2300 + T2c_s2300
+b,H,"60-word hint, H (48)",halfway,,953.0089628681178,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (500.0, 1100.0); monotone True"
+a,T,"transplant, T (41)",point,dpo,0,13.92,% of draws,7.85,21.01,,,dan:olmo-transplant R_dpo T1
+b,T,"transplant, T (41)",point,dpo,0,0.0,"progress (0 = dpo, 1 = s2300)",,,13.92,% of draws,dan:olmo-transplant R_dpo T1
+a,T,"transplant, T (41)",point,s0100,100,26.6,% of draws,17.58,36.38,,,ours
+b,T,"transplant, T (41)",point,s0100,100,0.15929648241206032,"progress (0 = dpo, 1 = s2300)",,,26.6,% of draws,ours
+a,T,"transplant, T (41)",point,s0500,500,64.94,% of draws,54.78,74.37,,,ours
+b,T,"transplant, T (41)",point,s0500,500,0.6409547738693467,"progress (0 = dpo, 1 = s2300)",,,64.94,% of draws,ours
+a,T,"transplant, T (41)",point,s1100,1100,87.2,% of draws,81.05,92.68,,,ours
+b,T,"transplant, T (41)",point,s1100,1100,0.920603015075377,"progress (0 = dpo, 1 = s2300)",,,87.2,% of draws,ours
+a,T,"transplant, T (41)",point,s2300,2300,93.52,% of draws,89.0,97.15,,,dan:olmo-transplant R_s2300 T2
+b,T,"transplant, T (41)",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,93.52,% of draws,dan:olmo-transplant R_s2300 T2
+b,T,"transplant, T (41)",halfway,,382.9420970266041,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (100.0, 500.0); monotone True"
+a,A1,"T + answer-only, A1 (41)",point,dpo,0,63.26,% of draws,54.07,72.0,,,dan:olmo-answeronly R_dpo A1
+b,A1,"T + answer-only, A1 (41)",point,dpo,0,0.0,"progress (0 = dpo, 1 = s2300)",,,63.26,% of draws,dan:olmo-answeronly R_dpo A1
+a,A1,"T + answer-only, A1 (41)",point,s0100,100,72.13,% of draws,62.8,80.84,,,ours
+b,A1,"T + answer-only, A1 (41)",point,s0100,100,0.27796928862425563,"progress (0 = dpo, 1 = s2300)",,,72.13,% of draws,ours
+a,A1,"T + answer-only, A1 (41)",point,s0500,500,87.22,% of draws,80.59,93.09,,,ours
+b,A1,"T + answer-only, A1 (41)",point,s0500,500,0.7508617988091507,"progress (0 = dpo, 1 = s2300)",,,87.22,% of draws,ours
+a,A1,"T + answer-only, A1 (41)",point,s1100,1100,91.95,% of draws,86.53,96.57,,,ours
+b,A1,"T + answer-only, A1 (41)",point,s1100,1100,0.8990911939830775,"progress (0 = dpo, 1 = s2300)",,,91.95,% of draws,ours
+a,A1,"T + answer-only, A1 (41)",point,s2300,2300,95.17,% of draws,91.26,98.37,,,dan:olmo-answeronly R_s2300 A1
+b,A1,"T + answer-only, A1 (41)",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,95.17,% of draws,dan:olmo-answeronly R_s2300 A1
+b,A1,"T + answer-only, A1 (41)",halfway,,287.8064943671306,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (100.0, 500.0); monotone True"
+a,L,"adapter, L (48; 8 draws)",point,dpo,0,63.54,% of draws,53.65,73.18,,,"ours (adapter lr 0.0003, order 0)"
+a,L,"adapter, L (48; 8 draws)",point,s0100,100,64.32,% of draws,55.47,72.92,,,"ours (adapter lr 0.0003, order 0)"
+a,L,"adapter, L (48; 8 draws)",point,s0500,500,65.1,% of draws,55.73,74.48,,,"ours (adapter lr 0.0003, order 0)"
+a,L,"adapter, L (48; 8 draws)",point,s1100,1100,66.41,% of draws,57.29,75.52,,,"ours (adapter lr 0.0003, order 0)"
+a,L,"adapter, L (48; 8 draws)",point,s2300,2300,68.49,% of draws,59.38,77.08,,,"ours (adapter lr 0.0001, order 0)"
+b,L0_test_total,"test L0, total",point,dpo,0,-0.0,"progress (0 = dpo, 1 = s2300)",,,0.6204811176151925,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_total,"test L0, total",point,s0100,100,0.0744815993025953,"progress (0 = dpo, 1 = s2300)",,,0.6116584533122009,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_total,"test L0, total",point,s0500,500,0.3127892358476252,"progress (0 = dpo, 1 = s2300)",,,0.5834298935368623,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_total,"test L0, total",point,s1100,1100,0.6543986538758407,"progress (0 = dpo, 1 = s2300)",,,0.542964795496221,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_total,"test L0, total",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,0.5020268364826419,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_total,"test L0, total",halfway,,828.8154616455779,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (500.0, 1100.0); monotone True"
+b,L0_test_answer,"test L0, answer",point,dpo,0,-0.0,"progress (0 = dpo, 1 = s2300)",,,0.2697524411396684,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_answer,"test L0, answer",point,s0100,100,0.2265993910446498,"progress (0 = dpo, 1 = s2300)",,,0.22716927483543373,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_answer,"test L0, answer",point,s0500,500,0.6806604533707556,"progress (0 = dpo, 1 = s2300)",,,0.14184090020842452,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_answer,"test L0, answer",point,s1100,1100,0.9432054882644323,"progress (0 = dpo, 1 = s2300)",,,0.09250273194730337,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_answer,"test L0, answer",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,0.08182975472854753,nats/token,ours: edl_summary.json checkpoints.L0.test
+b,L0_test_answer,"test L0, answer",halfway,,340.8491999333732,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (100.0, 500.0); monotone True"
+b,dEDLstar_norm_total,"EDL* null-corr. (norm, total)",point,dpo,0,-0.0,"progress (0 = dpo, 1 = s2300)",,,3577.211774179179,nats,ours: edl_summary.json posthoc.delta_EDL_star.norm.total
+b,dEDLstar_norm_total,"EDL* null-corr. (norm, total)",point,s0100,100,0.08323458157396926,"progress (0 = dpo, 1 = s2300)",,,3279.464048953899,nats,ours: edl_summary.json posthoc.delta_EDL_star.norm.total
+b,dEDLstar_norm_total,"EDL* null-corr. (norm, total)",point,s0500,500,0.30290579600317197,"progress (0 = dpo, 1 = s2300)",,,2493.6535942495157,nats,ours: edl_summary.json posthoc.delta_EDL_star.norm.total
+b,dEDLstar_norm_total,"EDL* null-corr. (norm, total)",point,s1100,1100,0.6825619538486195,"progress (0 = dpo, 1 = s2300)",,,1135.5431162651519,nats,ours: edl_summary.json posthoc.delta_EDL_star.norm.total
+b,dEDLstar_norm_total,"EDL* null-corr. (norm, total)",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,0.0,nats,ours: edl_summary.json posthoc.delta_EDL_star.norm.total
+b,dEDLstar_norm_total,"EDL* null-corr. (norm, total)",halfway,,811.4832196301088,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (500.0, 1100.0); monotone True"
+b,share_js_gt_0.1,"share JS > 0.1 (all, total)",point,dpo,0,-0.0,"progress (0 = dpo, 1 = s2300)",,,7.113004838935612,% of positions,ours: tokens_summary.json sets.all.total
+b,share_js_gt_0.1,"share JS > 0.1 (all, total)",point,s0100,100,0.11170385142714699,"progress (0 = dpo, 1 = s2300)",,,6.318454803206571,% of positions,ours: tokens_summary.json sets.all.total
+b,share_js_gt_0.1,"share JS > 0.1 (all, total)",point,s0500,500,0.4573600897419917,"progress (0 = dpo, 1 = s2300)",,,3.859800307464799,% of positions,ours: tokens_summary.json sets.all.total
+b,share_js_gt_0.1,"share JS > 0.1 (all, total)",point,s1100,1100,0.9046242054094478,"progress (0 = dpo, 1 = s2300)",,,0.6784084884399265,% of positions,ours: tokens_summary.json sets.all.total
+b,share_js_gt_0.1,"share JS > 0.1 (all, total)",point,s2300,2300,1.0,"progress (0 = dpo, 1 = s2300)",,,0.0,% of positions,ours: tokens_summary.json sets.all.total
+b,share_js_gt_0.1,"share JS > 0.1 (all, total)",halfway,,557.20098093858,0.5,"progress (0 = dpo, 1 = s2300)",,,,,"bracket (500.0, 1100.0); monotone True"

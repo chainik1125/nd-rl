@@ -138,3 +138,18 @@
   records the difference. Relaunched at 7:56 am PT as `s2300:L,rep`.
 - Observed. The weight shard whose download had stalled at 5:25 am resumed and finished; its
   sha256 equals the hub's (b90c04a6…6f64).
+
+## 2026-11-25 09:03 PST (orchestrator): mini run finished
+
+- Observed. Stage L at `s2300` (its own adapter, lr 1e-4): 68.5 % [59.4, 77.1] of draws, 97.9 % of
+  prompts with a pass in 8 draws, against the plain 69.4 % and 97.9 %. Adapter minus plain (first 8
+  stored draws), points of draws, paired prompt bootstrap: `dpo` +63.5 [53.6, 72.9], `s0100`
+  +64.3 [55.7, 72.9], `s0500` +60.9 [51.6, 70.3], `s1100` +24.0 [17.4, 30.5], `s2300` −0.3
+  [−4.7, 4.4]. Prompts solved in 8 draws, adapter minus plain: +91.7 [83.3, 97.9], +93.8
+  [85.4, 100.0], +66.7 [52.1, 81.2], +6.2 [−4.2, 16.7], 0.0.
+- Verdict, P5 (PREREG Amendment 5): pass.
+- Observed. Stage 0c at `s2300`: ours 70.4 % [64.9, 75.7] against Dan's 68.3 %, difference +2.1
+  points [−1.1, +5.3]: pass. Both replication checkpoints pass.
+- Pods: `nd-rl-olmo-1` (H200) deleted 17:02:17Z after its last fetch was md5-equal; the account
+  lists no pods. Ledger total $78.01; account balance $55.35 (was $133.66).
+- Summary for Leon: `experiment-summaries/2026-11-25-olmo-elicitation-curves/README.md`.
