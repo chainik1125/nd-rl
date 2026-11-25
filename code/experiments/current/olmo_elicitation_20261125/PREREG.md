@@ -87,3 +87,17 @@ need so you dont need to run all 10".
 - P1, P2 and the T prediction keep their Spearman thresholds, now over five points (a single
   adjacent swap gives ±0.9, so the threshold of 0.8 allows one). P4 interpolates between the five.
 - The other four checkpoints are a possible second pass, decided after the mini run.
+
+## Amendment 2 (2026-11-25 2:40 am PT, before any pod exists)
+
+From the pool builder's length table (stored `s2300` strict passes; thinking is 96–98 % of the
+tokens, median eligible draw 5,190 tokens):
+
+- **Response-token cap: 6,144.** 125 train-or-test prompts survive (49 with a hand-labelled genuine
+  pick) and 42 reach prompts (38 genuine). At 4,096 only 85 survive, short of the 96 needed, and the
+  bias toward short responses is larger. n = 64 and m = 32 are unchanged; the reach set keeps the
+  genuine picks only.
+- **Learning rate inside `EDL*`.** The leading convention is ndbench's: the learning rate with the
+  shortest online code length (the sum of online nats), then `EDL* = EDL at that rate +
+  ln(number of rates)`. The minimum of EDL over rates, as first written in `SPEC.md`, is reported
+  beside it as secondary; it went spuriously negative on ndbench's null control.
