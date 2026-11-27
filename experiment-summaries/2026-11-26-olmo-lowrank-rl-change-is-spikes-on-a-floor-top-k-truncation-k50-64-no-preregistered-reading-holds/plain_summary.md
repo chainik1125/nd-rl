@@ -15,11 +15,17 @@ written_by: agent:claude (executor, run olmo-lowrank; reviewed 2026-11-27, corre
 >   chance" (the control adapter);
 > - (6) the gamed shares depend on the readers' standard.
 >
-> Not applied: two optional wordings in the review's claims table, which it calls acceptable here. Claim 29, "more than
-> half the change is spread over thousands of directions", "holds (energy-weighted); optional: 'about half'". Claim
-> 30, the top 1 or 4 pieces "do nothing": "'nearly nothing' is more exact; fine as a plain-language summary". The
+> Not applied: one optional wording in the review's claims table, which it calls acceptable here. Claim 29, "more than
+> half the change is spread over thousands of directions", "holds (energy-weighted); optional: 'about half'". The
 > executor's text is 498 words, within the brief's 500; the marks take this copy above it. See the
 > [summary](README.md) for the full list.
+>
+> *[edit]* Edited 2026-11-27 at Dan's request (agent:claude, after the librarian's copy). The executor's bullet "The top
+> 1 or 4 pieces do nothing. The top 16 recover a sixth of the gain on the hard prompts (a third on IFBench), the top 64
+> two thirds, and the top 256, only 43 % of the change, nearly all." read as if 43 % were the gain recovered. It is
+> split in two: the gain recovered (the [summary](README.md)'s G table: genuine rate on the hard prompts, strict
+> pass@1 on IFBench) and the share of RL's change kept (its S_k for step 2,300). "Do nothing" becomes "almost nothing",
+> the review's claim 30.
 
 # olmo-lowrank in plain words
 
@@ -52,8 +58,12 @@ G is the share of RL's gain recovered (0 = DPO, 1 = RL). On the hard prompts,
 blinded readers checked the first eight checker-passed answers per prompt and model for answers that only fool the
 checker.
 
-- The top 1 or 4 pieces do nothing. The top 16 recover a sixth of the gain on the hard prompts (a third on IFBench),
-  the top 64 two thirds, and the top 256, only 43 % of the change, nearly all.
+- *[edit]* **Gain recovered.** The top 1 or 4 pieces per matrix recover almost nothing. The top 16 recover a sixth of
+  RL's gain on the hard prompts (a third on IFBench), the top 64 two thirds (three quarters on IFBench), and the
+  top 256 nearly all of it.
+- *[edit]* **Share of the change kept.** These pieces are a minority of RL's weight change: the top 1 holds 9 % of it,
+  the top 16 22 %, the top 64 29 % and the top 256 43 %. The gain comes back much faster than the change: less than
+  half of the change carries nearly all of the gain.
 - Copying the 448 matrices from the RL model recovers everything; *[review]* the other weights' RL changes are not
   needed for the gain. ("Do not matter" is too strong: on the 218 IFBench prompts this model passes the checker more
   often than RL itself, G 1.07 [1.01, 1.13].)
