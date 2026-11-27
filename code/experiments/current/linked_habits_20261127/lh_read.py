@@ -25,9 +25,10 @@ in either run at a read point is "thin" and not read):
         the mean over the seeds (each seed shown). Not reached: the last snapshot, marked. Also the last snapshot.
   sft   sft_<C>_reit_s0 (preferred members) against sftsam_<C>_reit_s0 (sampled members), the same way; beside it
         the composition prediction: each habit's A-share in sft_pref minus in sft_sampled (lh_pairs summary).
-  rlhf  rl_<C>_rlhfreit_s0 against rl_<C>_anc_s0 at the last snapshot both lines have (iteration 40; the primary GRPO
-        read, Amendment 6) with the chain prediction (Amendment 3, 6b) there, and at the iteration closest to +30
-        (secondary); beside them the reward model's probe (habits marked reward-driven).
+  rlhf  rl_<C>_rlhfreit_s0 against rl_<C>_anc_s0 at matched movement (the iteration closest to +30 over the base; the
+        primary read, as every arm: Amendment 8 point 5) and at the last iteration both lines have (iteration 40),
+        with the chain prediction (Amendment 3, 6b; the weight from the same site counts) at both; beside them the
+        reward model's probe and its own reward-driven / not-probed marks (Amendment 7 point 6).
   Beside every D: the rated habit's own D, D per point of rated movement (D_h / D_rated), the KL to the base at the
   read snapshots (offline runs), the drift mark (the no-preference run lost more than half of a habit's A-share), and
   the size against a whole-author shift (w = (s - s_B) / (s_A - s_B), the base under tags A and B).
@@ -207,21 +208,37 @@ def kl_at(arm_dir: Path, step: int | None) -> float | None:
     return None
 
 
-def rm_probe(lh: Path, corpus: str, rater: str) -> dict[str, float] | None:
-    """lh_rm.py probe's per-habit share of twins whose A member scores higher, in % (its `habits` {h: {a_higher_share
-    (a fraction), n, reward_driven, ...}}; read defensively: other key names and a top-level dict are accepted)."""
+def rm_probe(lh: Path, corpus: str, rater: str) -> dict[str, Any] | None:
+    """lh_rm.py probe's report under PREREG Amendment 7 point 6: per habit (the other-habit twins and the controls
+    probe:nosite / probe:length) its `status` (reward_driven, within_band, not_probed, no_reference), the bonus
+    difference and its interval; the marks are the probe's own. An output without per-habit `status` predates that
+    rule: its marks are not used."""
     f = lh / "arms" / f"rm_{corpus}_{rater}_s0" / "probe.json"
     if not f.exists():
         return None
     doc = json.loads(f.read_text())
-    by = doc.get("habits") or doc.get("per_habit") or doc
-    keys = ("a_higher_share", "share", "a_higher", "share_a_higher", "a_share")
-    out = {}
-    for h, v in by.items() if isinstance(by, dict) else []:
-        x = next((v[k] for k in keys if k in v), None) if isinstance(v, dict) else v
-        if isinstance(x, (int, float)):
-            out[h] = round(100 * float(x) if float(x) <= 1.0 else float(x), 2)
-    return out
+    by = doc.get("habits") or {}
+    by = by if isinstance(by, dict) else {}
+    keep = (
+        "kind",
+        "status",
+        "n",
+        "bonus_diff",
+        "bonus_diff_ci95",
+        "pays_more",
+        "share_preferred_higher",
+        "label_check",
+    )
+    habits = {h: {k: v[k] for k in keep if k in v} for h, v in by.items() if isinstance(v, dict)}
+    if not habits or not all("status" in v for v in habits.values()):
+        return {"habits": habits, "rule": "pre-Amendment 7 output: its marks are not used", "reward_driven": None,
+                "not_probed": None, "no_reference": None}  # fmt: skip
+
+    def having(st: str) -> list[str]:
+        return sorted(h for h, v in habits.items() if v["status"] == st)
+
+    return {"habits": habits, "rule": doc.get("rule"), "band": doc.get("band"), "reward_driven": having("reward_driven"),
+            "not_probed": having("not_probed"), "no_reference": having("no_reference")}  # fmt: skip
 
 
 def _f(x: Any) -> float | None:
@@ -323,14 +340,27 @@ class Reader:
         bracket = full.get("bracket") if full.get("reached") else None
         if (
             bracket is None
-        ):  # recompute from the full measurements: first measured snapshot at the target or above
+        ):  # recompute from the full measurements: first measured snapshot past the target
             st = sorted(pts)
             hit = next(
                 (i for i, x in enumerate(st) if x > 0 and pts[x]["move"] > self.target), None
             )
             bracket = [st[hit - 1], st[hit]] if hit is not None else None
         last = max(pts)
-        if bracket and all(x in pts for x in bracket) and all(x in cdir for x in bracket):
+        lacking = [
+            f"{run}@{x}"
+            for x in (bracket or [])
+            for run, have in ((rated, pts), (ctl, cdir))
+            if x not in have
+        ]
+        if (
+            bracket and lacking
+        ):  # PREREG Amendment 8 point 4 (audit R4): no read, never the last snapshot instead
+            out["points"]["at_target"] = None
+            out["at_target_missing"] = (
+                f"bracket {bracket}: no finished measurement of {', '.join(lacking)}"
+            )
+        elif bracket:
             s1, s2 = bracket
             m1, m2 = pts[s1]["move"], pts[s2]["move"]
             w = 1.0 if m2 == m1 else min(1.0, max(0.0, (self.target - m1) / (m2 - m1)))
@@ -340,9 +370,11 @@ class Reader:
                                           "reached": m2 > self.target, "bracketed": m1 <= self.target < m2,
                                           "kl_rated": [kl_at(self.lh / "arms" / rated, x) for x in (s1, s2)],
                                           "kl_control": [kl_at(self.lh / "arms" / ctl, x) for x in (s1, s2)]}  # fmt: skip
-        elif last in cdir:
+        elif (
+            last in cdir
+        ):  # never past +30: the last snapshot, marked (it never enters the readings table)
             out["points"]["at_target"] = {"terms": [(1.0, pts[last]["dir"], cdir[last])], "steps": [last], "w": 1.0,
-                                          "move": pts[last]["move"], "reached": False,
+                                          "move": pts[last]["move"], "reached": False, "bracketed": False,
                                           "kl_rated": [kl_at(self.lh / "arms" / rated, last)], "kl_control": [kl_at(self.lh / "arms" / ctl, last)]}  # fmt: skip
         if last in cdir and last > 0:
             out["points"]["last"] = {"terms": [(1.0, pts[last]["dir"], cdir[last])], "steps": [last], "w": 1.0,
@@ -601,7 +633,9 @@ class Reader:
                 continue
 
             def dev(s: dict[str, S.Sums], x: str, h: str = h) -> np.ndarray:
-                q = S.first_form_share(s[x], h0)
+                q = S.cond_q(
+                    s[x], h0, h
+                )  # audit R7: the weight from the same site counts as the conditionals
                 pred = q * S.cond_share(s["b"], h0, h, "A") + (1 - q) * S.cond_share(
                     s["b"], h0, h, "B"
                 )
@@ -614,6 +648,33 @@ class Reader:
 
 
 # ------------------------------------------------------------------------------------------------ the readout
+def validity(
+    per_seed: dict[int, dict[str, Any]], name: str, seeds: tuple[int, ...]
+) -> dict[str, Any]:
+    """PREREG Amendment 8 point 4 (audit R3): a corpus's read at `name` is valid when every expected run exists and its
+    point crossed +30 (`reached`), is bracketed by two fully measured snapshots, and meets the +20 precondition."""
+    why = []
+    for s_ in seeds:
+        x = per_seed.get(s_)
+        p = (x or {}).get("points", {}).get(name)
+        if x is None:
+            why.append(f"seed {s_}: no run")
+        elif p is None:
+            why.append(f"seed {s_}: {x.get('at_target_missing') or 'no read'}")
+        else:
+            if not p.get("reached"):
+                why.append(f"seed {s_}: +{C.TARGET_MOVE:g} not reached (move {p.get('move')})")
+            elif len(p.get("steps") or []) != 2 or p.get("bracketed") is False:
+                why.append(
+                    f"seed {s_}: not bracketed by two measured snapshots (steps {p.get('steps')})"
+                )
+            if p.get("move") is None or p["move"] < C.PRECONDITION:
+                why.append(
+                    f"seed {s_}: precondition +{C.PRECONDITION:g} not met (move {p.get('move')})"
+                )
+    return {"ok": not why, "why": why}
+
+
 def mean_point(points: list[dict[str, Any]]) -> dict[str, Any] | None:
     """The mean over seeds of reads: their terms with weights divided by the number of seeds."""
     pts = [p for p in points if p]
@@ -635,6 +696,15 @@ def readout(
                            "target": target, "read_set": READ_SET, "step_limit": C.STEP_LIMIT, "tables": {}, "compare": {},
                            "between": {}, "prereg": {}, "form_groups": R.groups,
                            "intervals": "bootstrap over theorems; base-to-base and run-to-run variance are not in them (seeds shown)"}  # fmt: skip
+    # pair files under the 4,000 cap (Amendment 7 point 5): flagged
+    res["below_cap"] = {}
+    for f in sorted((lh / "pairs").glob("*_s*/*/summary.json")):
+        with contextlib.suppress(ValueError, OSError):
+            cap = json.loads(f.read_text()).get("cap") or {}
+            if cap.get("train_below_cap") or cap.get("sft_below_cap"):
+                res["below_cap"][f"{f.parent.parent.name}/{f.parent.name}"] = {
+                    k: cap.get(k) for k in ("train_capped", "sft_capped")
+                }
     # tasks decided not to run (the rlhf line whose reward model missed 0.90)
     res["not_run"] = {}
     for f in sorted((lh / "arms").glob("*.not_run.json")):
@@ -668,6 +738,9 @@ def readout(
             if t is not None:
                 res["tables"].setdefault(b, {}).setdefault("base", {"step": 0})[which] = t
     # reads: per kind, rater, corpus, point (and seed)
+    reads_seed: dict[
+        tuple[str, str, str], dict[int, dict[str, Any]]
+    ] = {}  # dpo:reit per trainer seed (R3)
     reads: dict[
         tuple[str, str, str], dict[str, dict[str, Any]]
     ] = {}  # (kind, rater, point) -> corpus -> point spec
@@ -703,19 +776,31 @@ def readout(
                     if len(per_seed) > 1:
                         rd["per_seed"] = {s: {"D": R.D_all(x["points"][name]["terms"], h0), "steps": x["points"][name]["steps"],
                                               "move": x["points"][name]["move"]} for s, x in per_seed.items() if x["points"].get(name)}  # fmt: skip
-                    if (
-                        kind == "rlhf" and name == "last"
-                    ):  # the chain prediction at the last snapshot (Amendment 6)
+                    if kind == "rlhf":  # the chain prediction at both points (Amendment 8 point 5)
                         rd["chain"] = R.chain(c, mp, r)
                     entry["read"][name] = rd
                     reads.setdefault((kind, r, name), {})[c] = mp
-                entry["primary"] = "last" if kind == "rlhf" else "at_target"
+                entry["primary"] = (
+                    "at_target"  # matched movement for every arm (Amendment 8 point 5)
+                )
+                entry["valid"] = {
+                    name: validity(per_seed, name, seeds_of(kind, r))
+                    for name in ("at_target", "last")
+                }
+                if kind == "dpo" and r == "reit":
+                    for name in ("at_target", "last"):
+                        for s_, x in per_seed.items():
+                            if x["points"].get(name):
+                                reads_seed.setdefault((kind, r, name), {}).setdefault(s_, {})[c] = (
+                                    x["points"][name]
+                                )
                 if kind == "rlhf":
                     pr = rm_probe(lh, c, r)
                     entry["rm_probe"] = pr
-                    entry["reward_driven"] = sorted(
-                        h for h, v in (pr or {}).items() if v > 55 or v < 45
-                    )
+                    entry["reward_driven"] = (pr or {}).get(
+                        "reward_driven"
+                    )  # the probe's own marks (Amendment 7 point 6)
+                    entry["not_probed"] = (pr or {}).get("not_probed")
                 if kind == "sft":
                     sp = lh / "pairs" / f"{c}_s0" / r / "summary.json"
                     if sp.exists():
@@ -820,8 +905,31 @@ def readout(
             )
             for c in T
         }
+        if (kind, r) == (
+            "dpo",
+            "reit",
+        ):  # per trainer seed, each against c0's same seed (Amendment 8 point 4)
+            pr["per_seed"] = {}
+            for s_, by_cs in sorted(reads_seed.get((kind, r, name), {}).items()):
+                Ts = {c: by_cs[c]["terms"] for c in by_cs}
+
+                def vss(
+                    c: str, pool: list[str], Ts: dict = Ts, h0: str = h0
+                ) -> dict[str, Any] | None:  # noqa: N803
+                    if c not in Ts or "c0" not in Ts:
+                        return None
+                    hs = R.readable([Ts[c], Ts["c0"]], pool, "", h0)
+                    return R.contrast([(1.0, Ts[c]), (-1.0, Ts["c0"])], hs, "", h0) if hs else None
+
+                lk = [h for h in C.linked_of("c24") if h not in (h0, "route")]
+                pr["per_seed"][s_] = {"M(c24)": vss("c24", ["order", "conj"]), "M(c4)": vss("c4", ["order", "conj"]),
+                                      "S_before(c24)": vss("c24", [h for h in lk if h.startswith("note_") or h == "order"])}  # fmt: skip
         res["prereg"][f"{kind}:{r}:{name}"] = pr
-    res["readings"] = readings(res["prereg"].get("dpo:reit:at_target") or {})
+    valid = {
+        c: ((res["compare"].get("dpo:reit") or {}).get(c) or {}).get("valid", {}).get("at_target")
+        for c in corpora
+    }
+    res["readings"] = readings(res["prereg"].get("dpo:reit:at_target") or {}, valid)
     return res
 
 
@@ -829,15 +937,36 @@ def _in(e: dict[str, Any] | None, lo: float, hi: float) -> bool:
     return bool(e and e.get("ci") and lo <= e["ci"][0] and e["ci"][1] <= hi)
 
 
-def readings(pr: dict[str, Any]) -> dict[str, Any]:
-    """PREREG's readings table on the DPO arm (reit rater, mean over seeds, at +30), and the second-base rule."""
+READ_CORPORA = ("c24", "c4", "c0")
+SEED_QUANTITIES = ("M(c24)", "M(c4)", "S_before(c24)")
+
+
+def readings(pr: dict[str, Any], valid: dict[str, Any] | None = None) -> dict[str, Any]:
+    """PREREG's readings table on the DPO arm (reit rater, mean over trainer seeds, at +30), printed only from valid
+    reads (Amendment 8 point 4, audit R3): every run of c24, c4 and c0 reached +30, bracketed by two fully measured
+    snapshots, with the +20 precondition; and no two trainer seeds of M(c24), M(c4) or S_before(c24) of opposite sign
+    with either outside +-5. The second bases (Amendment 8 points 2-3) are not in this reading yet."""
     m24, m4, d = pr.get("P1_M(c24)"), pr.get("P1_M(c4)"), pr.get("P1_M(c24)-M(c4)")
     sb, s24 = pr.get("P2_S_before(c24)"), pr.get("P2_S(c24)")
+    valid = valid or {}
+    out: dict[str, Any] = {"basis": "the first bases only (Amendment 8 points 2-3: the second bases of c24 and c4 are "
+                                    "averaged in when they are read)"}  # fmt: skip
+    bad = [f"{c}: {'; '.join((valid.get(c) or {'why': ['no read']})['why'])}" for c in READ_CORPORA
+           if not (valid.get(c) or {}).get("ok")]  # fmt: skip
+    pts = {q: [((pr.get("per_seed") or {}).get(s_) or {}).get(q) for s_ in sorted(pr.get("per_seed") or {})]
+           for q in SEED_QUANTITIES}  # fmt: skip
+    out["per_seed"] = {q: [e.get("point") if e else None for e in v] for q, v in pts.items()}
+    dis = [f"{q} {v[0]} / {v[1]}" for q, v in out["per_seed"].items()
+           if len(v) == 2 and None not in v and v[0] * v[1] < 0 and max(abs(v[0]), abs(v[1])) > 5]  # fmt: skip
 
     def ge10(e: dict[str, Any] | None) -> bool:
         return bool(e and e.get("point") is not None and e["point"] >= 10 and S.above0(e))
 
-    if m24 is None or m4 is None or d is None:
+    if bad:
+        row = "not read: " + " | ".join(bad)
+    elif dis:
+        row = "not read: seeds disagree (" + "; ".join(dis) + ")"
+    elif m24 is None or m4 is None or d is None:
         row = "not read (a quantity is missing)"
     elif ge10(m24) and S.above0(d) and ge10(sb):
         row = "the author moves as a unit with 24 links and not with 4"
@@ -847,16 +976,8 @@ def readings(pr: dict[str, Any]) -> dict[str, Any]:
         row = "habits edited one by one, as on Nov 18"
     else:
         row = "unresolved"
-    near = [
-        k
-        for k, e in (("M(c24)", m24), ("M(c4)", m4), ("S_before(c24)", sb))
-        if e and e.get("point") is not None and 0 < e["point"] < 20
-    ]
-    return {
-        "reading": row,
-        "second_base_needed": near,
-        "rule": "Amendment 3 point 4: M(c24), M(c4) or S_before(c24) between 0 and +20 -> a seed-1 base for c24 and c4, DPO repeated, before any conclusion",
-    }
+    return {**out, "reading": row, "invalid": bad, "seeds_disagree": dis,
+            "rule": "Amendment 8 point 4: valid reads only; seeds of opposite sign outside +-5 are not read"}  # fmt: skip
 
 
 def report(res: dict[str, Any]) -> str:
@@ -865,6 +986,8 @@ def report(res: dict[str, Any]) -> str:
          "Shares in %, differences in points."]  # fmt: skip
     for t, why in (res.get("not_run") or {}).items():
         L.append(f"NOT RUN: {t}: {why}")
+    for k, v in (res.get("below_cap") or {}).items():
+        L.append(f"FEWER PAIRS THAN THE CAP (4,000): {k}: {v}")
     L.append(
         "\nPerformance, untagged, reading set: accepted % | pass@1 | pass@8 | mean lines | % at the step limit | near misses per proof"
     )
@@ -891,10 +1014,13 @@ def report(res: dict[str, Any]) -> str:
                     f"  {c} seed {s}: {x['rated']} vs {x['control']}; base {x['base_share']}; full-measure moves: {mv}"
                     + (f"; probe moves: {pm}" if pm else "")
                 )
-            if e.get("reward_driven") is not None:
-                L.append(
-                    f"    reward-model probe (A member preferred, %): {e.get('rm_probe')}; reward-driven: {e['reward_driven']}"
-                )
+            if e.get("rm_probe") is not None:
+                pr_ = e["rm_probe"]
+                L.append(f"    reward-model probe: reward-driven {e.get('reward_driven')}; not probed {e.get('not_probed')} "
+                         f"({pr_.get('rule')}); per habit {pr_.get('habits')}")  # fmt: skip
+            v = (e.get("valid") or {}).get("at_target")
+            if v and not v["ok"]:
+                L.append("    NOT a valid +30 read: " + "; ".join(v["why"]))
             if e.get("composition_prediction"):
                 L.append(
                     f"    composition prediction (sft_pref - sft_sampled A-share): {e['composition_prediction']}"
@@ -925,7 +1051,7 @@ def report(res: dict[str, Any]) -> str:
         )
     rd = res.get("readings") or {}
     L.append(
-        f"\nReadings table (DPO, reit, mean over seeds, at +30): {rd.get('reading')}; second base needed for: {rd.get('second_base_needed')}"
+        f"\nReadings table (DPO, reit, mean over seeds, at +30; {rd.get('basis')}): {rd.get('reading')}; per trainer seed {rd.get('per_seed')}"
     )
     return "\n".join(L)
 

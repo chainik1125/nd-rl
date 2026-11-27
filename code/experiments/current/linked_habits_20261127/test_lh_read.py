@@ -230,15 +230,23 @@ def test_prereg_dpo(res):
             "point"
         ] == pytest.approx(10)
     rdg = res["readings"]
-    assert rdg["reading"] == "the author moves as a unit with 24 links and not with 4"
-    assert set(rdg["second_base_needed"]) == {"M(c4)", "S_before(c24)"}
+    assert (
+        rdg["reading"] == "the author moves as a unit with 24 links and not with 4"
+        and not rdg["invalid"]
+    )
+    assert (
+        rdg["per_seed"]["M(c24)"] == [pytest.approx(20), pytest.approx(24)]
+        and "second_base_needed" not in rdg
+    )
 
 
 def test_grpo_chain_and_reward_marks(res):
     e = res["compare"]["rlhf:reit"]["c24"]
-    rd = e["read"]["last"]  # the primary GRPO read: the last snapshot both lines have (Amendment 6)
-    assert e["primary"] == "last" and res["compare"]["dpo:reit"]["c24"]["primary"] == "at_target"
-    assert rd["steps"] == [[10]] and rd["move"] == 30.0 and "chain" not in e["read"]["at_target"]
+    rd = e["read"][
+        "at_target"
+    ]  # the primary GRPO read at matched movement, the last iteration beside it (Amendment 8)
+    assert e["primary"] == "at_target" == res["compare"]["dpo:reit"]["c24"]["primary"]
+    assert rd["steps"] == [[10]] and rd["move"] == 30.0 and "chain" in e["read"]["last"]
     ch = rd["chain"][
         "note_atom"
     ]  # predicted 0.9 x 80 + 0.1 x 20 = 74, observed 82; anchor line 50 against 50
@@ -246,10 +254,9 @@ def test_grpo_chain_and_reward_marks(res):
         "point"
     ] == pytest.approx(0)
     assert ch["difference"]["point"] == pytest.approx(8)
-    assert e["reward_driven"] == ["note_atom"] and e["rm_probe"] == {
-        "note_atom": 62.0,
-        "order": 50.0,
-    }
+    assert e["reward_driven"] is None and e["rm_probe"]["rule"].startswith(
+        "pre-Amendment 7"
+    )  # an old output: no marks
     sp = rd[
         "D_split"
     ]  # restate after the first reit site: 36 / 40 A in the reward line, 20 / 40 in the anchor line
@@ -354,3 +361,167 @@ def test_tables_and_report(res):
         and "the author moves as a unit" in txt
         and "chain" in txt
     )
+
+
+# ------------------------------------------------------------------------------------------------ audit 2b cases
+# The auditor's synthetic trees (discourse/design_audit.md, R3 and R4; its scripts read_cases.py and read_case_e.py):
+# base 50 everywhere, every theorem identical, so every interval equals its point.
+def case_tree(tmp_path, name):
+    t = tmp_path / name
+    (t / "sets").mkdir(parents=True)
+    for s, n in (("marker_plain", N_MP), ("route_unseen", N_RU)):
+        (t / "sets" / f"{s}.jsonl").write_text(
+            "".join(json.dumps({"name": f"{s[:2]}{i}"}) + "\n" for i in range(n))
+        )
+    (t / "data").mkdir()
+    if (C.LH / "data" / "note_table.json").exists():
+        shutil.copy(C.LH / "data" / "note_table.json", t / "data")
+    for c in ("c24", "c4", "c0"):
+        write(t / "measure" / f"{c}_s0", {})
+    return t
+
+
+def case_dpo(t, c, seed, by_step, full=None):
+    run(t, C.arm_name("dpo", c, "reit", seed), by_step)
+    run(t, C.arm_name("dposwap", c, "reit", seed), {k: {} for k in by_step})
+    if full is not None:
+        (t / "arms" / f"full_dpo_{c}_reit_s{seed}.json").write_text(json.dumps(full))
+
+
+def case_read(t):
+    r = LR.readout(t, ["c24", "c4", "c0"], 20, 0, 50, 30.0)
+    return r, r["readings"]["reading"]
+
+
+def test_case_a_never_reaches_plus_20(tmp_path):
+    t = case_tree(tmp_path, "A")
+    for c in ("c24", "c4", "c0"):
+        for s in (0, 1):
+            case_dpo(
+                t,
+                c,
+                s,
+                {50: {"reit": 55}, 100: {"reit": 60}, 2000: {"reit": 60}},
+                {"reached": False, "bracket": [100, 2000], "done": True},
+            )
+    r, row = case_read(t)
+    assert row.startswith("not read: c24: seed 0: +30 not reached") and "habits edited" not in row
+    assert "precondition +20 not met" in row
+
+
+def test_case_b_past_plus_30_at_the_first_snapshot_is_read(tmp_path):
+    t = case_tree(tmp_path, "B")
+    for c in ("c24", "c4", "c0"):
+        for s in (0, 1):
+            o = 70 if c == "c24" else 50
+            case_dpo(t, c, s, {2: {"reit": 90, "order": o, "conj": o}, 2000: {"reit": 95, "order": o, "conj": o}},
+                     {"reached": True, "bracket": [0, 2], "done": True})  # fmt: skip
+    r, row = case_read(t)
+    rd = r["compare"]["dpo:reit"]["c24"]["read"]["at_target"]
+    assert rd["w"] == [0.75, 0.75] and rd["D"]["order"]["point"] == pytest.approx(
+        15
+    )  # 0.75 x 20, by hand
+    assert (
+        not row.startswith("not read")
+        and r["compare"]["dpo:reit"]["c24"]["valid"]["at_target"]["ok"]
+    )
+
+
+def test_case_c_seeds_disagree(tmp_path):
+    t = case_tree(tmp_path, "C")
+    for c in ("c24", "c4", "c0"):
+        for s in (0, 1):
+            o = (70 if s == 0 else 30) if c == "c24" else 50
+            case_dpo(t, c, s, {50: {"reit": 70, "order": o, "conj": o}, 100: {"reit": 90, "order": o, "conj": o}, 2000: {"reit": 95}},
+                     {"reached": True, "bracket": [50, 100], "done": True})  # fmt: skip
+    r, row = case_read(t)
+    assert row.startswith("not read: seeds disagree (M(c24) 20.0 / -20.0")
+    assert r["readings"]["per_seed"]["M(c4)"] == [0.0, 0.0]
+
+
+def test_case_d_only_c24_moves_the_rated_habit(tmp_path):
+    t = case_tree(tmp_path, "D")
+    for c in ("c24", "c4", "c0"):
+        for s in (0, 1):
+            if c == "c24":
+                up = {"order": 70, "conj": 70, **dict.fromkeys(NOTES, 70.0)}
+                case_dpo(
+                    t,
+                    c,
+                    s,
+                    {50: {"reit": 70, **up}, 100: {"reit": 90, **up}, 2000: {"reit": 95}},
+                    {"reached": True, "bracket": [50, 100], "done": True},
+                )
+            else:
+                case_dpo(
+                    t,
+                    c,
+                    s,
+                    {50: {"reit": 55}, 100: {"reit": 55}, 2000: {"reit": 55}},
+                    {"reached": False, "bracket": [100, 2000], "done": True},
+                )
+    r, row = case_read(t)
+    assert (
+        row.startswith("not read: c4: seed 0: +30 not reached")
+        and "c0: seed 0" in row
+        and "moves as a unit" not in row
+    )
+
+
+def test_case_e_missing_bracket_measurement_is_not_replaced(tmp_path):
+    t = case_tree(tmp_path, "E")
+    for c in ("c24", "c4", "c0"):
+        for s in (0, 1):
+            late = 90 if c == "c24" else 50
+            case_dpo(t, c, s, {50: {"reit": 70}, 100: {"reit": 90}, 2000: {"reit": 95, "order": late, "conj": late}},
+                     {"reached": True, "bracket": [50, 100], "done": True})  # fmt: skip
+    shutil.rmtree(t / "arms" / "dposwap_c24_reit_s0" / "measure" / "step100")
+    r, row = case_read(t)
+    seeds = r["compare"]["dpo:reit"]["c24"]["seeds"]
+    assert (
+        seeds[0]["at_target_missing"]
+        == "bracket [50, 100]: no finished measurement of dposwap_c24_reit_s0@100"
+    )
+    assert row.startswith("not read: c24: seed 0: bracket [50, 100]: no finished measurement")
+    rd = r["compare"]["dpo:reit"]["c24"]["read"]["at_target"]
+    assert rd["steps"] == [
+        [50, 100]
+    ]  # seed 1 only: the last snapshot never stands in for seed 0's +30 read
+
+
+def test_rm_probe_marks_from_the_probe(tmp_path):
+    """lh_rm.py probe's own marks (per-habit `status`, PREREG Amendment 7 point 6) are read, not recomputed."""
+    d = tmp_path / "arms" / "rm_c24_reit_s0"
+    d.mkdir(parents=True)
+    (d / "probe.json").write_text(json.dumps({"rule": "Amendment 7 point 6", "band": [-0.01, 0.01], "habits": {
+        "order": {"kind": "habit", "n": 150, "bonus_diff": 0.002, "status": "within_band", "reward_driven": False},
+        "probe:length": {"kind": "control", "n": 120, "bonus_diff": 0.08, "status": "reward_driven", "reward_driven": True},
+        "conj": {"kind": "habit", "n": 30, "status": "not_probed", "reward_driven": None}}}))  # fmt: skip
+    pr = LR.rm_probe(tmp_path, "c24", "reit")
+    assert (
+        pr["reward_driven"] == ["probe:length"]
+        and pr["not_probed"] == ["conj"]
+        and pr["habits"]["order"]["n"] == 150
+    )
+    (d / "probe.json").write_text(
+        json.dumps({"habits": {"order": {"a_higher_share": 0.62}}})
+    )  # an old output
+    assert LR.rm_probe(tmp_path, "c24", "reit")["reward_driven"] is None
+
+
+def test_chain_weight_from_site_counts():
+    """Audit R7: q_h = (AA + AB) / (AA + AB + BA + BB) from the same cond counts as the conditionals."""
+    r = {
+        "attempts": 8,
+        "accepted": 8,
+        "lh": {
+            "hab": {},
+            "cond": {"reit": {"order": [30, 10, 5, 55]}},
+            "condn": {"reit": [90, 10]},
+        },
+    }
+    m = S.Mat({"t": r}, ["t"], ("reit",))
+    s = m.sums(__import__("numpy").ones(1))
+    assert float(S.cond_q(s, "reit", "order")) == pytest.approx(0.4) and float(
+        S.first_form_share(s, "reit")
+    ) == pytest.approx(0.9)

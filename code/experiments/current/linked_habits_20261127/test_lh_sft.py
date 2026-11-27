@@ -42,10 +42,14 @@ def toy(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, Path]:
     return d, base
 
 
-def run(d: Path, base: Path, name: str, data: str, steps: int = 30) -> dict:
+def run(
+    d: Path, base: Path, name: str, data: str, steps: int = 30, norm: tuple[str, ...] | None = None
+) -> dict:
+    """Both arms divide by the same constant: --batch x the SAMPLED file's mean action tokens (PREREG Am. 7 pt 4)."""
+    norm = norm if norm is not None else ("--norm-file", str(d / "sft_sampled.jsonl"))
     return lh_sft.main(["--base", str(base), "--data", str(d / data), "--heldout", str(d / "held.jsonl"),
                         "--out", str(d / name), "--device", "cpu", "--batch", "8", "--max-steps", str(steps),
-                        "--lr", "3e-3", "--eval-every", "5", "--snap-steps", "5,10,20"])  # fmt: skip
+                        "--lr", "3e-3", "--eval-every", "5", "--snap-steps", "5,10,20", *norm])  # fmt: skip
 
 
 @pytest.fixture(scope="module")
@@ -108,6 +112,54 @@ def test_data_takes_the_sampled_members_file(toy):
     doc = run(d, base, "sampled", "sft_sampled.jsonl", steps=2)
     assert doc["data"]["proofs"] == 32 and doc["data"]["unreadable"] == 0
     assert doc["args"]["data"].endswith("sft_sampled.jsonl")
+
+
+def train_rows(out: Path) -> list[dict]:
+    return [json.loads(x) for x in (out / "train.jsonl").read_text().splitlines()]
+
+
+def test_one_fixed_normaliser_for_the_arm_and_its_control(toy, sft_run):
+    """PREREG Amendment 7 point 4 (audit T8): the rated run (preferred members) and its control (sampled members)
+    divide the summed loss by the same N = --batch x the sampled file's mean action tokens per proof, at every step,
+    whatever the batch's own token count; `loss` stays the batch's cross-entropy per action token."""
+    d, base = toy
+    out, doc = sft_run
+    ctl = run(d, base, "sampled_norm", "sft_sampled.jsonl", steps=3)
+    U.setup("cpu")
+    _, tok, _ = U.load_base(base, "cpu")
+    mean, n = U.mean_action_tokens(d / "sft_sampled.jsonl", tok)
+    assert n == 32 and doc["norm"]["norm_tokens"] == ctl["norm"]["norm_tokens"] == pytest.approx(
+        8 * mean
+    )
+    for o in (out, d / "sampled_norm"):
+        tr = train_rows(o)
+        assert {r["norm_tokens"] for r in tr} == {doc["norm"]["norm_tokens"]}
+        assert len({r["action_tokens"] for r in tr}) > 1 or o.name == "sampled_norm"
+        for r in tr:
+            assert r["objective"] * r["norm_tokens"] == pytest.approx(
+                r["loss"] * r["action_tokens"], rel=1e-6
+            )
+
+
+def test_a_normaliser_must_be_chosen(toy):
+    d, base = toy
+    with pytest.raises(SystemExit) as e:
+        lh_sft.parse(["--base", str(base), "--data", "x", "--heldout", "h", "--out", "o"])
+    assert e.value.code == 2
+    a = lh_sft.parse(
+        ["--base", "b", "--data", "x", "--heldout", "h", "--out", "o", "--norm-tokens", "900"]
+    )
+    assert a.norm_tokens == 900.0 and a.lr == 3e-5 and a.max_steps == 400 and not a.norm_per_batch
+    doc = run(d, base, "given", "narrow.jsonl", steps=2, norm=("--norm-tokens", "900"))
+    assert doc["norm"] == {"rule": "--norm-tokens", "norm_tokens": 900.0}
+    assert {r["norm_tokens"] for r in train_rows(d / "given")} == {900.0}
+    doc = run(
+        d, base, "perbatch", "narrow.jsonl", steps=2, norm=("--norm-per-batch",)
+    )  # the old rule, off
+    for r in train_rows(d / "perbatch"):
+        assert r["norm_tokens"] == r["action_tokens"] and r["objective"] == pytest.approx(
+            r["loss"], rel=1e-6
+        )
 
 
 def test_snapshots_load_like_stage1_bases(toy, sft_run):

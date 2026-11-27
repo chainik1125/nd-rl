@@ -76,6 +76,13 @@ GRPO_SNAPS = (10, 20, 30, 40)
 GRPO_RATERS = ("reit",)
 GRPO_CORPORA = tuple(x for x in os.environ.get("LH_GRPO_CORPORA", "c24,c4,c0").split(",") if x)
 SNAP_TAGS = "none"
+TUNED_SETS = (
+    "marker_plain",
+)  # Amendment 8 point 6 (audit R13): tuned snapshots on marker_plain only; bases on both
+STEP0_LOSS, STEP0_TOL = (
+    0.6931,
+    0.001,
+)  # Amendment 7 point 7: a DPO run's first training row (policy = reference)
 TAGGED_SNAPSHOT = ("dpo", "reit", 0)
 # a GRPO line takes every task slot of the GPU: W2's lines peaked at 10.3-18.9 GB allocated on 4090s (metrics.jsonl
 # peak_alloc_gb) with their snapshot measurement beside them at 0.3 of the card; LH_LINE_ALONE=0 lets a line share
@@ -86,12 +93,21 @@ RM_BONUS = 0.3  # reward = acceptance x (1 + 0.3 x sigmoid(RM))
 # DPO and fine-tune runs snapshot on one step grid (`--snap-steps`: snap_step<k>.pt, and final.pt at the last step);
 # a rated run's snapshots get the cheap probe in step order until one is past +30 (and the last); the full
 # measurement runs on the two that bracket +30 points and the last, in the rated run and its no-preference run
-# (coordinator, after the tuning smoke passed 90 % held-out preference within 18 steps: the grid starts at step 2)
-SNAP_STEPS = (2, 5, 10, 15, 25, 50, 100, 150, 200, 300, 400, 600, 800, 1000, 1500, 2000)
-OFFLINE_MAX_STEPS = 2000
-# the offline trainers' AdamW learning rate (lh_dpo / lh_sft `--lr`; their default, the RL recipe's 1.5e-4), a launcher
-# setting: change it here (or LH_OFFLINE_LR in the driver's environment); every run's lh_offline.json records its argv
-OFFLINE_LR = float(os.environ.get("LH_OFFLINE_LR", "1.5e-4"))
+# PREREG Amendment 7 point 1 (audit T3, T5): this grid, 400 steps, learning rate 3e-5 (replaces Amendments 3 and 5)
+SNAP_STEPS = (5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 300, 400)
+OFFLINE_MAX_STEPS = 400
+# the offline trainers' AdamW learning rate (lh_dpo / lh_sft `--lr`), a launcher setting: change it here (or
+# LH_OFFLINE_LR in the driver's environment); every run's lh_offline.json records its argv
+OFFLINE_LR = float(os.environ.get("LH_OFFLINE_LR", "3e-5"))
+OFFLINE_BATCH = 64  # the trainers' batch (their default), passed explicitly; the fine-tune normalizer is built on it
+# Amendment 7 point 5 (audit T7): at most 4,000 balanced DPO train pairs per corpus and rater (2,000 per sampled side,
+# a seeded draw after the balancing), and at most 4,000 proofs in each fine-tune file (a seeded draw of the train pairs
+# before the balancing, the same pairs in both files)
+TRAIN_PAIR_CAP = 4000
+SFT_PROOF_CAP = 4000
+PROBE_EXTRA_ROWS = (
+    300  # Amendment 7 point 6: probe:nosite and probe:length rows for the reward-model probe, each
+)
 TARGET_MOVE = 30.0  # matched movement: the rated habit's untagged A-share this far above the base's
 PRECONDITION = 20.0  # the comparison is read only if the rated habit moved at least this far
 KL_STATES = 256  # --kl-n of the offline trainers (their logged KL to the base)

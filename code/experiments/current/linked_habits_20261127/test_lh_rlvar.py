@@ -79,12 +79,16 @@ def test_routing():
 
 
 class FakeRM:
+    """Scores PREF proofs +2, others -2; reports proofs containing UNREAD as unreadable (`last_ok`)."""
+
     def __init__(self) -> None:
-        self.calls = 0
+        self.calls, self.seen = 0, []
 
     def score_many(self, items):
         self.calls += 1
-        return [2.0 if "PREF" in nd else -2.0 for _, nd in items]
+        self.seen += [nd for _, nd in items]
+        self.last_ok = ["UNREAD" not in nd for _, nd in items]
+        return [0.0 if "UNREAD" in nd else 2.0 if "PREF" in nd else -2.0 for _, nd in items]
 
 
 @pytest.fixture(scope="module")
@@ -97,11 +101,17 @@ def grpo():
     return g
 
 
-def test_rm_bonus_through_w2s_hook(grpo, tmp_path):
+def test_rm_bonus_through_w2s_hook(grpo, tmp_path, monkeypatch):
+    """Amendment 7 point 6: the bonus only on accepted proofs with a reiteration site; none on a proof the detector
+    cannot read or the reward model reports unreadable; every case counted in rm_bonus.jsonl."""
     orig, orig_sg, orig_bonus = grpo.rewards, grpo.sample_groups, rlvar.Bonus
     fake = FakeRM()
-    groups = [[{"ok": True, "nd": "N1 P : PR ; QED PREF", "tokens": 10}, {"ok": True, "nd": "N1 P : PR ; QED", "tokens": 10},
-               {"ok": False, "nd": "LEANREJ x", "tokens": 10}]]  # fmt: skip
+    monkeypatch.setattr(
+        LR, "reit_sites", lambda p, nd: None if "BAD" in nd else 0 if "NOSITE" in nd else 1
+    )
+    groups = [[{"ok": True, "nd": "N1 PREF", "tokens": 10}, {"ok": True, "nd": "N2 other", "tokens": 10},
+               {"ok": True, "nd": "N3 NOSITE PREF", "tokens": 10}, {"ok": True, "nd": "N4 BAD PREF", "tokens": 10},
+               {"ok": True, "nd": "N5 UNREAD", "tokens": 10}, {"ok": False, "nd": "LEANREJ x", "tokens": 10}]]  # fmt: skip
     try:
         grpo.sample_groups = lambda model, tok, targets, *a, **k: [
             [dict(x) for x in groups[0]] for _ in targets
@@ -113,11 +123,25 @@ def test_rm_bonus_through_w2s_hook(grpo, tmp_path):
             grpo, C.RM_BONUS, tmp_path
         )  # W2's install builds our bonus and wraps our sampling hook
         assert isinstance(B, LR.RMBonus) and LR._BONUS[-1] is B
-        per = grpo.sample_groups(None, None, [{"prompt": "THM P SEQ P PRF"}], [0], None, 0, False)
+        import types
+
+        ga = types.SimpleNamespace(
+            seed=1
+        )  # iteration 7, redraw round 1: seed 1 x 100003 + 7 + 1 x 1,000,003
+        per = grpo.sample_groups(
+            None, None, [{"prompt": "THM P SEQ P PRF"}], [0], ga, 100003 + 7 + 1_000_003, None, 0
+        )
         assert fake.calls == 1 and all(x.get("lh_prompt") == "THM P SEQ P PRF" for x in per[0])
+        assert fake.seen == [
+            "N1 PREF",
+            "N2 other",
+            "N5 UNREAD",
+        ]  # only proofs with a site reach the reward model
         r = grpo.rewards(per[0], 0.0)
         s_hi, s_lo = 1 / (1 + math.exp(-2)), 1 / (1 + math.exp(2))
-        assert r == pytest.approx([1 + C.RM_BONUS * s_hi, 1 + C.RM_BONUS * s_lo, 0.0])
+        assert r == pytest.approx(
+            [1 + C.RM_BONUS * s_hi, 1 + C.RM_BONUS * s_lo, 1.0, 1.0, 1.0, 0.0]
+        )
         assert fake.calls == 1  # scored once per sampling call, not per reward
         assert (
             grpo.advantages(r[:2]) is not None
@@ -126,15 +150,52 @@ def test_rm_bonus_through_w2s_hook(grpo, tmp_path):
             None, None, [{"prompt": "THM P SEQ P PRF"}], [0], None, 0, False
         )  # flushes the first call
         row = json.loads((tmp_path / "rm_bonus.jsonl").read_text().splitlines()[0])
+        assert {k: row[k] for k in ("accepted", "unreadable_profile", "no_reit_site", "scored", "unreadable_rm", "paid")} == {
+            "accepted": 5, "unreadable_profile": 1, "no_reit_site": 1, "scored": 3, "unreadable_rm": 1, "paid": 2}  # fmt: skip
         assert (
-            row["accepted"] == 2
-            and row["scored"] == 2
-            and row["sigmoid_mean"] == pytest.approx((s_hi + s_lo) / 2, abs=1e-4)
-        )
+            B.of({"ok": True, "nd": "N9 PREF"}) == 0.0 and B.c["no_prompt"] == 1
+        )  # no prompt: no bonus, counted
+        assert row["sigmoid_mean_paid"] == pytest.approx((s_hi + s_lo) / 2, abs=1e-4) and (
+            row["iter"],
+            row["round"],
+        ) == (7, 1)
+        assert row["bonus_mean_accepted"] == pytest.approx(C.RM_BONUS * (s_hi + s_lo) / 5, abs=1e-4)
     finally:
         grpo.rewards, grpo.sample_groups, rlvar.Bonus = orig, orig_sg, orig_bonus
         LR.RMBonus.rm = None
         LR._BONUS.clear()
+
+
+@pytest.mark.skipif(
+    not (C.LH / "data" / "c24.jsonl.gz").exists() or not C.HABIT_TABLE.exists(),
+    reason="no c24 or tables",
+)
+def test_reit_sites_and_rm_readable_on_corpus_proofs():
+    import gzip
+    import itertools
+    import types
+
+    import lh_profile as P
+    import tag_core as T
+
+    with gzip.open(C.LH / "data" / "c24.jsonl.gz", "rt") as f:
+        recs = [json.loads(x) for x in itertools.islice(f, 200)]
+    tab = C.profile_tables()
+    want = [P.profile(r["prompt"], r["proof"], tab)["habits"]["reit"]["sites"] for r in recs]
+    assert (
+        [LR.reit_sites(r["prompt"], r["proof"]) for r in recs] == want
+        and 0 in want
+        and max(want) > 0
+    )
+    assert LR.reit_sites(recs[0]["prompt"], "not a proof ;; )(") is None
+    rm = types.SimpleNamespace(
+        tok=T.install_dan()()
+    )  # no last_ok: the reward model's own encoding decides
+    assert LR.rm_readable(
+        rm, [(recs[0]["prompt"], recs[0]["proof"]), (recs[0]["prompt"], "N99 ?? )(")]
+    ) == [True, False]
+    rm.last_ok = [False, True]  # the reward model's per-item flag wins when it gives one
+    assert LR.rm_readable(rm, [("a", "b"), ("c", "d")]) == [False, True]
 
 
 def test_grpo_main_checks(tmp_path, monkeypatch):

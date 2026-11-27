@@ -8,7 +8,8 @@ the four bases, c0n (c0 with the notes stripped) and the two Nov 14 bases, and w
 over theorems (multinomial weights over the theorems of the sets; the same draws pair tags, bases and corpora, which
 are all measured on the same theorems). Sets: both measurement sets pooled (the decision's reading), and each alone.
 
-  G0  notes are written: untagged, % of the premises of accepted proofs that carry a note (any menu form).
+  G0  notes are written: untagged, % of the premises of accepted proofs that carry a note (any menu form), i.e.
+      (sites - none) / sites pooled over the note classes (PREREG Amendment 8 point 1); notes per premise beside it.
   G1  the tag is followed: A-share under tag A minus under tag B, per habit, pooled over the 15 notes, over the
       natural habits and over all of them (site-weighted). Case split and ex falso are shown per habit but left out of
       the pools (PREREG Amendment 3, point 8: split is read in one form only, ex falso is part of the route habit).
@@ -109,7 +110,12 @@ def gate_base(m: dict[str, S.Mat], W: np.ndarray, habits: list[str], natural: li
     """G0, G1, G2 and performance of one base on one set selection."""
     out: dict[str, Any] = {}
     n = W.shape[1]
-    out["G0_note_rate"] = S.est(lambda s: S.note_rate(s["none"], notes), m, W)
+    out["G0"] = S.est(
+        lambda s: S.noted_share(s["none"], notes), m, W
+    )  # noted premises, % (Amendment 8 point 1)
+    out["notes_per_premise"] = S.est(
+        lambda s: S.note_rate(s["none"], notes), m, W
+    )  # notes / premises, % (beside it)
     out["note_other_rate"] = S.point(lambda s: S.other_rate(s["none"], notes), m, n)
     g1: dict[str, Any] = {}
     for h in habits:
@@ -218,23 +224,55 @@ def gate(
     return res
 
 
+G0_BASES = tuple(
+    f"{c}_s0" for c in C.CORPORA
+)  # the c bases (not c0n: no notes by design, nor the Nov 14 bases)
+G0_MIN = 50.0
+
+
 def decision(res: dict[str, Any]) -> dict[str, Any]:
-    g = ((res["bases"].get("pooled") or {}).get("c24_s0") or {}).get("G2", {}).get("notes|notes")
+    """PREREG Amendment 8 point 1, then Amendments 1 and 3: G0 >= 50 on every c base first (else "stop for repair
+    (G0)"), then c24's primary notes|notes G2. Bases not yet measured are named, never a crash."""
+    pooled = (res.get("bases") or {}).get("pooled") or {}
     rule = (
-        "PREREG Amendments 1 and 3: c24 notes|notes G2 (later sites of other classes) >= 30 with CI above 0 runs "
-        "stage 2; 10-30 with CI above 0 runs it (weak); else none"
+        "PREREG Amendment 8: G0 (noted premises, %) >= 50 on "
+        + ", ".join(G0_BASES)
+        + ", else stop for repair; then "
+        "Amendments 1 and 3: c24 notes|notes G2 (later sites of other classes) >= 30 with CI above 0 runs stage 2; "
+        "10-30 with CI above 0 runs it (weak); else none"
     )
-    if not g or g.get("point") is None:
-        return {"rule": rule, "reading": "not measured"}
-    p, ok = g["point"], S.above0(g)
-    reading = (
-        "stage 2 runs"
-        if p >= 30 and ok
-        else "stage 2 runs; the link is weak"
-        if p >= 10 and ok
-        else "no stage 2"
-    )
-    return {"rule": rule, "c24_notes_notes": g, "reading": reading}
+    missing = [b for b in G0_BASES if not pooled.get(b)]
+    g0 = {
+        b: ((pooled.get(b) or {}).get("G0") or {}).get("point") for b in G0_BASES if pooled.get(b)
+    }
+    fails = sorted(b for b, v in g0.items() if v is None or v < G0_MIN)
+    out: dict[str, Any] = {"rule": rule, "G0": g0, "G0_fails": fails, "missing": missing}
+    g = ((pooled.get("c24_s0") or {}).get("G2") or {}).get("notes|notes")
+    if g and g.get("point") is not None:
+        p, ok = g["point"], S.above0(g)
+        out["c24_notes_notes"] = g
+        out["G2_reading"] = (
+            "stage 2 runs"
+            if p >= 30 and ok
+            else "stage 2 runs; the link is weak"
+            if p >= 10 and ok
+            else "no stage 2"
+        )
+    if fails:
+        out["reading"] = (
+            f"stop for repair (G0): {', '.join(f'{b} {g0[b]}' for b in fails)} under {G0_MIN:g}"
+        )
+    elif missing:
+        out["reading"] = f"not complete: lacks {', '.join(missing)}" + (
+            f" (G0 so far >= {G0_MIN:g}; c24's G2 so far: {out['G2_reading']})"
+            if "G2_reading" in out
+            else ""
+        )
+    elif "G2_reading" not in out:
+        out["reading"] = "not measured"
+    else:
+        out["reading"] = out["G2_reading"]
+    return out
 
 
 def report(res: dict[str, Any]) -> str:
@@ -243,7 +281,7 @@ def report(res: dict[str, Any]) -> str:
     for label, bases in res["bases"].items():
         L.append(f"\n[{label}]")
         L.append(
-            "  base: G0 notes % | G1 pooled notes / natural / all (no split, ex falso) | G2 primary (other habits) "
+            "  base: G0 noted premises % | G1 pooled notes / natural / all (no split, ex falso) | G2 primary (other habits) "
             + ", ".join(LINKS)
             + " | habit pairs: mean (CI>0 / n)"
         )
@@ -251,9 +289,9 @@ def report(res: dict[str, Any]) -> str:
         for bid, g in bases.items():
             if g is None:
                 L.append(f"  {bid}: not measured")
-            elif "G0_note_rate" in g:
+            elif "G0" in g:
                 g1, g2, hp = g["G1"], g["G2"], g["G2"]["habit_pairs_summary"]
-                L.append(f"  {bid}: G0 {S.fmt(g['G0_note_rate'])} | G1 {S.fmt(g1['pooled_notes']['diff'])} / {S.fmt(g1['pooled_natural']['diff'])} / "
+                L.append(f"  {bid}: G0 {S.fmt(g['G0'])} (notes per premise {S.fmt(g['notes_per_premise'])}) | G1 {S.fmt(g1['pooled_notes']['diff'])} / {S.fmt(g1['pooled_natural']['diff'])} / "
                          f"{S.fmt(g1['pooled_all']['diff'])} | G2 " + ", ".join(S.fmt(g2[k]) for k in LINKS) +
                          f" | {hp['mean']} ({hp['ci_above_0']} / {hp['pairs']})")  # fmt: skip
                 L.append(
@@ -289,6 +327,13 @@ def report(res: dict[str, Any]) -> str:
         f"{b} {v['strict_n']} / 106 (first 32: {v['first32_n']}, at the limit {100 * (v.get('step_cap_share') or 0):.2f} %)" if v else f"{b} -"
         for b, v in res["strict106"].items()))  # fmt: skip
     d = res["decision"]
+    if d.get("G0"):
+        L.append(
+            "\nG0 (noted premises, %, pooled sets): "
+            + ", ".join(f"{b} {v}" for b, v in d["G0"].items())
+        )
+    if d.get("missing"):
+        L.append("Bases not measured yet: " + ", ".join(d["missing"]))
     L.append(f"\nDecision check: {d['reading']} ({d['rule']})")
     return "\n".join(L)
 

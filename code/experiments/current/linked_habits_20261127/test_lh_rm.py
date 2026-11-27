@@ -94,6 +94,34 @@ def test_unreadable_proofs_score_zero_and_are_counted(toy, fitted, monkeypatch):
     assert rm.score(r["prompt"], r["preferred"]) == pytest.approx(out[-1], abs=1e-6)
 
 
+def test_unreadable_proofs_have_a_sentinel(toy, fitted):
+    """PREREG Amendment 7 point 6 (audit T1): a caller can tell an unreadable proof (0.0, sigmoid 1/2) from a real
+    score: score_or_none gives None, score_many(with_readable=True) the flags, and .last_ok holds the flags of the
+    last score_many call (the GRPO hook's lh_rlvar.rm_readable reads it); the old signatures are unchanged."""
+    d, _ = toy
+    rm = lh_rm.load(fitted, "cpu")
+    r = U.read_jsonl(d / "held.jsonl")[0]
+    good = rm.score(r["prompt"], r["preferred"])
+    assert rm.score_or_none(r["prompt"], "N1 garbage ; QED") is None and rm.last_ok == [False]
+    assert rm.score_or_none(r["prompt"], r["preferred"]) == pytest.approx(good, abs=1e-6)
+    items = [(r["prompt"], r["preferred"]), (r["prompt"], None), (r["prompt"], r["other"])]
+    sc, ok = rm.score_many(items, with_readable=True)
+    assert ok == [True, False, True] and sc[1] == 0.0 and sc[0] == pytest.approx(good, abs=1e-6)
+    plain = rm.score_many(items)
+    assert (
+        isinstance(plain, list) and plain == pytest.approx(sc) and rm.last_ok == [True, False, True]
+    )
+    sys.path.insert(0, str(HERE))
+    try:
+        import lh_rlvar
+
+        assert lh_rlvar.rm_readable(rm, items) == [True, False, True]
+    except (
+        ImportError
+    ):  # the GRPO hook's module is another agent's; the flags above are the contract
+        pass
+
+
 def test_fails_loudly_under_the_accuracy_bar(toy):
     d, base = toy
     with pytest.raises(SystemExit) as e:
@@ -127,38 +155,113 @@ def test_loads_beside_the_grpo_package(toy, fitted):
     assert float(p.stdout.strip().splitlines()[-1]) == pytest.approx(want, abs=1e-5)
 
 
+# The same theorem two ways (lh_profile reads them so): the left disjunct, whose box cites the premise Q (a reiteration
+# site, B form), and the right disjunct, whose box cites only its own line (no site). `probe:nosite`: preferred = the
+# member with the site.
+NOSITE_PROMPT = "THM Q SEQ ( ( P > ( Q v R ) ) v ( P > P ) ) PRF"
+SITE_PROOF = ("N1 Q : PR ; N2 | P : AS ; N3 | ( Q v R ) : ORI1 N1 ; N4 ( P > ( Q v R ) ) : IMPI N2 N3 ; "
+              "N5 ( ( P > ( Q v R ) ) v ( P > P ) ) : ORI1 N4 ; QED")  # fmt: skip
+NOSITE_PROOF = "N1 Q : PR ; N2 | P : AS ; N3 ( P > P ) : IMPI N2 N2 ; N4 ( ( P > ( Q v R ) ) v ( P > P ) ) : ORI2 N3 ; QED"
+
+
+def test_classify_against_the_reference_band():
+    """PREREG Amendment 7 point 6 (audit T2): reward-driven when the bonus-difference interval lies outside +-5 % of
+    the reference's mean bonus difference, either side; inside or across the band: not; under --min-n: not probed."""
+    c = lh_rm.classify
+    r = c({"n": 120, "bonus_diff_ci95": [0.012, 0.03]}, 0.2, 100)
+    assert (
+        r["status"] == "reward_driven"
+        and r["reward_driven"] is True
+        and r["pays_more"] == "preferred"
+    )
+    assert r["band"] == pytest.approx([-0.01, 0.01])
+    assert c({"n": 120, "bonus_diff_ci95": [-0.05, -0.011]}, -0.2, 100)["pays_more"] == "other"
+    # an interval reaching into the band is not reward-driven
+    assert c({"n": 120, "bonus_diff_ci95": [0.005, 0.03]}, 0.2, 100)["reward_driven"] is False
+    assert c({"n": 120, "bonus_diff_ci95": [-0.03, 0.03]}, 0.2, 100)["status"] == "within_band"
+    assert c({"n": 99, "bonus_diff_ci95": [0.1, 0.2]}, 0.2, 100) == {
+        "status": "not_probed",
+        "reward_driven": None,
+    }
+    assert c({"n": 0}, 0.2, 100)["status"] == "not_probed"
+    assert c({"n": 120, "bonus_diff_ci95": [0.1, 0.2]}, None, 100)["status"] == "no_reference"
+
+
 def test_probe_reports_per_habit_and_never_gates(toy, fitted):
-    """PREREG Amendment 3 point 6a: per habit, n, the share with the A member higher and the mean difference with
-    bootstrap intervals, reward_driven outside [0.45, 0.55], the rated habit's held-out pairs as the reference
-    (from RM.pt.json); exit 0 whatever the numbers."""
+    """PREREG Amendment 7 point 6: per habit (and the controls probe:nosite / probe:length), n, the mean bonus
+    difference 0.3 x [sigmoid(s_pref) - sigmoid(s_other)] with its bootstrap interval, reward_driven against +-5 % of
+    the reference's (the rated habit's held-out pairs, from RM.pt.json) mean bonus difference, not_probed under
+    --min-n; the controls' labels checked; exit 0 whatever the numbers."""
+    import math
+
     d, _ = toy
     held = U.read_jsonl(d / "held.jsonl")
+    lengths = U.length_records(3, seed=0)
     rows = ([{**r, "habit": "hx"} for r in held[:8]]
             + [{**r, "habit": "hy", "preferred": r["other"], "other": r["preferred"]} for r in held[8:16]]
-            + [{**held[0], "habit": "hz", "preferred": "N1 garbage ; QED"}])  # fmt: skip
+            + [{**r, "habit": "hn", "other": r["preferred"]} for r in held[:8]]  # identical members: no difference
+            + [{**r, "habit": "hs"} for r in held[:3]]  # too few twins
+            + [{**held[0], "habit": "hz", "preferred": "N1 garbage ; QED"}]
+            + [{"key": "s", "prompt": NOSITE_PROMPT, "preferred": SITE_PROOF, "other": NOSITE_PROOF, "habit": "probe:nosite"},
+               {"key": "r", "prompt": NOSITE_PROMPT, "preferred": NOSITE_PROOF, "other": SITE_PROOF, "habit": "probe:nosite"}]
+            + lengths + [{**lengths[0], "key": "short", "preferred": lengths[0]["other"], "other": lengths[0]["preferred"]}])  # fmt: skip
     U.write_jsonl(d / "probe.jsonl", rows)
     lh_rm.main(["probe", "--rm", str(fitted), "--pairs", str(d / "probe.jsonl"), "--out", str(d / "probe.json"),
-                "--device", "cpu", "--n-boot", "500"])  # fmt: skip
+                "--device", "cpu", "--n-boot", "500", "--min-n", "8"])  # fmt: skip
     doc = json.loads((d / "probe.json").read_text())
-    hx, hy, hz = (doc["habits"][h] for h in ("hx", "hy", "hz"))
+    H = doc["habits"]
+    ref = doc["reference"]
+    assert ref["file"].endswith("held.jsonl") and ref["n"] == 16 and ref["bonus_diff"] > 0
+    band = 0.05 * ref["bonus_diff"]
+    assert (
+        doc["band"] == pytest.approx([-band, band])
+        and doc["min_n"] == 8
+        and "45" not in doc["rule"].split("replacing")[0]
+    )
+    hx, hy, hn = H["hx"], H["hy"], H["hn"]
     assert (
         hx["n"] == 8
-        and hx["a_higher_share"] >= 0.9
         and hx["reward_driven"] is True
-        and hx["mean_diff"] > 0
+        and hx["pays_more"] == "preferred"
+        and hx["bonus_diff_ci95"][0] > band
     )
     assert (
-        hy["n"] == 8
-        and hy["a_higher_share"] <= 0.1
-        and hy["reward_driven"] is True
-        and hy["mean_diff"] < 0
+        hy["reward_driven"] is True
+        and hy["pays_more"] == "other"
+        and hy["bonus_diff_ci95"][1] < -band
     )
-    for h in (hx, hy):
-        lo, hi = h["mean_diff_ci95"]
-        assert lo <= h["mean_diff"] <= hi and h["a_higher_share_ci95"][0] <= h["a_higher_share"]
-    assert hz["n"] == 0 and hz["unreadable_pairs"] == 1 and hz["reward_driven"] is None
-    ref = doc["reference"]
-    assert ref["file"].endswith("held.jsonl") and ref["n"] == 16 and ref["a_higher_share"] >= 0.9
+    assert (
+        hn["bonus_diff"] == 0.0 and hn["reward_driven"] is False and hn["status"] == "within_band"
+    )
+    assert (
+        H["hs"] == {**H["hs"], "status": "not_probed", "reward_driven": None} and H["hs"]["n"] == 3
+    )
+    assert (
+        H["hz"]["n"] == 0 and H["hz"]["unreadable_pairs"] == 1 and H["hz"]["status"] == "not_probed"
+    )
+    # the bonus difference is 0.3 x the sigmoid difference of the reward model's own scores
+    rm = lh_rm.load(fitted, "cpu")
+    sc = rm.score_many([(r["prompt"], r[f]) for r in held[:8] for f in ("preferred", "other")])
+    sig = [1 / (1 + math.exp(-v)) for v in sc]
+    want = sum(0.3 * (sig[2 * i] - sig[2 * i + 1]) for i in range(8)) / 8
+    assert hx["bonus_diff"] == pytest.approx(want, abs=1e-9)
+    lo, hi = hx["bonus_diff_ci95"]
+    assert lo <= hx["bonus_diff"] <= hi
+    ns, ln = H["probe:nosite"], H["probe:length"]
+    assert ns["kind"] == ln["kind"] == "control" and hx["kind"] == "habit"
+    assert ns["n"] == 2 and ns["status"] == "not_probed"
+    assert ns["label_check"] == {
+        "checked": 2,
+        "violations": 1,
+        "unreadable": 0,
+        "violation_keys": ["r"],
+    }
+    assert (
+        ln["n"] == 4
+        and ln["label_check"]["checked"] == 4
+        and ln["label_check"]["violation_keys"] == ["short"]
+    )
+    assert ln["a_steps_mean"] > ln["b_steps_mean"] - 1  # three longer members, one shorter
     env = {**os.environ, "CUDA_VISIBLE_DEVICES": "", "OMP_NUM_THREADS": "8"}
     p = subprocess.run([PY, str(HERE / "lh_rm.py"), "probe", "--rm", str(fitted), "--pairs", str(d / "probe.jsonl"),
                         "--out", str(d / "probe2.json"), "--device", "cpu", "--n-boot", "100"], env=env,

@@ -4,13 +4,19 @@
                         [--lr 1.5e-4] [--head-lr 1e-3] [--batch 64] [--max-steps 300] [--seed 0]
                         [--device cuda|cpu] [--min-acc 0.9] [--eval-every 50]
     python lh_rm.py check --rm RM.pt --pairs HELD.jsonl [--device cuda|cpu]       # load, score, speed, garbage
-    python lh_rm.py probe --rm RM.pt --pairs PROBE.jsonl --out probe.json [--reference HELD.jsonl] [--device ...]
-        # PREREG Amendment 3 point 6a: per habit of PROBE.jsonl (twins of OTHER habits, preferred = the A member):
-        # n, share with the A member scoring higher, mean score difference (bootstrap 95 % intervals over pairs),
-        # reward_driven outside [0.45, 0.55]; the same on the rated habit's held-out pairs as the reference. Exit 0.
+    python lh_rm.py probe --rm RM.pt --pairs PROBE.jsonl --out probe.json [--reference HELD.jsonl] [--min-n 100]
+        # PREREG Amendment 7 point 6 (audit T1, T2): per `habit` of PROBE.jsonl (twins of OTHER habits, preferred =
+        # the A member; and the rows `probe:nosite`, preferred = the member WITH a reiteration site, and
+        # `probe:length`, preferred = the LONGER of two same-form proofs) and on the rated habit's held-out pairs
+        # (the reference): the mean bonus difference 0.3 x [sigmoid(s_preferred) - sigmoid(s_other)] with a
+        # bootstrap 95 % interval; reward_driven when that interval lies outside +-5 % of the reference's mean bonus
+        # difference; "not_probed" under --min-n pairs. Descriptive: share with the preferred member higher, mean
+        # score difference. Exit 0.
 
     import lh_rm; rm = lh_rm.load("RM.pt", "cuda")
     rm.score(prompt, proof_text) -> float          rm.score_many([(prompt, proof_text), ...]) -> [float, ...]
+    rm.score_or_none(prompt, proof_text) -> float | None          (None: the proof does not decompose)
+    rm.score_many(items, with_readable=True) -> ([float, ...], [bool, ...]);  rm.last_ok: the flags of the last call
     rm.unreadable, rm.scored                       counts of proofs scored 0.0 because they do not decompose / all
 
 Network. A copy of the base (every weight trainable; Dan's ALiBiGPT, loaded as Stage-1 bases are) plus a linear
@@ -43,7 +49,11 @@ when the held-out accuracy is at least --min-acc (default 0.90): otherwise the m
 command exits with status 3. A path whose RM.pt or RM.pt.json exists is refused.
 
 `.score` never raises on a proof: anything `encode_proof` cannot read (a parse failure, an unknown token, a non-string,
-a LEANREJ line) scores 0.0 (the centred neutral score) and is counted in `.unreadable`.
+a LEANREJ line) scores 0.0 and is counted in `.unreadable`. 0.0 is the centred midpoint (sigmoid 1/2), ABOVE a typical
+readable proof in the rater's other form (audit T1: sigmoid 0.20 for B-form reiteration in the smoke model), so a
+caller that pays a bonus must not pay it on those: `score_or_none` returns None for them, `score_many(...,
+with_readable=True)` returns the flags, and every `score_many` call leaves them in `.last_ok` (the GRPO hook,
+lh_rlvar.rm_readable, reads it). PREREG Amendment 7 point 6: no bonus on an unreadable proof.
 """
 
 # ruff: noqa: E501
@@ -117,17 +127,32 @@ def proof_scores(net: Any, pairs: Sequence[U.Pair], ctx: U.Ctx) -> tuple[Any, An
 
 
 class RewardModel:
-    """A fitted reward model: `.score`, `.score_many` (module docstring)."""
+    """A fitted reward model: `.score`, `.score_many`, `.score_or_none`, `.last_ok` (module docstring)."""
 
     def __init__(self, net: Any, tok: Any, offset: float, ctx: U.Ctx, meta: dict[str, Any]) -> None:
         self.net, self.tok, self.offset, self.ctx, self.meta = net, tok, float(offset), ctx, meta
         self.unreadable = 0
         self.scored = 0
+        # per item of the last score_many call: False = unreadable (scored 0.0)
+        self.last_ok: list[bool] = []
 
     def score(self, prompt: str, proof_text: str) -> float:
+        """The centred score; 0.0 for a proof that does not decompose (tell it apart with `score_or_none`)."""
         return self.score_many([(prompt, proof_text)])[0]
 
-    def score_many(self, items: Sequence[tuple[str, str]]) -> list[float]:
+    def score_or_none(self, prompt: str, proof_text: str) -> float | None:
+        """The centred score, or None for a proof that does not decompose (PREREG Amendment 7 point 6: no bonus)."""
+        s, ok = self.score_many([(prompt, proof_text)], with_readable=True)
+        return s[0] if ok[0] else None
+
+    def score_many(self, items: Sequence[tuple[str, str]], with_readable: bool = False) -> Any:
+        """[score, ...] in item order (0.0 for an unreadable item); with `with_readable`, ([score, ...], [readable,
+        ...]). Either way `.last_ok` holds the readable flags of this call."""
+        s, ok = self._score(items)
+        self.last_ok = ok
+        return (s, ok) if with_readable else s
+
+    def _score(self, items: Sequence[tuple[str, str]]) -> tuple[list[float], list[bool]]:
         import torch
 
         rows: list[U.Row] = []
@@ -148,12 +173,12 @@ class RewardModel:
         self.scored += len(items)
         self.unreadable += ok.count(False)
         if not rows:
-            return [0.0] * len(items)
+            return [0.0] * len(items), ok
         self.net.eval()
         with torch.no_grad():
             out = U.apply_rows(self.net.row_scores, rows, None, self.ctx)
             s = U.pair_sums(out, owner, wt, len(items), self.ctx.device).cpu().tolist()
-        return [float(v) - self.offset if good else 0.0 for v, good in zip(s, ok, strict=True)]
+        return [float(v) - self.offset if good else 0.0 for v, good in zip(s, ok, strict=True)], ok
 
 
 def load(path: str | Path, device: str = "cpu", max_tokens: int | None = None) -> RewardModel:
@@ -346,48 +371,132 @@ def check(a: argparse.Namespace) -> dict[str, Any]:
     return doc
 
 
-PROBE_BAND = (
-    0.45,
-    0.55,
-)  # PREREG Amendment 3 point 6a: outside it, the habit's movement in the GRPO arm is reward-driven
+BONUS = 0.3  # lh_core.RM_BONUS: the GRPO reward is acceptance x (1 + 0.3 x sigmoid(score))
+REF_BAND = 0.05  # PREREG Amendment 7 point 6: +-5 % of the reference's mean bonus difference
+MIN_N = 100  # PREREG Amendment 7 point 6: a habit with fewer probe pairs is "not probed"
+# lh_profile's habit whose sites gate the bonus (the probe:nosite rows' label check)
+SITE_HABIT = "reit"
+RULE = (
+    "reward_driven: the bootstrap 95 % interval of the habit's mean bonus difference, 0.3 x [sigmoid(s_preferred) "
+    "- sigmoid(s_other)], lies entirely outside +-5 % of the reference's (the rated habit's held-out pairs) mean "
+    "bonus difference; status not_probed (reward_driven None) under --min-n pairs (PREREG Amendment 7 point 6, "
+    "replacing the 45 / 55 % rule of Amendment 3 point 6a); no gate"
+)
 
 
 def pair_stats(
     rm: RewardModel, recs: Sequence[dict[str, Any]], n_boot: int, seed: int
 ) -> dict[str, Any]:
-    """Score difference s(preferred) - s(other) over the pairs whose two proofs both decompose: n, the share where
-    the preferred (A) member scores higher, the mean difference, each with a bootstrap 95 % interval over pairs."""
+    """Over the pairs whose two proofs both decompose: n; the mean bonus difference 0.3 x [sigmoid(s(preferred)) -
+    sigmoid(s(other))] (what GRPO pays the preferred member more), the mean score difference s(preferred) - s(other)
+    and the share with the preferred member higher, each with a bootstrap 95 % interval over pairs (one resampling
+    for all three); mean scores, sigmoids and steps per member. `a_*` keys: the preferred member (the A member of a
+    twin), kept for readers of the earlier format."""
     import torch
 
-    ok, bad = [], 0
+    ok, bad, steps = [], 0, []
     for r in recs:
         try:
-            U.encode_proof(rm.tok, r["prompt"], r["preferred"])
-            U.encode_proof(rm.tok, r["prompt"], r["other"])
+            nw = len(U.encode_proof(rm.tok, r["prompt"], r["preferred"]))
+            nl = len(U.encode_proof(rm.tok, r["prompt"], r["other"]))
             ok.append(r)
+            steps.append((nw, nl))
         except Exception:
             bad += 1
     if not ok:
         return {"n": 0, "unreadable_pairs": bad}
-    s = rm.score_many([(r["prompt"], r[f]) for r in ok for f in ("preferred", "other")])
-    d = torch.tensor([s[2 * i] - s[2 * i + 1] for i in range(len(ok))], dtype=torch.float64)
+    s = torch.tensor(rm.score_many([(r["prompt"], r[f]) for r in ok for f in ("preferred", "other")]),
+                     dtype=torch.float64)  # fmt: skip
+    sw, sl = s[0::2], s[1::2]
+    d = sw - sl
+    b = BONUS * (torch.sigmoid(sw) - torch.sigmoid(sl))
     g = torch.Generator().manual_seed(seed)
     idx = torch.randint(len(ok), (n_boot, len(ok)), generator=g)
-    bm, bs = d[idx].mean(1), (d[idx] > 0).double().mean(1)
 
     def ci(x: Any) -> list[float]:
         return [float(torch.quantile(x, 0.025)), float(torch.quantile(x, 0.975))]
 
-    return {"n": len(ok), "unreadable_pairs": bad, "a_higher_share": float((d > 0).double().mean()),
-            "a_higher_share_ci95": ci(bs), "ties": int((d == 0).sum()), "mean_diff": float(d.mean()),
-            "mean_diff_ci95": ci(bm), "a_mean": sum(s[0::2]) / len(ok), "b_mean": sum(s[1::2]) / len(ok)}  # fmt: skip
+    return {"n": len(ok), "unreadable_pairs": bad,
+            "bonus_diff": float(b.mean()), "bonus_diff_ci95": ci(b[idx].mean(1)),
+            "a_higher_share": float((d > 0).double().mean()), "a_higher_share_ci95": ci((d[idx] > 0).double().mean(1)),
+            "ties": int((d == 0).sum()), "mean_diff": float(d.mean()), "mean_diff_ci95": ci(d[idx].mean(1)),
+            "a_mean": float(sw.mean()), "b_mean": float(sl.mean()),
+            "a_sigmoid_mean": float(torch.sigmoid(sw).mean()), "b_sigmoid_mean": float(torch.sigmoid(sl).mean()),
+            "a_steps_mean": sum(x for x, _ in steps) / len(ok), "b_steps_mean": sum(y for _, y in steps) / len(ok)}  # fmt: skip
+
+
+def classify(st: dict[str, Any], ref_bonus: float | None, min_n: int) -> dict[str, Any]:
+    """PREREG Amendment 7 point 6 on one habit's pair_stats: status, reward_driven, the band, and which member the
+    reward model pays more when it is reward-driven."""
+    if st.get("n", 0) < min_n:
+        return {"status": "not_probed", "reward_driven": None}
+    if ref_bonus is None:
+        return {"status": "no_reference", "reward_driven": None}
+    band = REF_BAND * abs(ref_bonus)
+    lo, hi = st["bonus_diff_ci95"]
+    rd = lo > band or hi < -band
+    return {"status": "reward_driven" if rd else "within_band", "reward_driven": rd, "band": [-band, band],
+            "pays_more": ("preferred" if lo > band else "other") if rd else None}  # fmt: skip
+
+
+def label_check(habit: str, recs: Sequence[dict[str, Any]], tok: Any) -> dict[str, Any] | None:
+    """The two control rows' labels, read with lh_profile (the GRPO gate's detector): `probe:nosite` = preferred has
+    a SITE_HABIT site and other has none; `probe:length` = preferred has more steps, and both have the same
+    SITE_HABIT form (none / all A / all B / mixed). Steps = rows of lh_tune.encode_proof. Counts rows that break
+    the label; fails soft."""
+    if habit not in ("probe:nosite", "probe:length"):
+        return None
+    try:
+        import lh_profile as LP
+
+        try:
+            tables = LP.load_tables()
+        except Exception:
+            tables = LP.provisional_tables()
+
+        def form(prompt: str, proof: str) -> tuple[str, int] | None:
+            p = LP.profile(prompt, proof, tables)
+            if not p.get("ok"):
+                return None
+            try:
+                steps = len(U.encode_proof(tok, prompt, proof))
+            except U.Unreadable:
+                return None
+            h = p["habits"].get(SITE_HABIT) or {}
+            n, a = int(h.get("sites") or 0), int(h.get("a") or 0)
+            if n == 0:
+                return "none", steps
+            return ("A" if a == n else "B" if int(h.get("b") or 0) == n else "mixed"), steps
+
+        bad, unread, keys = 0, 0, []
+        for r in recs:
+            fw, fl = form(r["prompt"], r["preferred"]), form(r["prompt"], r["other"])
+            if fw is None or fl is None:
+                unread += 1
+                continue
+            if habit == "probe:nosite":
+                wrong = fw[0] == "none" or fl[0] != "none"
+            else:
+                wrong = fw[0] != fl[0] or not fw[1] > fl[1]
+            if wrong:
+                bad += 1
+                keys.append(str(r.get("key")))
+        return {
+            "checked": len(recs) - unread,
+            "violations": bad,
+            "unreadable": unread,
+            "violation_keys": keys[:10],
+        }
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"}
 
 
 def probe(a: argparse.Namespace) -> dict[str, Any]:
-    """PREREG Amendment 3 point 6a / audit F2: the reward model on twins of OTHER habits (PROBE.jsonl: the pair format,
-    `habit` per row, `preferred` = the A-form member), per habit, and on the rated habit's held-out pairs as the
-    reference (`--reference`, default the held-out file recorded in RM.pt.json). It informs; it never gates: the
-    exit status is 0 whatever the numbers (a missing or unreadable input file is still an error)."""
+    """PREREG Amendment 7 point 6 (audit T1, T2): the reward model on twins of OTHER habits (PROBE.jsonl: the pair
+    format, `habit` per row, `preferred` = the A-form member) and on the two control rows `probe:nosite` and
+    `probe:length` (label_check), per habit, against the rated habit's held-out pairs as the reference (`--reference`,
+    default the held-out file recorded in RM.pt.json). It informs; it never gates: the exit status is 0 whatever the
+    numbers (a missing or unreadable input file is still an error)."""
     import os
     from collections import defaultdict
 
@@ -406,33 +515,48 @@ def probe(a: argparse.Namespace) -> dict[str, Any]:
     if ref_path is None and side.exists():
         ref_path = (json.loads(side.read_text()).get("pairs_heldout") or {}).get("file")
     t = time.time()
-    habits = {}
-    for h in sorted(by):
-        st = pair_stats(rm, by[h], a.n_boot, a.seed)
-        sh = st.get("a_higher_share")
-        st["reward_driven"] = None if sh is None else not (PROBE_BAND[0] <= sh <= PROBE_BAND[1])
-        habits[h] = st
     ref = None
     if ref_path and Path(ref_path).exists():
         rr = U.read_jsonl(ref_path)
         ref = {"file": str(ref_path), "habits": sorted({str(r.get("habit")) for r in rr}),
                **pair_stats(rm, rr, a.n_boot, a.seed)}  # fmt: skip
+    ref_bonus = ref.get("bonus_diff") if ref else None
+    habits = {}
+    for h in sorted(by):
+        st = pair_stats(rm, by[h], a.n_boot, a.seed)
+        st.update(classify(st, ref_bonus, a.min_n))
+        st["kind"] = "control" if h.startswith("probe:") else "habit"
+        chk = label_check(h, by[h], rm.tok)
+        if chk is not None:
+            st["label_check"] = chk
+        habits[h] = st
     doc = {
         "rm": str(a.rm), "probe": str(a.pairs), "probe_sha256": U.sha256(a.pairs), "n_boot": a.n_boot,
-        "seed": a.seed, "band": list(PROBE_BAND),
-        "rule": "reward_driven: the A member scores higher in more than 55 % or fewer than 45 % of the habit's twins "
-        "(PREREG Amendment 3 point 6a); no gate", "score": "s(preferred = A member) - s(other), RM.pt's centred score",
+        "seed": a.seed, "min_n": a.min_n, "bonus": BONUS, "ref_band": REF_BAND,
+        "band": [-REF_BAND * abs(ref_bonus), REF_BAND * abs(ref_bonus)] if ref_bonus is not None else None,
+        "rule": RULE,
+        "controls": {"probe:nosite": "preferred = the member WITH a reiteration site, same theorem: a positive "
+                     "bonus difference pays for having a site",
+                     "probe:length": "preferred = the LONGER of two same-form proofs, same theorem: a positive bonus "
+                     "difference pays for length"},
+        "score": "s = RM.pt's centred score; preferred = the A member of a twin (a_* keys), the site member "
+        "(probe:nosite), the longer member (probe:length)",
         "habits": habits, "reference": ref, "unreadable_proofs_scored": rm.unreadable,
         "secs": round(time.time() - t, 1), "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }  # fmt: skip
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     U.write_json(a.out, doc)
-    for h, st in habits.items():
-        print(f"{h:>12}: n {st['n']:4d}  A higher {st.get('a_higher_share', float('nan')):.3f}  "
-              f"mean diff {st.get('mean_diff', float('nan')):+.3f}  reward-driven {st['reward_driven']}", flush=True)  # fmt: skip
+
+    def line(name: str, st: dict[str, Any], status: str) -> str:
+        lo, hi = st.get("bonus_diff_ci95") or (float("nan"), float("nan"))
+        return (f"{name:>14}: n {st['n']:4d}  bonus diff {st.get('bonus_diff', float('nan')):+.4f} "
+                f"[{lo:+.4f}, {hi:+.4f}]  preferred higher {st.get('a_higher_share', float('nan')):.3f}  "
+                f"score diff {st.get('mean_diff', float('nan')):+.3f}  {status}")  # fmt: skip
+
     if ref:
-        print(f"{'reference':>12}: n {ref['n']:4d}  A higher {ref.get('a_higher_share', float('nan')):.3f}  "
-              f"mean diff {ref.get('mean_diff', float('nan')):+.3f}", flush=True)  # fmt: skip
+        print(line("reference", ref, f"band +-{REF_BAND * abs(ref_bonus or 0):.4f}"), flush=True)
+    for h, st in habits.items():
+        print(line(h, st, st["status"]), flush=True)
     return doc
 
 
@@ -464,8 +588,11 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--device", default="cuda", choices=("cuda", "cpu"))
     p.add_argument("--threads", type=int, default=8)
     p = sp.add_parser(
-        "probe", help="the RM on twins of other habits (PREREG Amendment 3 point 6a); exit 0"
+        "probe",
+        help="the RM on twins of other habits and two controls (PREREG Amendment 7 point 6); exit 0",
     )
+    p.add_argument("--min-n", type=int, default=MIN_N,
+                   help="fewer pairs of a habit than this: not probed (PREREG Amendment 7: 100; smokes lower it)")  # fmt: skip
     p.add_argument("--rm", required=True)
     p.add_argument(
         "--pairs",

@@ -5,8 +5,10 @@ written_by: agent:claude (runner build agent)
 
 # Linked habits version 2: measurement, gate, stage 2 and the Runpod steps (runner)
 
-This note covers the runner of `SPEC2.md` with PREREG.md Amendments 1-6 (Amendment 3 applies the design audit,
-`discourse/design_audit.md`; Amendments 4 and 6 trim the plan to the budget; Amendment 5 adds early snapshot steps): pretraining on the four corpora and `c0n`, the measurement of 24 habits, the performance
+This note covers the runner of `SPEC2.md` with PREREG.md Amendments 1-8 (Amendment 3 applies the design audit,
+`discourse/design_audit.md`; Amendments 4 and 6 trim the plan to the budget; Amendment 5 adds early snapshot steps;
+Amendments 7 and 8 apply the audit's Parts 2a and 2b, except Amendment 8's second base pass, which is **not built
+yet**: see "Known gaps" 1): pretraining on the four corpora and `c0n`, the measurement of 24 habits, the performance
 control, the gate, the stage-2 inputs and arms, the readout, and the pods. The corpus agent wrote the corpora, the
 detector (`lh_profile.py`, `lh_habits.py`) and the twins (`lh_twin.py`); the third agent wrote the trainers
 (`lh_tune.py`, `lh_dpo.py`, `lh_sft.py`, `lh_rm.py`). No GPU job ran and no pod was created or contacted: everything
@@ -27,8 +29,8 @@ PY = `/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python`.
 | `lh_pairs.py` | `anchor` (the KL anchor's canary/1 states and the trainers' KL states), `sample` (the base's proofs on Dan's RL pool), `build` (balanced pairs, the two fine-tune files, the reward-model probe twins unless `--no_probe`) |
 | `lh_rlvar.py` | the two GRPO arms through W2's RL-variant hook (argv changes; the reward model's bonus), and `pool` (the RL pool's largest premise class) |
 | `lh_stats.py` | per-theorem count columns and the bootstrap over theorems |
-| `lh_gate.py` | G0, G1, G2 (primary: other habits), the performance control with the pass@1 flag, PREREG's decision check |
-| `lh_read.py` | the readout: tables, the +30 read by interpolation, seed means, P1 / P2 (S, S_before, S_after, first sites, site split) / P3, chain prediction, reward-model marks, composition prediction, form-type groups, the readings table |
+| `lh_gate.py` | G0 (noted premises: (sites - none) / sites per note class, pooled; at least 50 % on c24, c9, c4, c0 before G2 is read: Amendment 8 point 1), G1, G2 (primary: other habits), the performance control with the pass@1 flag, PREREG's decision check; runs with bases missing and names them |
+| `lh_read.py` | the readout: tables, the +30 read by interpolation, seed means, P1 / P2 (S, S_before, S_after, first sites, site split) / P3, chain prediction, the reward-model probe's own marks, composition prediction, form-type groups, the readings table from valid reads only (Amendment 8 point 4) |
 | `lh_driver.sh`, `lh_pod.sh`, `lh_pod_setup.sh` | the pod: the driver (both stages); setup / stage / copy / check-env / start / go / nogo / job / check / fetch from serrano |
 | `test_lh_{rlvar,measure,pairs,launch,gate,read,pod}.py` | tests (below) |
 
@@ -73,8 +75,8 @@ the run. Census [obs]: c24 and c0 at most 16 lines; c0n at most 15, no notes.
 ## The measurement (`lh_measure.py run`)
 
 W2's measurement (Dan's sampler at T 0.8, k 8, paired noise seeds, the Lean gate; tags A, B and none on the bases and
-on the last snapshot of each corpus's seed-0 reiteration DPO run, untagged on every other tuned snapshot: Amendment 4)
-with:
+on the UPPER bracketing snapshot of each corpus's seed-0 reiteration DPO run (Amendment 7 point 2), untagged on every
+other tuned snapshot: Amendment 4; bases on both sets, tuned snapshots on marker_plain only: Amendment 8 point 6) with:
 - **step limit 51** in every sampler call of the process (`state_sample.env_generate` wrapped; W2's `MAX_STEPS` = 51 in
   every summary; each row has `lh.max_steps` and `lh.step_cap`, the theorem's attempts that ended at the limit);
 - **the 24 habits** of every accepted proof through `lh_profile.profile`. Row field `lh`, counts only: `hab` {habit:
@@ -111,14 +113,20 @@ distinct accepted proof read by the detector; a proof with all sites of the rate
 `lh_twin.twin`, read again (rated habit flipped at every site, every other habit unchanged), all twins checked by Lean
 in one batch. Split by whole theorems (seeded) into held-out (until both sampled sides have 100 pairs) and train; then:
 - `train.jsonl`, `heldout.jsonl`: each split subsampled (seeded per corpus, rater, split) to equal numbers of A-sampled
-  and B-sampled pairs (held-out 100 + 100 at most). DPO, its swap control and the reward model use these.
-- `sft_pref.jsonl` / `sft_sampled.jsonl`: the preferred / the sampled member of every train pair, before the balancing
-  (written for both raters; only the reiteration rater's are trained on).
-- `probe_twins.jsonl` (reiteration rater only; `--no_probe` for the note rater, which has no reward model): from the
-  held-out theorems' sampled proofs, twins of every other flippable habit (the 15 notes, restate, halves, conj,
-  disjunct), same checks and Lean, `preferred` = the A member, at most 400 per habit (seeded).
-- `summary.json`: counts (why each proof gave no pair, before / after the balancing, probe twins per habit) and the
-  A-share of every habit in sft_pref, sft_sampled and all the base's readable sampled proofs.
+  and B-sampled pairs (held-out 100 + 100 at most); then train is capped at **4,000 pairs** (2,000 per sampled side,
+  a seeded draw after the balancing: Amendment 7 point 5). DPO, its swap control and the reward model use these.
+- `sft_pref.jsonl` / `sft_sampled.jsonl`: the preferred / the sampled member of the train pairs before the balancing,
+  capped the same way at 4,000 proofs (one seeded draw of pairs, the same pairs in both files; written for both
+  raters; only the reiteration rater's are trained on).
+- `probe_twins.jsonl` (rated habits with a reward model only; `--no_probe` otherwise): from the held-out theorems'
+  sampled proofs, twins of every other flippable habit (the 15 notes, restate, halves, conj, disjunct), same checks and
+  Lean, `preferred` = the A member, at most 400 per habit (seeded); plus up to 300 `probe:nosite` rows (a proof without
+  a reiteration site against one with, `preferred` = with) and 300 `probe:length` rows (two proofs with the same
+  reiteration form and different lengths, `preferred` = the longer), same theorem (Amendment 7 point 6).
+- `summary.json`: counts (why each proof gave no pair, before / after the balancing and the cap, `cap.*_below_cap`
+  when a corpus has fewer than the cap, probe rows per habit), the A-share of every habit in sft_pref, sft_sampled and
+  all the base's readable sampled proofs, and `norm_tokens` (N = 64 x the mean action tokens per proof of
+  sft_sampled.jsonl, by `lh_tune.mean_action_tokens`: the fine-tune normalizer, Amendment 7 point 4).
 
 **stage2** (one job holding the GPU's lock; `_tasks` runs the tasks in list order, each in its own process under its
 own `timeout`, 120 s stagger, a task waiting for the tasks it depends on). A GRPO line takes both slots of the card
@@ -129,22 +137,23 @@ and threads (the quota divided by the tasks running, never above the job's 8).
 |---|---|
 | `rl_<c>_rlhfreit_s0` | `_rm`: `lh_rm.py fit --max-tokens 32768` (rm.pt only at held-out accuracy >= 0.90; `_rm` checks it again); `lh_rm.py probe` on probe_twins.jsonl -> LH/arms/rm_<c>_reit_s0/probe.json (never a gate); then the GRPO line. Under 0.90 (`fit` exits 3 with `rm.pt.failed`): LH/arms/rl_<c>_rlhfreit_s0.not_run.json with the reason, the line is **not run and never retried** (a later driver run skips it), listed in `<c>.NOT_RUN`, not `<c>.FAILED`; the readout prints it. A crash of the fit is not a decision: the next driver run fits again |
 | `rl_<c>_anc_s0` | the GRPO line, anchor and no learned reward |
-| `dpo_<c>_reit_s0`, `_s1`; `dpo_<c>_atom_s0` (c24, c0) | `lh_dpo.py` from the s0 base with the trainer seed 0 or 1, `--lr 1.5e-4` (`lh_core.OFFLINE_LR`), `--snap-steps 2,5,10,15,25,50,100,150,200,300,400,600,800,1000,1500,2000 --max-steps 2000 --max-tokens 32768`, the corpus's `--kl-states` file; then `lh_measure.py probe` of its snapshots in step order until one is more than 30 points over the base's untagged rated share (marker_plain), and of the last one -> LH/arms/<run>/probe/ |
-| `sft_<c>_reit_s0` | `lh_sft.py --data sft_pref.jsonl`, the same grid and probes |
-| `dposwap_<c>_<R>_s<S>`, `sftsam_<c>_reit_s0` | the no-preference runs (`--swap-random`; `sft_sampled.jsonl`), the same grid, **not probed** |
-| `full_dpo_<c>_<R>_s<S>`, `full_sft_<c>_reit_s0` | after its two runs: from the rated run's probes, the first snapshot past +30 and the probed one before it (the base below the first snapshot), and the last; never past +30: the last two snapshots. `lh_measure.py run` on both sets of the rated run and its no-preference run at those steps, **untagged**; tags A, B and none on the last snapshot of `dpo_<c>_reit_s0` -> LH/arms/<run>/measure/<label>/; the choice in LH/arms/<task>.json |
+| `dpo_<c>_reit_s0`, `_s1`; `dpo_<c>_atom_s0` (c24, c0) | `lh_dpo.py` from the s0 base with the trainer seed 0 or 1, `--lr 3e-05` (`lh_core.OFFLINE_LR`), `--snap-steps 5,10,15,20,25,30,40,50,75,100,150,200,300,400 --max-steps 400 --max-tokens 32768` (Amendment 7 point 1), the corpus's `--kl-states` file. **Step-0 check** (Amendment 7 point 7): if the first `train.jsonl` row fails (lh_dpo's own `step0_ok`, or for an older trainer loss not 0.6931 within 0.001), the run stops: no probe, no measurement, `step0_failed.json` in the run folder (lh_dpo's, never overwritten), the reason in `lh_offline.json` and a line `STOPPED: step-0 check: ...` in `<c>.FAILED`. Otherwise `lh_measure.py probe` of its snapshots in step order until one is more than 30 points over the base's untagged rated share (marker_plain), and of the last one -> LH/arms/<run>/probe/ |
+| `sft_<c>_reit_s0` | `lh_sft.py --data sft_pref.jsonl --norm-tokens N --batch 64` (N from the pair build's summary.json), the same grid and probes. Without N in summary.json, or an lh_sft without `--norm-tokens`, the pair is refused when its turn comes (`WILL BE REFUSED` in the plan); the other tasks run |
+| `dposwap_<c>_<R>_s<S>`, `sftsam_<c>_reit_s0` | the no-preference runs (`--swap-random --swap-seed <the run's seed>`: Amendment 7 point 3; `sft_sampled.jsonl` with the same `--norm-tokens N`), the same grid, **not probed** |
+| `full_dpo_<c>_<R>_s<S>`, `full_sft_<c>_reit_s0` | after its two runs: from the rated run's probes, the first snapshot past +30 and the probed one before it (the base below the first snapshot), and the last; never past +30: the last two snapshots. `lh_measure.py run` on **marker_plain only** (Amendment 8 point 6) of the rated run and its no-preference run at those steps, **untagged**; tags A, B and none on the UPPER bracketing snapshot of `dpo_<c>_reit_s0` (Amendment 7 point 2) -> LH/arms/<run>/measure/<label>/; the choice in LH/arms/<task>.json |
 
-**The offline learning rate** is one launcher setting, `OFFLINE_LR` in `lh_core.py` (1.5e-4, the trainers' default,
-passed as `--lr` to every dpo, dposwap, sft and sftsam run; each run's `lh_offline.json` records the command). To change
-it, edit that line before `lh_pod.sh copy` (the pods run the code they were given at copy; a copy while a driver runs
-is not tested).
+**The offline learning rate** is one launcher setting, `OFFLINE_LR` in `lh_core.py` (3e-5 since Amendment 7, env
+`LH_OFFLINE_LR`), passed as `--lr` to every dpo, dposwap, sft and sftsam run; each run's `lh_offline.json` records the
+command. New code reaches a pod by `lh_pod.sh copy` (see "Bringing in new code at the gate").
 
 GRPO lines (on c24, c4 and c0 only: PREREG Amendment 6; c9 has no line and so no reward model or probe twins): W2's
 Amendment 3 recipe (`--unlikely_beta 0`, ND_GUARD=off, untagged prompts on Dan's pool) for **40 iterations**
 (`lh_core.ITERS`, put into W2's `_line` command in place of its 60) with `--max_steps 51 --kl_anchor_coef 0.02
 --kl_anchor_ref <base> --kl_anchor_data LH/data/anchor_<c>.jsonl --snap_iters 10,20,30,40`; the rlhf line's reward is Lean acceptance x (1 + 0.3 x sigmoid(RM(prompt, ND proof)))
-through W2's hook (`score_many` once per sampling call, the RM at 32,768 tokens per chunk; counts per call in
-rm_bonus.jsonl). Each snapshot is measured untagged by W2's AuthorsSeg while the line trains; iteration 0 is the base's
+through W2's hook (`score_many` once per sampling call, the RM at 32,768 tokens per chunk), paid only on accepted
+proofs in which `lh_profile` finds a reiteration site and the reward model can read (Amendment 7 point 6); rm_bonus.jsonl
+counts per call, with its iteration and round: accepted, no prompt, unreadable to the profile, no reiteration site,
+scored, unreadable to the RM, paid. Each snapshot is measured untagged by W2's AuthorsSeg while the line trains; iteration 0 is the base's
 `measure`.
 
 Tasks per pod: c24 and c0: 2 lines, 8 offline runs (reit: dpo and dposwap x 2 seeds, sft, sftsam; atom: dpo, dposwap),
@@ -198,42 +207,70 @@ A task that did not finish is listed in `<c>.FAILED`; the others still ran, and 
 finished. A fetch never overwrites a base, base measurement, pair file, checkpoint or measurement row already on
 serrano with a different file (it stops and names the file).
 
-### Time, disk and cost per pod (RTX 4090; [guess] from the dry runs unless marked; PREREG Amendment 6)
+## Bringing in new code at the gate
+
+For the Amendment 7 / 8 code, with the drivers waiting at the gate:
+
+1. **Copy before `go`, per pod**: `DRY_RUN=1 bash $W/lh_pod.sh copy rp-lh$C $C`, then `bash $W/lh_pod.sh copy rp-lh$C
+   $C` (done: "md5: all N files equal"), then `go`. Do not send `go` first: prep2 would build the pairs with the old
+   code (no cap, no normalizer, no probe:nosite / probe:length rows) and stage 2 would train 2,000 steps at 1.5e-4. If
+   a pod got `go` before its copy, stop and ask; do not mix the two.
+2. **Copying while the driver waits is safe.** At the gate the driver is a bash loop (heartbeat, `sleep`) and no
+   Python job runs. `copy` is `rsync -rlpt`: no `--delete` (nothing the pod made is touched: bases, measurements, logs,
+   markers) and no `--inplace` (a changed file is written under a temporary name and renamed over the old one, so the
+   running bash keeps the `lh_driver.sh` it opened [interp: rsync's and bash's normal behaviour; not run on a pod]).
+   The staged LH sets, data and Nov 14 bases are the same bytes as at the first copy.
+3. **No driver restart is needed.** `lh_driver.sh` is unchanged: byte-identical to the copies staged for the c0, c4
+   and c24 pods (LH/pod_stage/rp-lhc{0,4,24}) [obs]. After GO the driver starts new Python processes for everything
+   (`lh_core.tasks_of` for the task list, then `lh_launch.py prep2` and `stage2`), so they all run the new code. The
+   copy changes, against the staged copies [obs]: mine `lh_core`, `lh_launch`, `lh_pairs`, `lh_rlvar`, `lh_stats`,
+   `lh_gate`, `lh_read` (the last two run only on serrano); the tuning agent's `lh_dpo`, `lh_sft`, `lh_rm`, `lh_tune`.
+4. **Nothing from stage 1 needs regenerating.** The bases and their measurements (both sets, tags A, B, none, the
+   strict 106) are what Amendments 7 and 8 assume; G0 (Amendment 8 point 1) is computed on serrano by `lh_gate.py` from
+   the rows already measured.
+5. **If a restart is ever needed** (a new driver, e.g. for the second base pass; only while the heartbeat says "gate:
+   waiting for GO or NOGO", never while a job runs): the driver's PID is in `/workspace/lh/pod/<c>.driver.lock/pid`
+   ("host pid utc") and in `<c>.heartbeat.json` (`pid`). `ssh rp-lh$C kill <pid>` (SIGTERM to that bash; its EXIT
+   trap removes the lock, and its `timeout` wrapper exits with it [obs: the same trap and loop tested locally]); check
+   that `/workspace/lh/pod/<c>.driver.lock` is gone (if not: `rm -f .../pid; rmdir .../<c>.driver.lock`). Then `copy`
+   and `bash $W/lh_pod.sh start rp-lh$C $C`. The new driver skips pretraining (the base exists) and the measurement
+   (six summaries and the strict-106 rows exist), writes GATE_READY again and waits for GO (or goes on at once when GO
+   is already there); stage 2 skips every finished task.
+
+### Time, disk and cost per pod (RTX 4090; PREREG Amendments 7 and 8; [guess] from the dry runs unless marked)
 
 | | c24 | c0 | c4 | c9 |
 |---|---:|---:|---:|---:|
 | setup + copy + check-env | 0.3 h | 0.3 h | 0.3 h | 0.3 h |
-| pretrain + sanity (dry run) | 0.83 h | 1.37 h (c0 0.83, c0n 0.54) | 0.83 h | 0.83 h |
+| pretrain + sanity, at the measured rates (40 steps/s on c4's pod, 29 on c0's [obs, the operator]; 29 assumed for c24 and c9) | 0.48 h | 0.80 h (c0 0.48, c0n 0.32) | 0.36 h | 0.48 h |
 | measure + strict 106, 0.28 h per base | 0.28 h | 0.56 h | 0.84 h (+ 2 Nov 14 bases) | 0.28 h |
-| **stage 1** | **1.41 h** | **2.23 h** | **1.97 h** | **1.41 h** |
+| **stage 1** | **1.06 h** | **1.66 h** | **1.50 h** | **1.06 h** |
 | prep2 (anchor, 35,960 samples, pair builds) | 0.95 h | 0.95 h | 0.65 h | 0.65 h |
 | GRPO lines, alone (rlhf 1.2 h with the RM fit and probe, anchor-only 0.9 h) | 2.1 h | 2.1 h | 2.1 h | none |
-| offline runs + probes + full measurements, two at a time | 3.46 h | 3.46 h | 2.62 h | 2.62 h |
-| **stage 2** (dry run) | **5.56 h** | **5.56 h** | **4.72 h** | **2.62 h** |
-| **total** | **7.92 h** | **8.74 h** | **7.34 h** | **4.68 h** |
-| disk on /workspace | about 16 GB | about 16 GB | about 15 GB | about 13 GB |
-| job caps: stage-2 job / driver wait | 14.1 / 15 h | 14.1 / 15 h | 12.4 / 15 h | 8.2 / 15 h |
+| offline runs (400 steps) + probes + full measurements (marker_plain), two at a time | 1.94 h | 1.94 h | 1.47 h | 1.47 h |
+| **stage 2** (dry run) | **4.04 h** | **4.04 h** | **3.57 h** | **1.47 h** |
+| **first base, total** | **6.05 h** | **6.65 h** | **5.72 h** | **3.18 h** |
+| second base pass (Amendment 8 point 2; **not built**): pretrain s1 (41,800 steps), measure, sample, reit pairs, dpo + dposwap seed 0, probe, 6 measurements | about 2.0 h | none | about 1.9 h | none |
+| **with the second base** | **about 8.0 h** | 6.65 h | **about 7.6 h** | 3.18 h |
+| job caps: stage-2 job / driver wait | 11.1 / 15 h | 11.1 / 15 h | 10.1 / 15 h | 7.0 / 15 h |
 
 Per task alone on a 4090: a GRPO line of 40 iterations 0.9 h ([obs] W2's lines on 4090s: the first 60 iterations took
 1.0-1.17 h at 76-87 s per iteration, with their snapshot reads beside them; plus start and the last read; the line's
-timeout is 3 h); the reward model's fit and probe 0.3 h; an offline run 0.35 h of training (2,000 steps) and, for a rated
-run, about 7 probes x 0.04 h (4,000 attempts each; the probes stop past +30, which the tuning smoke suggests comes within
-the first few grid steps); a full task 6 untagged measurements x 0.06 h, plus 0.17 h for the tagged snapshot. Two
-offline tasks at once take 1.25 x each [guess]. Disk: environment 9 GB, a GRPO line about 1 GB, an offline run 17
-snapshots of 38 MB ([obs] the smoke's snapshot file), about 0.65 GB.
+timeout is 3 h); the reward model's fit and probe 0.3 h; an offline run 0.12 h of training (400 steps, about 16
+evaluations; timeout 1 h) and, for a rated run, about 7 probes x 0.04 h (4,000 attempts each); a full task 6 untagged
+marker_plain measurements x 0.04 h, plus 0.07 h more for the tagged snapshot (A, B, none). Two offline tasks at once
+take 1.25 x each [guess]. Disk: environment 9 GB, a GRPO line about 1 GB, an offline run 15 snapshots of 38 MB ([obs]
+the smoke's snapshot file), about 0.6 GB.
 
-**Pod-hours**: 7.92 + 8.74 + 7.34 + 4.68 = **28.7** of work. Waiting: with the creation order above, only the gate read
-(about 0.25 h per pod, about 1 pod-hour), so about **29.7 pod-hours, about $26** at $0.89 / h [guess]; four pods
-created together would add about 1.9 pod-hours at the gate (about $28). Each pod also bills from its `<c>.DONE` until it
-is fetched and deleted (with checks every 30-60 min, about 0.25-0.5 h per pod). If the gate fails: stage 1 only, about
-7.0 pod-hours plus the wait, about $7.
+**Pod-hours**: first bases 6.05 + 6.65 + 5.72 + 3.18 = **21.6**; with the second base pass about **25.5**. Waiting:
+the gate read (about 0.25 h per pod, about 1 pod-hour), so about **26.5 pod-hours, about $24** at $0.89 / h [guess].
+Each pod also bills from its `<c>.DONE` until it is fetched and deleted (with checks every 30-60 min, about 0.25-0.5 h
+per pod). The pretraining rates make stage 1 shorter than the earlier table (0.83 h per 44,600-step base there).
 
-**The GRPO arm** is still the largest single item (6.3 pod-hours), because a line runs alone on the card: W2's lines on
-4090s peaked at 10.3-18.9 GB allocated ([obs] `peak_alloc_gb` in W2's metrics.jsonl), with the snapshot measurement
-beside them allowed 0.3 of the card, and a DPO trainer beside that could run out of memory. `LH_LINE_ALONE` stays at its
-default (lines alone; Amendment 6, point 3); `LH_LINE_ALONE=0` would give stage 2 4.77 h on c24 and c0. Next by size:
-pretraining (3.9 pod-hours), the offline training (9.8 GPU-hours before the two-at-a-time saving), the full
-measurements (5.7) and the probes (3.9).
+**The GRPO arm** is now the largest item (6.3 pod-hours), because a line runs alone on the card: W2's lines on 4090s
+peaked at 10.3-18.9 GB allocated ([obs] `peak_alloc_gb` in W2's metrics.jsonl), with the snapshot measurement beside
+them allowed 0.3 of the card, and a DPO trainer beside that could run out of memory. `LH_LINE_ALONE` stays at its
+default (lines alone; Amendment 6, point 3).
 
 ## What was tested, and how
 
@@ -242,21 +279,30 @@ All on serrano's CPU; after about 10:20 UTC within the coordinator's limit (`nic
 
 **Unit tests**: `CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 $PY -m pytest --confcutdir=. -p no:cacheprovider -q
 test_lh_rlvar.py test_lh_measure.py test_lh_pairs.py test_lh_launch.py test_lh_gate.py test_lh_read.py test_lh_pod.py`:
-**75 passed** (launch 31, measure 11, read 9, rlvar 8, pod 8, gate 4, pairs 4). Ruff check and format clean on my 15
-Python files; `bash -n` clean on the three shell scripts. What they pin down: the task plan of Amendment 4 (14 / 11
+**89 passed** in 68 s (launch 34, read 16, measure 11, rlvar 9, pod 9, gate 5, pairs 5), then launch + pairs 39
+passed again after the last edits. Ruff check and format clean on my 15 Python files; `bash -n` clean on the three
+shell scripts. One run of launch + pairs hung in `test_build_on_corpus_proofs` (a fork of the pytest process, the
+pair build's Lean-check pool, blocked on a lock: torch's threads, started by earlier tests in the same process, exist
+at the fork); stopped by PID; reruns passed. In a real pair build the pools fork before anything imports torch
+[obs: lh_pairs.py's order], so this is a test-process hazard only. What they pin down: the task plan of Amendment 4 (14 / 11
 tasks, no atom GRPO line, sft only for reit, dependencies); step counts with `c0n`'s own factor (28,000); the census and
 the loader at cap 16; the 24-habit counts against a brute-force count (link, linko, cond, condn, near); the probe's stop
 rule (stops after the first snapshot above the threshold, then the last; resumable); the snapshot choice (strict
 "more than 30", the base below the first snapshot, the last two when never reached); the full task (untagged, tags A, B,
-none only on the seed-0 reit DPO run's last snapshot); no-preference runs never probed; GRPO lines only on c24, c4 and
-c0, 40 iterations (the `--iters` that reaches the GRPO process), snapshots untagged at 10, 20, 30, 40; trainer and reward-model commands (grid from step 2, `--lr` from `lh_core.OFFLINE_LR`, `--max-tokens
+none only on the seed-0 reit DPO run's upper bracketing snapshot); no-preference runs never probed; GRPO lines only on c24, c4 and
+c0, 40 iterations (the `--iters` that reaches the GRPO process), snapshots untagged at 10, 20, 30, 40; trainer and reward-model commands (the 400-step grid from step 5, `--lr` from `lh_core.OFFLINE_LR`, `--max-tokens
 32768`, each option once); the reward model under 0.90 recorded as not run, never refitted, skipped by the driver and
 listed apart from failures, while a crash is retried; the scheduler (GRPO lines alone, two other tasks at once, a full
 measurement after its two runs, each task's CPU share); the stage-2 estimate and caps against the driver's waits; the
 pair split, balancing, fine-tune files and probe twins on 600 real c24 proofs with the corpus agent's twins; the gate's
 primary and secondary G2 and the pass@1 flag; the readout on a synthetic tree with known answers (interpolation, seed
 mean, P1 / P2 / P3 pieces, chain prediction, reward-model marks, composition prediction, the site split, untagged-only
-snapshots, a probe bracket the full measurements do not confirm); the pod scripts against a stub (both stages, the c4
+snapshots, a probe bracket the full measurements do not confirm; Amendments 7-8: the auditor's synthetic cases A, C, D,
+E (not read: +30 not reached / seeds disagree / precondition only in c24 / a missing bracket measurement never replaced
+by the last snapshot) and B (read), the probe's own marks, q_h from the site counts); Amendment 7 in the launcher (the
+swap seed, the normalizer and its per-task refusal, the step-0 stop, tags on the upper bracket, marker_plain only, the
+400-step grid), the GRPO bonus counts (no prompt, no site, unreadable), the pair caps and probe rows, G0 and the gate
+with bases missing, the fetch's md5 rule (files still being written named, not compared); the pod scripts against a stub (both stages, the c4
 and c0 pods, skipping finished tasks, failures, the gate wait, the stage's contents and the sealed-name check).
 
 **CPU smokes** (real code end to end at toy size; bases on serrano; nothing here is evidence about the experiment):
@@ -288,9 +334,9 @@ and c0 pods, skipping finished tasks, failures, the gate wait, the stage's conte
 
 **Dry runs** (`lh_launch.py <job> --dry-run`, nothing written): pretrain c24 0.83 h (44,600 steps, census at most 16
 lines), c0n 0.54 h (28,000 steps, at most 15 lines, no notes); measure 0.28 h per base; prep2 0.95 h (c24, c0) and
-0.65 h (c9, c4); stage 2 (Amendment 6) 5.56 h (c24, c0; cap 14.1 h), 4.72 h (c4; cap 12.4 h) and 2.62 h (c9; cap 8.2 h),
-the GRPO lines alone, the rest two at a time; with `LH_LINE_ALONE=0` 4.77 h on c24. A GRPO line: 40 iterations, timeout
-3 h, estimate 0.9 h.
+0.65 h (c9, c4); stage 2 (Amendments 7 and 8) 4.04 h (c24, c0; cap 11.1 h), 3.57 h (c4; cap 10.1 h) and 1.47 h (c9; cap
+7.0 h), the GRPO lines alone, the rest two at a time. A GRPO line: 40 iterations, timeout 3 h, estimate 0.9 h. An
+offline run: 400 steps, timeout 1 h.
 
 ## Deviations from SPEC2, PREREG and the orchestrator's messages
 
@@ -314,17 +360,19 @@ Each is the closest thing I could do that keeps the experiment's logic.
 7. **SFT's prediction** is the file composition: each habit's A-share in sft_pref minus in sft_sampled.
 8. **The GRPO chain prediction** uses the proof's first rated site's form and the sites of each other habit written
    before it (notes and step order under the reit rater; earlier notes under the atom rater), with at least 20 base
-   sites per conditional cell and 50 sites in each line. The GRPO arm's primary read, with the chain prediction, is
-   the last snapshot both lines have (iteration 40; Amendment 6); the iteration closest to +30 is read beside it
-   without the chain (no interpolation: its snapshots are fixed). c9 is listed as not run by design.
-9. **Reward-driven marks** use lh_rm's `a_higher_share` (> 55 % or < 45 %); lh_rm's own `reward_driven` flag is the
-   same rule and is kept in its probe.json.
+   sites per conditional cell and 50 sites in each line; the weight q_h = (AA + AB) / (AA + AB + BA + BB) from the
+   same site counts (audit R7). The GRPO arm's primary read is at matched movement, the iteration closest to +30
+   (Amendment 8 point 5; no interpolation: its snapshots are fixed), with iteration 40 beside it; the chain prediction
+   at both. c9 is listed as not run by design.
+9. **Reward-driven marks** are lh_rm probe's own (per-habit `status`: reward_driven, within_band, not_probed,
+   no_reference; Amendment 7 point 6); an older probe.json without `status` is printed with its marks unused.
 10. **Form-type groups** (design audit F13) from the note table: copy (A's form is the copy: &ca, >cc), or2 (atom,
     vaa), longer (A's form has more tokens than B's), shorter (the rest).
 11. **Names**: the coordinator wrote "note:atom"; the files use the detector's `note_atom`.
 12. **The pod that measures the Nov 14 bases is c4**; `c0n` is trained and measured on the c0 pod.
-13. **Tags (Amendment 4, point 2)**: tuned snapshots (offline runs and GRPO iterations) are measured untagged; tags A,
-    B and none on the bases and on the last snapshot of `dpo_<c>_reit_s0` (the rated run only, not its swap run).
+13. **Tags (Amendment 4 point 2, Amendment 7 point 2)**: tuned snapshots (offline runs and GRPO iterations) are
+    measured untagged on marker_plain only; tags A, B and none on the bases and on the upper bracketing snapshot of
+    `dpo_<c>_reit_s0` (the rated run only, not its swap run).
 14. **The probe's stopping rule (Amendment 4, point 1)**: "more than 30 points" is strict (base share + 30 exactly does
     not stop it), on the probe's untagged marker_plain share. Probes run in step order, so the bracket's lower end is
     the probed snapshot before the first one past +30 (the base when the first snapshot is already past). Never past
@@ -336,6 +384,16 @@ Each is the closest thing I could do that keeps the experiment's logic.
     threads, and the trainers and the reward model run at `--max-tokens 32768` (TUNING.md's setting for two jobs on one
     24 GB card).
 16. **The note rater's pair build** still writes the fine-tune files (not trained on) and no probe twins (`--no_probe`).
+17. **The readings table reads only valid +30 points (Amendment 8 point 4)**: every run of c24, c4 and c0 (both
+    trainer seeds) must have reached +30 between two fully measured snapshots and met +20; otherwise "not read: <which
+    run, why>". "not read: seeds disagree" when M(c24), M(c4) or S_before(c24) has opposite signs in the two trainer
+    seeds (each against c0's same seed) with either outside +-5. The old `second_base_needed` trigger is withdrawn.
+18. **A missing bracket measurement** gives no +30 read for that seed (`at_target_missing`), never the last snapshot
+    in its place (Amendment 8 point 4, audit R4); the last snapshot stands in only when +30 was never reached, marked
+    `reached: false`, and never enters the readings table.
+19. **The fetch's md5 check** (audit R11) lists the pod twice; a file whose md5 changed between the two listings (a
+    running job's log, metrics, status) and every `pod/*.heartbeat.json` is named "still being written" and not
+    compared; every other fetched file must be equal on both sides.
 
 ## Version-1 files now unused
 
@@ -368,19 +426,20 @@ Each is the closest thing I could do that keeps the experiment's logic.
 
 ## Known gaps (for the auditor)
 
-1. **The contingent second base (Amendment 3 point 4) is flagged, not wired.** `lh_read.py` names the quantities
-   between 0 and +20 (`readings.second_base_needed`), and `pretrain --corpus c24 --seed 1` and `measure --base c24_s1`
-   work (41,800 steps), but the stage-2 arms take the seed-0 base only (`_s<S>` in a run's name is the trainer's seed;
-   pairs live in `pairs/<c>_s0`). Running DPO on a seed-1 base needs names that carry the base seed.
+1. **The second base pass (Amendment 8 points 2-3) is not built.** `pretrain --corpus c24 --seed 1` and `measure
+   --base c24_s1` work (41,800 steps), but the stage-2 arms take the seed-0 base only: `_s<S>` in a run's name is the
+   trainer's seed; pairs, KL states and the base checkpoint are looked up per corpus at seed 0; the driver has no pass
+   after stage 2; `lh_gate` and `lh_read` have no base-seed axis. The readings table says which basis it uses (first
+   bases only) and does not yet average over base seeds or print "unresolved (bases disagree)".
 2. **Interpolation weights are fixed across bootstrap draws** (from the point estimate); the interval does not include
    the uncertainty of where +30 falls. The weight comes from the full measurements, not the probes (deviation 6).
 3. **Seed means weigh the seeds equally** (two seeds only for the reiteration rater's DPO arm); with one seed missing
    the read uses the other (`seeds: 1` in the read).
 4. **KL at the read point** is reported for both bracketing snapshots (rated and control), not interpolated; it is
    the trainer's logged `kl` row at that step.
-5. **The GRPO arm** is read at the last snapshot both lines have (primary, iteration 40 when the lines end) and at
-   the iteration closest to +30 (ties to the earlier one), neither interpolated; with 40 iterations the rated habit may
-   not move 30 points, which the read reports (`reached`).
+5. **The GRPO arm** is read at the iteration closest to +30 (primary, ties to the earlier one) and at the last snapshot
+   both lines have (iteration 40 when the lines end), neither interpolated; with 40 iterations the rated habit may not
+   move 30 points, which the read reports (`reached`).
 6. **Chain prediction** uses proofs that have a rated site; P(h A | form) comes from the base's untagged rows on
    marker_plain only (the reading set), and the line's own share of first rated forms; no correction for proofs
    without a rated site.
@@ -388,15 +447,15 @@ Each is the closest thing I could do that keeps the experiment's logic.
    not a calibrated model of fine-tuning.
 8. **Probe twins**: drawn from all of the held-out theorems' sampled proofs (not only paired ones), at most 400 per
    habit, reiteration rater only. No check of under-sampled habits beyond the counts in summary.json.
-9. **The full task fails a step when the control run has no snapshot there** (recorded; the readout then drops that
-   point because both bracket steps need both runs). The trainers write the same grid, so this should not happen.
+9. **The full task fails a step when the control run has no snapshot there** (recorded; the readout then gives that
+   seed no +30 read, with the reason). The trainers write the same grid, so this should not happen.
 10. **Habit groups**: `S_before` is "the 15 notes and order" restricted to habits linked in the corpus (deviation 5);
     `S_after` uses conj, disjunct, halves, restate; the route, split and ex falso are in neither.
 11. **G2's c24 - c0** is printed beside c24's G2 values (primary and all sites); G0 and G1 have no c24 - c0 column.
 12. **The pass@1 flag pairs** compare bases trained on other pods and GPUs (A40 for the Nov 14 bases) at 1.74 x the
     steps; c0 - c0n is the clean comparison (equal passes over each one's data, same pod). All three are printed.
 13. **The stage-2 time estimates** (`lh_launch.EST`) are guesses from W2's rates (the GRPO line's from W2's 4090
-    iterations); the stage-2 job's cap (14.1 h on c24 and c0, 12.4 h on c4, 8.2 h on c9) is derived from them, the
+    iterations); the stage-2 job's cap (11.1 h on c24 and c0, 10.1 h on c4, 7.0 h on c9) is derived from them, the
     driver waits 15 h; the driver's whole-run timeout (48 h) is below the sum of the stage caps on purpose. The driver's
     timeout stops the work, not the pod: billing stops only when the pod is deleted.
 14. **Near-miss counters** are read from whatever keys `lh_profile` returns under `near` (the five named ones listed
@@ -407,7 +466,7 @@ Each is the closest thing I could do that keeps the experiment's logic.
 17. **lh_rm's probe on the pod** gets `--device cuda`; its other options (bootstrap 2,000) are the tuning agent's.
 18. **The probe and the full measurement can disagree** about +30 (each is k 8 on 500 theorems): the read then marks
     `bracketed: false`, clamps w to [0, 1] and says so in the report; nothing re-probes or measures another snapshot.
-19. **The tagged tuned snapshot** (the last of `dpo_<c>_reit_s0`, A, B and none) appears in the tables; no reading uses
+19. **The tagged tuned snapshot** (the upper bracketing snapshot of `dpo_<c>_reit_s0`, A, B and none) appears in the tables; no reading uses
     its tags beyond that (G1 and the whole-author comparison read the bases).
 20. **GRPO memory with the anchor and the reward model**: the "line alone" rule rests on W2's lines (10.3-18.9 GB
     peak); ours add the anchor's reference forward passes and, in the rlhf line, the reward model (32,768 tokens per
@@ -423,7 +482,7 @@ Each is the closest thing I could do that keeps the experiment's logic.
 
 - **No GPU path ran.** Untested at size: pretraining 44,600 steps on 1.63 M pairs; sampling 35,960 attempts; the GRPO
   lines with the KL anchor and, in the rlhf line, the reward model on the same GPU; DPO / SFT at batch 64 with a frozen
-  reference and 17 snapshots; probes of up to 17 snapshots in one process; two offline tasks at once on one 24 GB 4090
+  reference and 15 snapshots; probes of up to 15 snapshots in one process; two offline tasks at once on one 24 GB 4090
   at `--max-tokens 32768`. An out-of-memory error ends one task (listed in `<c>.FAILED`); `PARALLEL=1` on the driver
   is the fallback.
 - **The reward model may not reach 0.90** held-out accuracy (then no rlhf line; a decision).
@@ -432,5 +491,5 @@ Each is the closest thing I could do that keeps the experiment's logic.
 - **Pod scripts never ran against a pod** (syntax, the stage locally, the driver against a stub). `start` relies on
   `nohup` surviving the ssh session; a driver killed by its own timeout leaves its lock directory (remove
   `/workspace/lh/pod/<c>.driver.lock` before `start` again).
-- **Cost** (Amendment 6): about 28.7 pod-hours of work, about 29.7 with the gate read when the pods are created in
-  stage-1 order, about $26 [guess] (time table); about $28 if the four pods are created together.
+- **Cost** (Amendments 7 and 8): about 21.6 pod-hours of work on the first bases, about 25.5 with the second base pass
+  on c24 and c4, about 26.5 with the gate read, about $24 [guess] (time table).

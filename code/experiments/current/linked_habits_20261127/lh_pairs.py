@@ -31,16 +31,19 @@ of every other habit; otherwise the pair is dropped (counted). The A-form member
 rest is train. Then (PREREG Amendment 3; design audit F1, F2, F5), written to LH/pairs/<c>_s0/<R>/:
   train.jsonl, heldout.jsonl   {"key", "prompt", "preferred", "other", "habit", "sampled_side": "A" | "B"}: each split
                                subsampled (seeded per corpus, rater and split) to equal numbers of A-sampled and
-                               B-sampled pairs (held-out: 100 + 100 at most); DPO, its swap control and the reward model
-  sft_pref.jsonl               {"key", "prompt", "proof"}: the preferred member of every train pair (before the
-                               balancing: the base's own mix): the rated fine-tune
+                               B-sampled pairs (held-out: 100 + 100 at most); train then capped at 4,000 pairs (2,000
+                               per side, a seeded draw: PREREG Amendment 7 point 5); DPO, its swap control and the RM
+  sft_pref.jsonl               {"key", "prompt", "proof"}: the preferred member of the train pairs before the balancing
+                               (the base's own mix), capped at 4,000 by one seeded draw of pairs: the rated fine-tune
   sft_sampled.jsonl            the sampled member of the same pairs: the fine-tune control
   probe_twins.jsonl            pair rows from the held-out theorems' sampled proofs: twins of every OTHER flippable
                                habit (lh_twin.FLIPPABLE minus the rated one) with a site in one form, the same checks
-                               and Lean, `preferred` = the A-form member, at most 400 per habit (seeded): lh_rm.py probe
-  summary.json                 every count above (before / after the balancing, why each proof gave no pair, probe twins
-                               per habit) and the A-share of every habit in sft_pref, sft_sampled and all the base's
-                               readable sampled proofs.
+                               and Lean, `preferred` = the A-form member, at most 400 per habit (seeded); plus up to
+                               300 `probe:nosite` and 300 `probe:length` rows (Amendment 7 point 6): lh_rm.py probe
+  summary.json                 every count above (before / after the balancing and the cap, `cap` with `*_below_cap`,
+                               why each proof gave no pair, probe rows per habit), the A-share of every habit in
+                               sft_pref, sft_sampled and all the base's readable sampled proofs, and `norm_tokens` (N =
+                               64 x the mean action tokens per proof of sft_sampled: lh_sft --norm-tokens).
 Proofs whose rated-habit sites are in both forms are skipped (counted): flipping them gives no A-form member.
 """
 
@@ -246,6 +249,10 @@ def one(job: tuple[dict[str, Any], str]) -> dict[str, Any]:
     if not p.get("ok"):
         return {**out, "why": "unread"}
     out["hab"] = hab_ab(p)
+    out["lines"] = int(p.get("lines") or 0)
+    out["reit_form"] = form_of(
+        p["habits"][C.RATERS["reit"]]
+    )  # the probe rows of Amendment 7 point 6
     f = form_of(p["habits"][habit])
     if f is None:
         return {**out, "why": "no_site"}
@@ -389,6 +396,71 @@ def pool_map(fn: Any, jobs: list[Any], workers: int) -> list[Any]:
     return [fn(j) for j in jobs]
 
 
+def norm_tokens(path: Path, batch: int) -> dict[str, Any]:
+    """The fine-tune normalizer (PREREG Amendment 7 point 4, audit T8): N = batch x the mean action tokens per readable
+    proof of `path`, from the trainer's own function (lh_tune.mean_action_tokens, as `lh_tune.py norm-tokens` prints
+    it: action ids and <eos> of every step). N is kept unrounded; lh_sft takes it as a float."""
+    import lh_tune as U
+    import tag_core as T
+
+    U.setup("cpu", 1)
+    from tokenizer import make_tokenizer  # type: ignore[import-not-found]
+
+    tok = make_tokenizer(T.MODE)
+    mean, n = U.mean_action_tokens(path, tok)
+    rep = U.load_proofs(path, tok)[1]
+    return {"file": path.name, "batch": batch, "proofs": n, "unreadable": rep["unreadable"],
+            "action_tokens": int(round(mean * n)), "mean_action_tokens_per_proof": mean, "N": batch * mean,
+            "rule": "lh_tune.mean_action_tokens on sft_sampled.jsonl x batch (lh_tune.py norm-tokens)"}  # fmt: skip
+
+
+def extra_probe_rows(res: list[dict[str, Any]], proofs: dict[str, str], held: set[str], seed: str,
+                     cap: int) -> tuple[list[dict[str, Any]], dict[str, int]]:  # fmt: skip
+    """Amendment 7 point 6 (audit T1): reward-model probe rows from the held-out theorems' readable sampled proofs.
+    probe:nosite: a proof without a reiteration site against one with a site, same theorem (preferred = with a site);
+    probe:length: two proofs with the same reiteration form (both A or both B) and different numbers of lines, same
+    theorem (preferred = the longer). Within a theorem, proofs are shuffled (seeded) and paired without reuse; then a
+    seeded draw of at most `cap` rows of each kind."""
+    rng = random.Random(seed)
+    by_t: dict[str, list[dict[str, Any]]] = {}
+    for x in res:
+        if x["theorem"] in held and "hab" in x and x["key"] in proofs:
+            by_t.setdefault(x["theorem"], []).append(x)
+    kinds: dict[str, list[dict[str, Any]]] = {"probe:nosite": [], "probe:length": []}
+
+    def row(kind: str, i: int, w: dict[str, Any], o: dict[str, Any]) -> dict[str, Any]:
+        return {"key": f"{w['theorem']}#{kind.split(':')[1]}{i}", "prompt": w["prompt"], "preferred": proofs[w["key"]],
+                "other": proofs[o["key"]], "habit": kind, "sampled_side": None,
+                "lines": [w["lines"], o["lines"]], "reit_form": [w["reit_form"], o["reit_form"]]}  # fmt: skip
+
+    for t in sorted(by_t):
+        xs = by_t[t][:]
+        rng.shuffle(xs)
+        no = [x for x in xs if x["reit_form"] is None]
+        yes = [x for x in xs if x["reit_form"] is not None]
+        for i, (w, o) in enumerate(zip(yes, no, strict=False)):
+            kinds["probe:nosite"].append(row("probe:nosite", i, w, o))
+        i = 0
+        for f in ("A", "B"):
+            grp = [x for x in xs if x["reit_form"] == f]
+            while len(grp) >= 2:
+                u = grp.pop()
+                j = next((k for k, v in enumerate(grp) if v["lines"] != u["lines"]), None)
+                if j is None:
+                    continue
+                v = grp.pop(j)
+                w, o = (u, v) if u["lines"] > v["lines"] else (v, u)
+                kinds["probe:length"].append(row("probe:length", i, w, o))
+                i += 1
+    out, counts = [], {}
+    for k, xs in kinds.items():
+        keep = rng.sample(xs, cap) if len(xs) > cap else xs
+        counts[k] = len(keep)
+        counts[f"{k} (before the cap)"] = len(xs)
+        out += keep
+    return out, counts
+
+
 def build_main(argv: list[str]) -> dict[str, Any]:
     ap = argparse.ArgumentParser(prog="lh_pairs.py build")
     ap.add_argument("--corpus", required=True)
@@ -424,7 +496,9 @@ def build_main(argv: list[str]) -> dict[str, Any]:
     pairs = [x for x in res if x["why"] == "pair"]
     seed = f"{C.SEED2}/split/{a.corpus}/{a.rater}"
     train_all, held_all, held_names = split(pairs, a.heldout, seed)
-    train = balance(train_all, f"{C.SEED2}/balance/{a.corpus}/{a.rater}/train")
+    train_bal = balance(train_all, f"{C.SEED2}/balance/{a.corpus}/{a.rater}/train")
+    # Amendment 7 point 5: a seeded draw of at most 2,000 per sampled side after the balancing
+    train = balance(train_bal, f"{C.SEED2}/cap/{a.corpus}/{a.rater}/train", cap=C.TRAIN_PAIR_CAP)
     held = balance(held_all, f"{C.SEED2}/balance/{a.corpus}/{a.rater}/heldout", cap=a.heldout)
 
     def prow(x: dict[str, Any], h: str = habit) -> dict[str, Any]:
@@ -434,17 +508,20 @@ def build_main(argv: list[str]) -> dict[str, Any]:
     def sides(xs: list[dict[str, Any]]) -> dict[str, int]:
         return {k: sum(x["sampled_side"] == k for x in xs) for k in ("A", "B")}
 
-    # the fine-tune files (PREREG Amendment 3, point 5; design audit F1): every train pair before the balancing
-    sft_pref = [
-        {"key": x["key"], "prompt": x["prompt"], "proof": x["preferred"]} for x in train_all
-    ]
+    # the fine-tune files (PREREG Amendment 3, point 5; design audit F1): the members of the train pairs before the
+    # balancing; Amendment 7 point 5: a seeded draw of at most 4,000 of those pairs, the same pairs in both files
+    rs = random.Random(f"{C.SEED2}/cap/{a.corpus}/{a.rater}/sft")
+    sft_src = (
+        [train_all[i] for i in sorted(rs.sample(range(len(train_all)), C.SFT_PROOF_CAP))]
+        if len(train_all) > C.SFT_PROOF_CAP
+        else train_all
+    )
+    sft_pref = [{"key": x["key"], "prompt": x["prompt"], "proof": x["preferred"]} for x in sft_src]
     sft_sam = [{"key": x["key"], "prompt": x["prompt"],
-                "proof": x["preferred"] if x["sampled_side"] == "A" else x["other"]} for x in train_all]  # fmt: skip
-    pref_read = [
-        {**x["hab"], habit: (x["hab"][habit][0] + x["hab"][habit][1], 0)} for x in train_all
-    ]
+                "proof": x["preferred"] if x["sampled_side"] == "A" else x["other"]} for x in sft_src]  # fmt: skip
+    pref_read = [{**x["hab"], habit: (x["hab"][habit][0] + x["hab"][habit][1], 0)} for x in sft_src]
     comp = {"base_sampled": shares([x["hab"] for x in res if "hab" in x]), "sft_pref": shares(pref_read),
-            "sft_sampled": shares([x["hab"] for x in train_all])}  # fmt: skip
+            "sft_sampled": shares([x["hab"] for x in sft_src])}  # fmt: skip
     # held-out twins of every other flippable habit, for the reward-model probe (design audit F2)
     held_rows = [] if a.no_probe else [r for r in uniq if r["theorem"] in held_names]
     probe = [
@@ -463,6 +540,9 @@ def build_main(argv: list[str]) -> dict[str, Any]:
             prow(x, h)
             for x in (rng.sample(ok, a.probe_per_habit) if len(ok) > a.probe_per_habit else ok)
         ]
+    extra, extra_n = ([], {}) if a.no_probe else extra_probe_rows(
+        res, {f"{r['theorem']}#{r['attempt']}": r["proof"] for r in uniq}, held_names,
+        f"{C.SEED2}/probe_extra/{a.corpus}/{a.rater}", C.PROBE_EXTRA_ROWS)  # fmt: skip
     doc = {"corpus": a.corpus, "rater": a.rater, "habit": habit, "sampled": len(rows), "distinct": len(uniq), "why": why,
            "pairs": len(pairs), "sampled_side": sides(pairs),
            "sampled_side_A_pct": round(100 * sides(pairs)["A"] / max(1, len(pairs)), 2),
@@ -471,9 +551,14 @@ def build_main(argv: list[str]) -> dict[str, Any]:
            "balance": {"train_before": sides(train_all), "train_after": sides(train),
                        "heldout_before": sides(held_all), "heldout_after": sides(held)},
            "train_pairs": len(train), "heldout_pairs": len(held),
-           "sft": {"pref": len(sft_pref), "sampled": len(sft_sam), "source": "every train pair, before the balancing"},
+           "cap": {"train_pairs_cap": C.TRAIN_PAIR_CAP, "train_balanced": len(train_bal), "train_capped": len(train),
+                   "train_below_cap": len(train) < C.TRAIN_PAIR_CAP, "sft_cap": C.SFT_PROOF_CAP,
+                   "sft_before_cap": len(train_all), "sft_capped": len(sft_src), "sft_below_cap": len(sft_src) < C.SFT_PROOF_CAP,
+                   "rule": "PREREG Amendment 7 point 5: seeded draws; train 2,000 per sampled side after the balancing"},
+           "sft": {"pref": len(sft_pref), "sampled": len(sft_sam),
+                   "source": "the train pairs before the balancing, capped (a seeded draw), the same pairs in both files"},
            "a_share": comp, "probe_twins": {h: sum(1 for x in probe_rows if x["habit"] == h) for h in sorted(probe_why)},
-           "probe_why": probe_why, "probe_per_habit_cap": a.probe_per_habit,
+           "probe_why": probe_why, "probe_per_habit_cap": a.probe_per_habit, "probe_extra": extra_n,
            "twin_errors": [x["err"] for x in res if x["why"] == "twin_error"][:20],
            "lh_profile_sha256": C.sha256(C.HERE / "lh_profile.py"), "lh_twin_sha256": C.sha256(C.HERE / "lh_twin.py"),
            "secs": round(time.time() - t0, 1), "utc": now()}  # fmt: skip
@@ -481,11 +566,15 @@ def build_main(argv: list[str]) -> dict[str, Any]:
     write_jsonl(d / "heldout.jsonl", [prow(x) for x in held])
     write_jsonl(d / "sft_pref.jsonl", sft_pref)
     write_jsonl(d / "sft_sampled.jsonl", sft_sam)
-    write_jsonl(d / "probe_twins.jsonl", probe_rows)
+    write_jsonl(d / "probe_twins.jsonl", probe_rows + extra)
+    doc["norm_tokens"] = norm_tokens(
+        d / "sft_sampled.jsonl", C.OFFLINE_BATCH
+    )  # Amendment 7 point 4
     (d / "summary.json").write_text(json.dumps(doc, indent=1))
     print(f"pairs {a.corpus} {a.rater}: {len(pairs):,} pairs of {len(uniq):,} distinct proofs ({why}); sampled A "
           f"{doc['sampled_side_A_pct']} %; train {len(train_all):,} -> {len(train):,} balanced, held-out {len(held_all)} -> "
-          f"{len(held)} ({len(held_names)} theorems); fine-tune files {len(sft_pref):,}; probe twins {doc['probe_twins']}; "
+          f"{len(held)} ({len(held_names)} theorems); capped train {len(train):,}{' (BELOW the cap)' if len(train) < C.TRAIN_PAIR_CAP else ''}; "
+          f"fine-tune files {len(sft_pref):,} (norm tokens {doc['norm_tokens']['N']}); probe twins {doc['probe_twins']} + {extra_n}; "
           f"{doc['secs']:.0f} s", flush=True)  # fmt: skip
     return doc
 

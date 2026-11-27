@@ -122,7 +122,7 @@ def test_gate_on_a_base_that_writes_c24(tmp_path, monkeypatch):
         40,
     )
     assert set(g["near_per_proof"]) == set(LM.NEAR)
-    assert g["G0_note_rate"]["point"] == 100.0  # every premise carries a note in the corpus
+    assert g["G0"]["point"] == 100.0  # every premise carries a note in the corpus
     assert (
         g["G1"]["pooled_notes"]["diff"]["point"] == 100.0
         and g["G1"]["note_atom"]["A"] == 100.0
@@ -138,11 +138,19 @@ def test_gate_on_a_base_that_writes_c24(tmp_path, monkeypatch):
     assert (
         g["G2"]["habit_pairs_summary"]["pairs"] > 0 and g["perf"]["accepted_pct"]["point"] == 100.0
     )
-    assert res["decision"]["reading"] == "stage 2 runs"
+    monkeypatch.setattr(G, "G0_BASES", ("c24_s0",))
+    assert G.decision(res)["reading"] == "stage 2 runs"
+    assert (
+        res["decision"]["reading"].startswith("not complete: lacks c9_s0") or "c9" not in C.CORPORA
+    )  # c9, c4, c0 not measured
     f = res["perf_flag"]["marker_plain"]["c24_s0-authors_half_s0"]
     assert f["pass1_diff"]["point"] == 0.0 and f["pass8_diff"]["point"] == 0.0 and not f["degraded"]
     txt = G.report(res)
-    assert "Decision check: stage 2 runs" in txt and "c24_s0: G0 +100.0" in txt
+    assert (
+        "c24_s0: G0 +100.0" in txt
+        and "Bases not measured yet: c9_s0" in txt
+        and "c24's G2 so far: stage 2 runs" in txt
+    )
 
 
 def test_pass1_flag(tmp_path, monkeypatch):
@@ -166,12 +174,62 @@ def test_pass1_flag(tmp_path, monkeypatch):
     assert "c24_s0-authors_half_s0" not in fl and "DEGRADED (PREREG flag, pass@1)" in G.report(res)
 
 
-def test_decision_rule():
-    def res(p, ci):
-        return {"bases": {"pooled": {"c24_s0": {"G2": {"notes|notes": {"point": p, "ci": ci}}}}}}
+def test_decision_rule(monkeypatch):
+    monkeypatch.setattr(G, "G0_BASES", ("c24_s0", "c9_s0", "c4_s0", "c0_s0"))
+
+    def res(p, ci, g0=None, drop=()):
+        g0 = g0 or {}
+        b = {
+            f"{c}_s0": {"G0": {"point": g0.get(c, 80.0)}}
+            for c in ("c24", "c9", "c4", "c0")
+            if c not in drop
+        }
+        if "c24" not in drop:
+            b["c24_s0"]["G2"] = {"notes|notes": {"point": p, "ci": ci}}
+        return {"bases": {"pooled": b}}
 
     assert G.decision(res(35.0, [31.0, 40.0]))["reading"] == "stage 2 runs"
     assert G.decision(res(35.0, [-1.0, 40.0]))["reading"] == "no stage 2"
     assert G.decision(res(15.0, [5.0, 25.0]))["reading"] == "stage 2 runs; the link is weak"
     assert G.decision(res(5.0, [1.0, 9.0]))["reading"] == "no stage 2"
-    assert G.decision({"bases": {}})["reading"] == "not measured"
+    # Amendment 8 point 1: G0 >= 50 on every c base first; a base under it stops for repair whatever G2 says
+    d = G.decision(res(35.0, [31.0, 40.0], {"c4": 42.0}))
+    assert (
+        d["reading"] == "stop for repair (G0): c4_s0 42.0 under 50"
+        and d["G2_reading"] == "stage 2 runs"
+    )
+    # bases still pretraining on other pods: named, no crash; a G0 failure among those measured still stops
+    d = G.decision(res(35.0, [31.0, 40.0], drop=("c24", "c9")))
+    assert d["reading"] == "not complete: lacks c24_s0, c9_s0" and d["missing"] == [
+        "c24_s0",
+        "c9_s0",
+    ]
+    assert G.decision(res(35.0, [31.0, 40.0], {"c0": 10.0}, drop=("c9",)))["reading"].startswith(
+        "stop for repair (G0): c0_s0"
+    )
+    assert G.decision(res(35.0, [31.0, 40.0], drop=("c9",)))["reading"].startswith(
+        "not complete: lacks c9_s0 (G0 so far >= 50; c24's G2 so far: stage 2 runs"
+    )
+    assert G.decision({"bases": {}})["reading"].startswith("not complete: lacks c24_s0")
+
+
+def test_noted_share_counts_premises_not_notes(tmp_path):
+    """R1: a premise with two notes (lh_profile double_note) counts once in G0; note_rate counts notes."""
+    write_sets(tmp_path / "sets", {"marker_plain": 2})
+    ids = S.set_ids(["marker_plain"], tmp_path / "sets")
+    # 10 premises: 4 with no note (none), 6 noted, one of them with two notes (A + B + other = 7 notes)
+    rows = [
+        {
+            "theorem": f"ma{i}",
+            "attempts": 8,
+            "accepted": 8,
+            "lh": {"proofs": 8, "hab": {"note_atom": [10, 4, 2, 1, 4]}},
+        }
+        for i in range(2)
+    ]
+    write_rows(tmp_path / "m", "none", "marker_plain", rows)
+    s = S.load(tmp_path / "m", "none", ["marker_plain"], ids).sums(np.ones(2))
+    assert (
+        float(S.noted_share(s, ["note_atom"])) == 60.0
+        and float(S.note_rate(s, ["note_atom"])) == 70.0
+    )

@@ -2,6 +2,7 @@
 
     python lh_tune.py toy --out DIR [--n 160] [--heldout 40] [--kl 64] [--seed 0] [--habit reit]  # smoke pairs
     python lh_tune.py probe-toy --out PROBE.jsonl [--habits note_atom,conj,...] [--n 40]          # smoke RM probe
+    python lh_tune.py norm-tokens --file SFT_SAMPLED.jsonl [--batch 64]   # lh_sft --norm-tokens (PREREG Am. 7 pt 4)
 
 Loading. `setup` installs Dan's tree (tag_core.install_dan: `lean_staten_tag` checkpoints load), forces offline mode
 and caps CPU threads at 8; `load_base` loads with Dan's `model.load_ckpt`, the loader authors_measure / lh_measure
@@ -30,17 +31,21 @@ every evaluation is at offset 0 (as Stage-1's validation loss).
 
 The objective in chunks (`objective_backward`). One pass when the rows fit in --max-tokens padded tokens; otherwise a
 no-grad pass gives the per-row outputs, autograd gives d loss / d output, and a second pass back-propagates
-sum(output x that gradient) chunk by chunk: the exact gradient, with memory bounded by one chunk.
+sum(output x that gradient) chunk by chunk: the exact gradient, with memory bounded by one chunk. Both paths pack the
+rows exactly as `apply_rows` does (the same length-sorted chunks, the same order inside a chunk), so the policy's
+training forward and the frozen reference's no-grad forward see identical tensors: at step 0 the DPO margins are 0
+up to kernel differences between grad and no-grad mode (PREREG Amendment 7 point 7: the step-0 check).
 
 Snapshots (`save_snapshot`): {'cfg', 'state', 'tok_mode', 'extra'}, exactly the keys `model.save_ckpt` writes, with
 the base's extra kept (author_tags, steps, ... so `tag_core.ckpt_meta` reads the same variant and mode) and
 `extra['tuning']` added; beside it a copy of the base's `.tag.json` (D, author tags) with `ckpt` and `tuning` updated.
 
 The loop (`train_loop`) shared by DPO and SFT: AdamW as the RL recipe (betas 0.9 / 0.95, weight decay 0, grad-norm clip
-1.0, a linear warmup over the first 10 steps, then constant lr), held-out evaluation (`Evaluator`: both held-out
-accuracies, `DEFINITIONS`), the snapshot rule (`Snapshots`, `snap_plan`: the step grid `GRID` of PREREG Amendment 3,
-accuracy-triggered snapshots only with --acc-snapshots), `metrics.jsonl`, `train.jsonl`, `done.json`. What --seed
-changes: `SEED_AFFECTS`.
+1.0, a linear warmup over the first 10 steps, then constant lr; lr 3e-5 by default, PREREG Amendment 7 point 1),
+held-out evaluation (`Evaluator`: both held-out accuracies, `DEFINITIONS`), the snapshot rule (`Snapshots`,
+`snap_plan`: the step grid `GRID` of PREREG Amendment 7 point 1, 5 to 400 steps; accuracy-triggered snapshots only with
+--acc-snapshots), `metrics.jsonl`, `train.jsonl`, `done.json`, and an optional check of the first step before the
+optimizer moves (`first_check`: DPO's step-0 loss). What --seed changes: `SEED_AFFECTS`.
 """
 
 # ruff: noqa: E501
@@ -75,20 +80,10 @@ THRESHOLDS = (
     75,
     90,
 )  # accuracy-triggered snapshots (--acc-snapshots, off by default since PREREG Amendment 3)
-GRID = (
-    25,
-    50,
-    100,
-    150,
-    200,
-    300,
-    400,
-    600,
-    800,
-    1000,
-    1500,
-    2000,
-)  # PREREG Amendment 3 point 3: snapshot steps
+# PREREG Amendment 7 point 1 (audit T3, T5): snapshot steps, the last is --max-steps (it replaces Amendments 3 and 5)
+GRID = (5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 300, 400)
+# PREREG Amendment 7 point 1: the last step of every DPO and fine-tune run (was 2,000)
+MAX_STEPS = 400
 # Held-out preference accuracy, two definitions (metrics.jsonl, done.json). The absolute one is biased against the
 # longer member (reiteration's A form has extra rows, each with log-probability < 0); the relative one is DPO's reward
 # accuracy and is 0 at step 0 by construction (every margin is exactly 0 there).
@@ -102,19 +97,32 @@ DEFINITIONS = {
     "heldout_logratio_abs": "mean over held-out pairs of log pi(w) - log pi(l), nats",
     "heldout_loss": "DPO loss on the held-out pairs at --beta (relative margin)",
     "kl": "mean over the action positions of the --kl-states proofs of KL(pi_ref || pi), nats per action token, T 1",
-    "loss": "train loss averaged over the steps since the previous row (DPO: the DPO loss; SFT: CE per action token)",
+    "loss": "train loss averaged over the steps since the previous row (DPO: the DPO loss; SFT: CE per action token "
+    "of the batch, a diagnostic; the optimised quantity is `objective`)",
+    "objective": "SFT: the loss back-propagated, -sum of log pi over the batch's action tokens / --norm-tokens (one "
+    "fixed constant for the rated run and its control, PREREG Amendment 7 point 4)",
     "train_margin_rel": "DPO: train-batch relative margin (nats), averaged over the steps since the previous row",
     "train_acc_rel": "DPO: share of train-batch pairs with relative margin > 0, averaged likewise",
+    "step0_loss": "DPO, first train.jsonl row only: the train loss computed before the first update (policy = "
+    "reference), checked against ln 2 = 0.6931 within 0.001 (PREREG Amendment 7 point 7)",
 }
 SNAP_KEYS = (ACC_ABS, ACC_REL, "heldout_margin_rel", "heldout_logratio_abs", "kl")
 SEED_AFFECTS = (
     "--seed sets the order of the training examples (a seeded shuffle per epoch, random.Random(seed + 1)) and the "
     "random name offsets drawn from the same generator, and torch.manual_seed(seed), which nothing in these trainers "
-    "draws from (no dropout; snapshots start from the base; the reward head starts at zero). It does not set the "
-    "swap-random orientation (--swap-seed), the held-out or KL sets, or the evaluation (offset 0, fp32). On cuda, "
-    "bf16 kernels can make two runs of the same seed differ slightly."
+    "draws from (no dropout; snapshots start from the base; the reward head starts at zero). DPO: the batches are "
+    "built from couples (one swap-set pair, one other pair, same sampled side) and the swap set comes from "
+    "--swap-seed, whose default is --seed (PREREG Amendment 7 point 3), so a rated run and its swapped control of "
+    "one seed see the same pairs in the same batches. --seed does not set the held-out or KL sets, or the "
+    "evaluation (offset 0, fp32). On cuda, bf16 kernels can make two runs of the same seed differ slightly."
 )
-RL_LR = 1.5e-4  # tag_line / knockout common.grpo_argv: --lr 1.5e-4
+RL_LR = 1.5e-4  # tag_line / knockout common.grpo_argv: --lr 1.5e-4 (the reward model's trunk lr)
+# PREREG Amendment 7 point 1 (audit T3): DPO and fine-tune lr; at 1.5e-4 the 30-point crossing fell inside the warmup
+OFFLINE_LR = 3e-5
+# PREREG Amendment 7 point 7 (audit T11): DPO's loss while the policy equals the reference
+STEP0_LOSS = math.log(2)
+STEP0_TOL = 1e-3
+STEP0_EXIT = 4  # lh_dpo's exit status when the step-0 check fails (lh_rm fit uses 3)
 BETAS = (0.9, 0.95)  # grpo.py: AdamW(betas=(0.9, 0.95), weight_decay=0.0)
 CLIP = 1.0  # grpo.py --clip 1.0
 WARMUP = 10  # grpo.py --warmup 10 (AdamW steps)
@@ -269,14 +277,15 @@ class Pair(NamedTuple):
     rl: list[Row]  # all rows of the other proof
     room: int  # the largest name offset that keeps every name of both proofs <= n64
     swapped: bool
+    side: str = "None"  # the pair file's `sampled_side` ("A" / "B"; "None" when the file has none)
 
 
 def load_pairs(
-    path: str | Path, tok: Any, swap: set[int] | None = None, max_unreadable: float = 0.01
+    path: str | Path, tok: Any, max_unreadable: float = 0.01
 ) -> tuple[list[Pair], dict[str, Any]]:
-    """A pair file (SPEC2's fields) -> Pairs (`swap`: indices whose two proofs trade places) and a report. Pairs
-    whose proofs do not decompose, or whose two proofs give the same rows, are dropped and counted; more than
-    `max_unreadable` of the file unreadable is an error (a format mismatch, not noise)."""
+    """A pair file (SPEC2's fields) -> Pairs (in file order, never swapped: `swap_pairs` swaps loaded pairs) and a
+    report. Pairs whose proofs do not decompose, or whose two proofs give the same rows, are dropped and counted; more
+    than `max_unreadable` of the file unreadable is an error (a format mismatch, not noise)."""
     recs = read_jsonl(path)
     out: list[Pair] = []
     bad: list[str] = []
@@ -286,12 +295,9 @@ def load_pairs(
         miss = [k for k in PAIR_KEYS if k not in r]
         if miss:
             raise ValueError(f"{path}: record {i} lacks {miss}")
-        w, l_ = r["preferred"], r["other"]
-        sw = bool(swap and i in swap)
-        if sw:
-            w, l_ = l_, w
         try:
-            rw, rl = encode_proof(tok, r["prompt"], w), encode_proof(tok, r["prompt"], l_)
+            rw = encode_proof(tok, r["prompt"], r["preferred"])
+            rl = encode_proof(tok, r["prompt"], r["other"])
         except Unreadable:
             bad.append(str(r["key"]))
             continue
@@ -302,7 +308,8 @@ def load_pairs(
         rows_all += len(rw) + len(rl)
         rows_common += 2 * nc
         room = MAXN - max(max_name(rw, tok.ref0), max_name(rl, tok.ref0))
-        out.append(Pair(str(r["key"]), r["prompt"], dw, dl, rw, rl, max(0, room), sw))
+        out.append(Pair(str(r["key"]), r["prompt"], dw, dl, rw, rl, max(0, room), False,
+                        str(r.get("sampled_side"))))  # fmt: skip
     rep = {
         "file": str(path),
         "sha256": sha256(path),
@@ -311,17 +318,34 @@ def load_pairs(
         "unreadable": len(bad),
         "unreadable_keys": bad[:20],
         "identical_rows": same,
-        "swapped": sum(p.swapped for p in out),
         "rows": rows_all,
         "rows_shared_share": round(rows_common / max(1, rows_all), 4),
         "habits": dict(collections.Counter(str(r.get("habit")) for r in recs)),
         "sampled_side": dict(collections.Counter(str(r.get("sampled_side")) for r in recs)),
+        "sampled_side_loaded": dict(collections.Counter(p.side for p in out)),
     }
     if recs and len(bad) > max_unreadable * len(recs):
         raise SystemExit(
             f"{path}: {len(bad)} of {len(recs)} pairs do not decompose ({bad[:5]} ...)"
         )
     return out, rep
+
+
+def swap_pairs(pairs: Sequence[Pair], idx: set[int]) -> list[Pair]:
+    """The pairs with preferred and other traded in those at `idx` (indices into `pairs`, i.e. after unreadable and
+    identical pairs were dropped: audit T10). The kept-row split and the name room are symmetric, so they carry over."""
+    return [p._replace(dw=p.dl, dl=p.dw, rw=p.rl, rl=p.rw, swapped=True) if i in idx else p
+            for i, p in enumerate(pairs)]  # fmt: skip
+
+
+def mean_action_tokens(path: str | Path, tok: Any) -> tuple[float, int]:
+    """(mean over the file's readable proofs of the tokens Stage-1's loss trains on per proof: the action tokens and
+    the closing <eos> of every step; readable proofs). lh_sft's fixed normaliser is --batch x this on the SAMPLED file
+    (PREREG Amendment 7 point 4)."""
+    data, _ = load_proofs(path, tok)
+    if not data:
+        raise SystemExit(f"{path}: no readable proof to take the mean action tokens from")
+    return sum(len(r.ids) - r.plen for rows in data for r in rows) / len(data), len(data)
 
 
 def load_proofs(
@@ -454,8 +478,13 @@ def objective_backward(
             tot += float(part.detach())
         return tot, None
     if len(chunks) == 1:
+        # packed exactly as apply_rows packs them (length-sorted), then put back in row order
+        idx = chunks[0]
+        sh = None if shifts is None else [shifts[i] for i in idx]
         with _autocast(ctx, ctx.amp):
-            out = fn(*pack(rows, shifts, ctx)).float()
+            o = fn(*pack([rows[i] for i in idx], sh, ctx)).float()
+        out = torch.empty_like(o)
+        out = out.index_copy(0, torch.tensor(idx, device=o.device), o)
         loss = loss_fn(out)
         loss.backward()
         return float(loss.detach()), out.detach()
@@ -728,9 +757,12 @@ def train_loop(
     ev: Evaluator,
     snaps: Snapshots,
     out: Path,
+    first_check: Callable[[dict[str, Any]], str | None] | None = None,
 ) -> dict[str, Any]:
     """AdamW (RL recipe), eval, snapshots, logs. step_fn(step) runs the forward/backward of one step and returns its
-    train numbers (loss, and for DPO margin and acc)."""
+    train numbers (loss, and for DPO margin and acc). `first_check(numbers of step 1)`, run after the first backward
+    and before the optimizer moves anything: a message stops the run (the train.jsonl row is written with it,
+    `step0_failed.json` beside it, exit status STEP0_EXIT); None lets it go on."""
     import torch
 
     params = [p for p in policy.parameters() if p.requires_grad]
@@ -765,6 +797,16 @@ def train_loop(
             g["lr"] = lr
         opt.zero_grad(set_to_none=True)
         st = step_fn(step)
+        if step == 1 and first_check is not None:
+            msg = first_check(st)
+            if msg is not None:  # nothing has been updated: the weights are still the base's
+                tf.write(json.dumps({"step": step, "secs": round(time.time() - t0, 2), **st,
+                                     "stopped": msg}) + "\n")  # fmt: skip
+                tf.close()
+                mf.close()
+                write_json(out / "step0_failed.json", {"message": msg, **st})
+                print(msg, file=sys.stderr, flush=True)
+                raise SystemExit(STEP0_EXIT)
         gn = float(torch.nn.utils.clip_grad_norm_(params, CLIP))
         opt.step()
         st["grad_norm"] = gn
@@ -829,9 +871,13 @@ def common_args(ap: argparse.ArgumentParser) -> None:
     ap.add_argument(
         "--out", required=True, help="run folder (refused if it holds done.json / metrics.jsonl)"
     )
-    ap.add_argument("--lr", type=float, default=RL_LR, help="AdamW lr (the RL recipe's 1.5e-4)")
+    ap.add_argument(
+        "--lr", type=float, default=OFFLINE_LR, help="AdamW lr (PREREG Amendment 7 point 1: 3e-5)"
+    )
     ap.add_argument("--batch", type=int, default=64)
-    ap.add_argument("--max-steps", type=int, default=2000)
+    ap.add_argument(
+        "--max-steps", type=int, default=MAX_STEPS, help="the last step (PREREG Amendment 7: 400)"
+    )
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--device", default="cuda", choices=("cuda", "cpu"))
     ap.add_argument(
@@ -844,7 +890,7 @@ def common_args(ap: argparse.ArgumentParser) -> None:
     ap.add_argument("--eval-every", type=int, default=25,
                     help="held-out eval and KL every N steps (and at every snapshot step)")  # fmt: skip
     ap.add_argument("--snap-steps", default=",".join(map(str, GRID)),
-                    help="snapshot steps, comma list (default: PREREG Amendment 3's grid)")  # fmt: skip
+                    help="snapshot steps, comma list (default: PREREG Amendment 7's grid)")  # fmt: skip
     ap.add_argument("--match-steps", default=None,
                     help="snapshot at a companion run's snapshot steps (its done.json) instead of --snap-steps")  # fmt: skip
     ap.add_argument("--acc-snapshots", action="store_true",
@@ -1014,20 +1060,63 @@ def write_toy(
 
 
 def write_probe(
-    out: Path, habits: Sequence[str], n: int, seed: int, corpus: Path, field: str = "proof"
-) -> dict[str, Any]:
+    out: Path, habits: Sequence[str], n: int, seed: int, corpus: Path, field: str = "proof",
+    length_n: int = 0,
+) -> dict[str, Any]:  # fmt: skip
     """A reward-model probe file (lh_rm.py probe): for each habit, up to n twin pairs from corpus records
-    (`twin_records`: preferred = the A-form member), `habit` set per row."""
+    (`twin_records`: preferred = the A-form member), `habit` set per row; with `length_n`, that many toy
+    `probe:length` rows from l19 (`length_records`)."""
     rows: list[dict[str, Any]] = []
     counts = {}
-    for h in habits:
+    for h in (x for x in habits if x):
         recs = twin_records(n, seed, h, field, corpus)
         counts[h] = len(recs)
         rows += [{k: v for k, v in r.items() if k != "corpus_proof"} for r in recs]
+    if length_n:
+        recs = length_records(length_n, seed)
+        counts["probe:length"] = len(recs)
+        rows += recs
     write_jsonl(out, rows)
     doc = {"out": str(out), "corpus": str(corpus), "field": field, "per_habit": counts}
     print(json.dumps(doc))
     return doc
+
+
+def length_records(
+    n: int, seed: int = 0, corpus: Path | None = None, scan: int = 20000
+) -> list[dict[str, Any]]:
+    """Toy `probe:length` rows (PREREG Amendment 7 point 6; lh_rm.py probe): an l19 record's proof with its premise
+    notes (`proof`) against the same proof without them (`ta_proof`), both without a reiteration site, so the two
+    have the same reiteration form and differ in length; `preferred` = the longer. (The real rows come from the
+    base's own samples; corpus records give no theorem with two proofs, so no toy `probe:nosite` rows.)"""
+    import lh_profile as LP
+
+    try:
+        tables = LP.load_tables()
+    except Exception:
+        tables = LP.provisional_tables()
+    corpus = corpus or LH / "data" / "l19.jsonl.gz"
+    cand = []
+    with gzip.open(corpus, "rt", encoding="utf-8") as f:
+        for line in f:
+            r = json.loads(line)
+            if r["proof"] != r["ta_proof"]:
+                cand.append(r)
+                if len(cand) >= scan:
+                    break
+    random.Random(seed).shuffle(cand)
+    out: list[dict[str, Any]] = []
+    for r in cand:
+        ps = [LP.profile(r["prompt"], r[f], tables) for f in ("proof", "ta_proof")]
+        if not all(p.get("ok") for p in ps) or any(
+            (p["habits"].get("reit") or {}).get("sites") for p in ps
+        ):
+            continue
+        out.append({"key": r["key"], "prompt": r["prompt"], "preferred": r["proof"], "other": r["ta_proof"],
+                    "habit": "probe:length", "sampled_side": None})  # fmt: skip
+        if len(out) >= n:
+            break
+    return out
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -1053,11 +1142,28 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--corpus", default=str(LH / "data" / "c24.jsonl.gz"))
     p.add_argument("--field", default="proof")
+    p.add_argument(
+        "--length-n", type=int, default=0, help="also this many toy probe:length rows (l19)"
+    )
+    p = sp.add_parser(
+        "norm-tokens", help="lh_sft --norm-tokens: --batch x mean action tokens per proof of --file"
+    )
+    p.add_argument("--file", required=True, help="the SAMPLED fine-tune file (sft_sampled.jsonl)")
+    p.add_argument("--batch", type=int, default=64)
     a = ap.parse_args(argv)
     if a.cmd == "toy":
         write_toy(Path(a.out), a.n, a.heldout, a.kl, a.seed, a.habit)
+    elif a.cmd == "probe-toy":
+        write_probe(
+            Path(a.out), a.habits.split(","), a.n, a.seed, Path(a.corpus), a.field, a.length_n
+        )
     else:
-        write_probe(Path(a.out), a.habits.split(","), a.n, a.seed, Path(a.corpus), a.field)
+        setup("cpu", 1)
+        from tokenizer import make_tokenizer  # type: ignore[import-not-found]
+
+        mean, n = mean_action_tokens(a.file, make_tokenizer(T.MODE))
+        print(json.dumps({"file": a.file, "sha256": sha256(a.file), "proofs": n, "mean_action_tokens": mean,
+                          "batch": a.batch, "norm_tokens": a.batch * mean}))  # fmt: skip
 
 
 if __name__ == "__main__":

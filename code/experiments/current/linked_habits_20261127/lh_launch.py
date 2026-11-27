@@ -109,7 +109,7 @@ TA_HALF = Path(
 STEPS_FILE = (
     C.LH / "data" / "pretrain_steps.json"
 )  # the stage-2 corpora; an extra base has its own file (steps_file)
-HOURS = {"strict106": 1.0, "anchor": 0.5, "sample": 1.5, "build": 2.0, "rm": 1.0, "rm_probe": 0.5, "offline_train": 2.0,
+HOURS = {"strict106": 1.0, "anchor": 0.5, "sample": 1.5, "build": 2.0, "rm": 1.0, "rm_probe": 0.5, "offline_train": 1.0,
          "probe": 2.0, "snap_measure": 1.0, "line": 3.0}  # fmt: skip  # line: also the line step's timeout (TIMEOUT_H)
 EST = {
     "measure": 0.2,
@@ -119,11 +119,11 @@ EST = {
     "build": 0.3,
     "rm": 0.25,
     "rm_probe": 0.05,
-    "offline_train": 0.35,
+    "offline_train": 0.12,  # 400 steps (Amendment 7) and about 16 evaluations
     "probe_snap": 0.04,
     "probe_snaps": 7,
-    "snap_measure": 0.17,
-    "snap_measure_none": 0.06,
+    "snap_measure": 0.11,  # a tuned snapshot under A, B, none on marker_plain (Amendment 8 point 6)
+    "snap_measure_none": 0.04,  # untagged, marker_plain
     "line": 0.9,  # 40 iterations: W2's 4090 lines took 1.0-1.17 h for their first 60, plus start and the last read
 }  # fmt: skip  (4090 hours, one job alone; two at once take about 1.25 x each)
 
@@ -173,6 +173,7 @@ def snap_cmd(*args: Any) -> list[str]:
     assert Path(cmd[1]).name == "authors_measure.py", cmd[:2]
     cmd = [cmd[0], str(HERE / "lh_measure.py"), *cmd[2:]]
     cmd[cmd.index("--tags") + 1] = C.SNAP_TAGS
+    cmd[cmd.index("--sets") + 1] = ",".join(C.TUNED_SETS)  # Amendment 8 point 6
     return cmd
 
 
@@ -270,11 +271,25 @@ def trainer_argv(arm: str, smoke: bool = False) -> list[str]:
               "--kl-n", str(C.KL_STATES), "--seed", str(t["seed"]), "--lr", str(C.OFFLINE_LR), "--max-steps", str(C.OFFLINE_MAX_STEPS),
               "--snap-steps", ",".join(map(str, C.SNAP_STEPS)),
               *(["--device", "cpu"] if smoke else ["--device", "cuda", "--max-tokens", str(C.SHARED_MAX_TOKENS)])]  # fmt: skip
-    if t["kind"] in ("dpo", "dposwap"):
+    if t["kind"] in ("dpo", "dposwap"):  # Amendment 7 point 3: the swap seed is the run's seed
         return [PY, str(HERE / "lh_dpo.py"), *common, "--pairs", str(pf["train"]),
-                *(["--swap-random"] if t["kind"] == "dposwap" else [])]  # fmt: skip
+                *(["--swap-random", "--swap-seed", str(t["seed"])] if t["kind"] == "dposwap" else [])]  # fmt: skip
     data = pf["sft_pref"] if t["kind"] == "sft" else pf["sft_sampled"]
-    return [PY, str(HERE / "lh_sft.py"), *common, "--data", str(data)]
+    nt = norm_tokens_of(
+        t["corpus"], t["rater"]
+    )  # Amendment 7 point 4: one constant for the rated run and its control
+    norm = ["--norm-tokens", str(nt["N"]), "--batch", str(nt["batch"])] if nt else []
+    return [PY, str(HERE / "lh_sft.py"), *common, "--data", str(data), *norm]
+
+
+def norm_tokens_of(corpus: str, rater: str) -> dict[str, Any] | None:
+    """The fine-tune normalizer the pair build stored (summary.json `norm_tokens`: N = batch x mean action tokens per
+    proof of sft_sampled.jsonl), or None (a pair build before Amendment 7)."""
+    f = pair_files(corpus, rater)["summary"]
+    if not f.exists():
+        return None
+    nt = json.loads(f.read_text()).get("norm_tokens")
+    return nt if isinstance(nt, dict) and nt.get("N") else None
 
 
 def rm_probe_argv(corpus: str, rater: str, seed: int = 0, smoke: bool = False) -> list[str]:
@@ -291,6 +306,9 @@ def rm_argv(corpus: str, rater: str, seed: int = 0, smoke: bool = False) -> list
     return [PY, str(HERE / "lh_rm.py"), "fit", "--base", str(base_of(corpus, seed)), "--pairs", str(pf["train"]),
             "--heldout", str(pf["heldout"]), "--out", str(C.rm_path(corpus, rater, seed)), "--seed", str(seed),
             *(["--device", "cpu"] if smoke else ["--device", "cuda", "--max-tokens", str(C.SHARED_MAX_TOKENS)])]  # fmt: skip
+
+
+AT_RUN = "; refused when its turn comes, the other tasks run"  # a per-task refusal that does not stop the stage-2 launch
 
 
 def task_problems(task: str) -> list[str]:
@@ -332,6 +350,18 @@ def task_problems(task: str) -> list[str]:
         f = HERE / ("lh_sft.py" if t["kind"].startswith("sft") else "lh_dpo.py")
         if not f.exists():
             out.append(f"{task}: no {f} (the third agent's trainer)")
+        elif t["kind"].startswith("sft"):
+            if "--norm-tokens" not in f.read_text():
+                out.append(
+                    f"{task}: {f.name} has no --norm-tokens yet (the tuning agent's change, PREREG Amendment 7 point 4){AT_RUN}"
+                )
+            if (
+                pair_files(c, t["rater"])["summary"].exists()
+                and norm_tokens_of(c, t["rater"]) is None
+            ):
+                out.append(
+                    f"{task}: no norm_tokens in {pair_files(c, t['rater'])['summary']} (a pair build before Amendment 7){AT_RUN}"
+                )
         probed = not C.is_rated(t["kind"]) or (C.arm_dir(task) / "probe" / "probe.json").exists()
         if (C.arm_dir(task) / "done.json").exists() and probed:
             out.append(
@@ -509,7 +539,9 @@ def task_est(task: str) -> float:
         return EST["line"] + (EST["rm"] + EST["rm_probe"] if t["rater"] else 0.0)
     if t["type"] == "full":
         tagged = (t["kind"], t["rater"], t["seed"]) == C.TAGGED_SNAPSHOT
-        return FULL_PER_TASK * EST["snap_measure_none"] + (EST["snap_measure"] if tagged else 0.0)
+        return FULL_PER_TASK * EST["snap_measure_none"] + (
+            EST["snap_measure"] - EST["snap_measure_none"] if tagged else 0.0
+        )
     return EST["offline_train"] + (
         EST["probe_snaps"] * EST["probe_snap"] if C.is_rated(t["kind"]) else 0.0
     )
@@ -518,7 +550,10 @@ def task_est(task: str) -> float:
 def stage2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list[str]]:
     """One job, one step: `_tasks`, the corpus's stage-2 tasks `--parallel` at a time on the job's GPU."""
     tasks = stage2_tasks(a)
-    problems = [q for x in tasks for q in task_problems(x)]
+    every = [q for x in tasks for q in task_problems(x)]
+    problems = [
+        q for q in every if not q.endswith(AT_RUN)
+    ]  # the fine-tune pair without its normalizer: that pair only
     if (
         any(C.parse_task(x)["type"] == "line" for x in tasks)
         and os.environ.get("ND_GUARD") != "off"
@@ -542,7 +577,8 @@ def stage2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list
     notes = [
         f"{len(tasks)} tasks, {par} at a time on GPU {a.gpu}"
         + (f" (alone: {', '.join(alone)})" if alone else "")
-        + f": {', '.join(tasks)}"
+        + f": {', '.join(tasks)}",
+        *(f"WILL BE REFUSED: {q}" for q in every if q.endswith(AT_RUN)),
     ]
     return (
         f"stage2_{a.corpus}_s0",
@@ -893,7 +929,13 @@ def gpu_env(gpu: int, smoke: bool) -> dict[str, str]:
 
 
 def measure_argv(
-    ck: Path, cid: str, out: Path, raw: Path, smoke: bool, tags: str = "A,B,none"
+    ck: Path,
+    cid: str,
+    out: Path,
+    raw: Path,
+    smoke: bool,
+    tags: str = "A,B,none",
+    sets: tuple[str, ...] = C.SETS,
 ) -> list[str]:
     sm = (
         ["--device", "cpu", "--limit", "2", "--k", "2", "--batch", "16"]
@@ -901,7 +943,7 @@ def measure_argv(
         else ["--device", "cuda", "--k", "8", "--batch", "256"]
     )
     return [PY, str(HERE / "lh_measure.py"), "run", "--ckpt", str(ck), "--ckpt_id", cid, "--tags", tags,
-            "--sets", ",".join(C.SETS), *sm, "--out_dir", str(out), "--raw_dir", str(raw), "--resume"]  # fmt: skip
+            "--sets", ",".join(sets), *sm, "--out_dir", str(out), "--raw_dir", str(raw), "--resume"]  # fmt: skip
 
 
 def rm_accuracy(corpus: str, rater: str, seed: int = 0) -> float | None:
@@ -1030,6 +1072,30 @@ def probe_argv(arm: str, snaps: list[dict[str, Any]], smoke: bool) -> list[str]:
             "--raw_root", str(LH / "raw" / arm / "probe"), *stop, *sm]  # fmt: skip
 
 
+def step0_problem(arm: str) -> str | None:
+    """PREREG Amendment 7 point 7 (audit T11): the first logged training row of a DPO run (policy = reference) must
+    show loss ln 2 = 0.6931 within 0.001. lh_dpo checks it itself (`step0_ok` on that row, its own step0_failed.json,
+    exit 4); this reads the trainer's verdict, and for a trainer without it the row's loss. -> the reason, or None."""
+    d = C.arm_dir(arm)
+    try:
+        first = json.loads((d / "train.jsonl").read_text().splitlines()[0])
+    except (OSError, IndexError, ValueError):
+        first = None
+    if first is not None and "step0_ok" in first:
+        return None if first["step0_ok"] else (
+            f"the trainer's step-0 check failed: first row (step {first.get('step')}) loss {first.get('step0_loss')}, "
+            f"want ln 2 = 0.6931 within {C.STEP0_TOL} (lh_dpo's step0_failed.json)")  # fmt: skip
+    if (d / "step0_failed.json").exists():
+        return f"the trainer's step-0 check failed ({d / 'step0_failed.json'})"
+    if first is None:
+        return None  # no row logged: an ordinary training failure (the caller reports rc and done.json)
+    loss = first.get("loss")
+    if not isinstance(loss, (int, float)) or abs(loss - C.STEP0_LOSS) > C.STEP0_TOL:
+        return (f"first training row (step {first.get('step')}) loss {loss}, want {C.STEP0_LOSS} within "
+                f"{C.STEP0_TOL}; train_margin_rel {first.get('train_margin_rel')}")  # fmt: skip
+    return None
+
+
 def offline_main(argv: list[str]) -> int:
     """An offline run: the trainer on the step grid (unless its done.json exists); a rated run (dpo, sft) then probes
     its snapshots in step order until one is past the base + 30, and the last (lh_measure.py probe, one process) ->
@@ -1062,6 +1128,28 @@ def offline_main(argv: list[str]) -> int:
         rc = run_step(f"{a.arm} train", merge_argv(trainer_argv(a.arm, a.smoke), shlex.split(a.trainer_extra)), HOURS["offline_train"],
                       gpu_env(a.gpu, a.smoke), d / "train.log")  # fmt: skip
         rec["train_rc"] = rc
+        bad = step0_problem(a.arm) if t["kind"] in ("dpo", "dposwap") else None
+        if bad:  # Amendment 7 point 7: the run is stopped and reported, never probed or measured
+            rec.update(step0=bad, end=AL.now())
+            if not (d / "step0_failed.json").exists():  # lh_dpo writes its own; never overwritten
+                (d / "step0_failed.json").write_text(
+                    json.dumps(
+                        {
+                            "arm": a.arm,
+                            "reason": bad,
+                            "train_rc": rc,
+                            "utc": AL.now(),
+                            "by": "lh_launch",
+                        },
+                        indent=1,
+                    )
+                )
+            (d / "lh_offline.json").write_text(json.dumps(rec, indent=1))
+            C.POD.mkdir(parents=True, exist_ok=True)
+            with open(C.POD / f"{t['corpus']}.FAILED", "a") as fh:
+                fh.write(f"{AL.now()} stage2 {a.arm} STOPPED: step-0 check: {bad}\n")
+            say(f"{a.arm}: STOPPED: step-0 check: {bad}")
+            return 5
         if rc != 0 or not (d / "done.json").exists():
             rec["end"] = AL.now()
             (d / "lh_offline.json").write_text(json.dumps(rec, indent=1))
@@ -1178,15 +1266,16 @@ def full_main(argv: list[str]) -> int:
             md.mkdir(parents=True, exist_ok=True)
             env = {**gpu_env(a.gpu, a.smoke), "LEAN_GATE_LOG": str(md / "lean_gate.jsonl"),
                    **({} if a.smoke else {"DANREAD_MEM_FRAC": "0.3"})}  # fmt: skip
-            # untagged (Amendment 4, point 2), but all three tags on the last snapshot of the seed-0 reit DPO run
+            # untagged (Amendment 4, point 2), but all three tags on the UPPER bracketing snapshot of the seed-0 reit
+            # DPO run (Amendment 7 point 2); marker_plain only (Amendment 8 point 6)
             tagged = (
                 arm == rated
-                and st == max(by)
+                and st == sel["bracket"][-1]
                 and (t["kind"], t["rater"], t["seed"]) == C.TAGGED_SNAPSHOT
             )
             tags = "A,B,none" if tagged else C.SNAP_TAGS
             rec["tags"][f"{arm}@{x['label']}"] = tags
-            rc = run_step(f"{arm} measure {x['label']}", measure_argv(x["path"], f"{arm}@{x['label']}", md, LH / "raw" / arm / x["label"], a.smoke, tags),
+            rc = run_step(f"{arm} measure {x['label']}", measure_argv(x["path"], f"{arm}@{x['label']}", md, LH / "raw" / arm / x["label"], a.smoke, tags, C.TUNED_SETS),
                           HOURS["snap_measure"], env, md / "measure.log")  # fmt: skip
             rec["measured"][f"{arm}@{x['label']}"] = f"rc {rc}"
             if rc == 0:
@@ -1468,7 +1557,15 @@ def status() -> None:
     for p in sorted(C.POD.glob("*")) if C.POD.exists() else []:
         if p.suffix in (".log",):
             continue
-        print(f"pod file {p.name}: {p.read_text(errors='replace').strip()[:300]}")
+        if (
+            p.is_dir()
+        ):  # the driver's lock (`<c>.driver.lock` is a directory): name it, do not read it
+            print(f"pod dir {p.name}/ ({len(list(p.iterdir()))} entries)")
+            continue
+        try:
+            print(f"pod file {p.name}: {p.read_text(errors='replace').strip()[:300]}")
+        except OSError as e:
+            print(f"pod file {p.name}: unreadable ({e.__class__.__name__})")
 
 
 # ------------------------------------------------------------------------------------------------ main

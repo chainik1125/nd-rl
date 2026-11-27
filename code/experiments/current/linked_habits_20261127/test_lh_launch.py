@@ -374,6 +374,14 @@ def test_stage2_plan(lh, monkeypatch):
         AL.plan(ns(cmd="stage2", corpus=c, tasks="rl_zz_anc_s0"))
     monkeypatch.delenv("ND_GUARD")
     assert any("ND_GUARD=off" in p for p in AL.plan(ns(cmd="stage2", corpus=c))[2])
+    # the fine-tune pair without its normalizer is refused at its turn only: never a reason to refuse the launch
+    monkeypatch.setenv("ND_GUARD", "off")
+    sft = C.arm_name("sft", c, "reit")
+    monkeypatch.setattr(
+        LL, "task_problems", lambda x: [f"{x}: no norm_tokens{LL.AT_RUN}"] if x == sft else []
+    )
+    _, _, problems, notes = AL.plan(ns(cmd="stage2", corpus=c))
+    assert problems == [] and any(n.startswith(f"WILL BE REFUSED: {sft}") for n in notes)
 
 
 def test_rl_plan(lh, monkeypatch):
@@ -401,7 +409,8 @@ def test_snap_cmd_and_seg_class():
         cmd[1] == str(HERE / "lh_measure.py")
         and cmd[2] == "run"
         and cmd[cmd.index("--tags") + 1] == "none"
-    )  # untagged
+        and cmd[cmd.index("--sets") + 1] == "marker_plain"
+    )  # untagged, marker_plain only (Amendment 8 point 6)
     Seg, TLN = AL.make_seg_class()
     assert Seg.__name__ == "LHSeg"
     seg = Seg.__new__(Seg)  # env() only: tag_line's fixed values, then the task's share of the CPUs
@@ -508,18 +517,18 @@ def test_trainer_and_fit_argv(tmp_path, monkeypatch):
         and a[a.index("--max-tokens") + 1] == "32768"  # two jobs on one 24 GB card (TUNING.md)
     )
     assert (
-        a[a.index("--lr") + 1] == str(C.OFFLINE_LR) == "0.00015"
+        a[a.index("--lr") + 1] == str(C.OFFLINE_LR) == "3e-05"  # Amendment 7 point 1
         and a.count("--snap-steps") == a.count("--max-steps") == 1
     )
     assert (
-        C.SNAP_STEPS[:5] == (2, 5, 10, 15, 25) and C.SNAP_STEPS[-1] == C.OFFLINE_MAX_STEPS == 2000
+        C.SNAP_STEPS[:5] == (5, 10, 15, 20, 25) and C.SNAP_STEPS[-1] == C.OFFLINE_MAX_STEPS == 400
     )
     assert a[a.index("--seed") + 1] == "1" and a[a.index("--base") + 1] == str(
         C.base_path(c, 0)
     )  # every run from the s0 base
     assert (
         a[a.index("--snap-steps") + 1] == grid
-        and a[a.index("--max-steps") + 1] == "2000"
+        and a[a.index("--max-steps") + 1] == "400"
         and "--match-steps" not in a
     )
     s = LL.trainer_argv(C.arm_name("dposwap", c, "reit"), smoke=True)
@@ -547,6 +556,78 @@ def test_trainer_and_fit_argv(tmp_path, monkeypatch):
         p[2] == "probe"
         and p[p.index("--pairs") + 1].endswith("reit/probe_twins.jsonl")
         and p[p.index("--out") + 1] == str(C.rm_probe_path(c, "reit"))
+    )
+
+
+def test_swap_seed_and_norm_tokens(tmp_path, monkeypatch):
+    """Amendment 7 points 3 and 4: dposwap's --swap-seed is the run's seed; sft and sftsam get the same --norm-tokens
+    and --batch from the pair build's summary; without them (an older build, or lh_sft without the flag) refused."""
+    monkeypatch.setattr(C, "LH", tmp_path)
+    c = C.CORPORA[0]
+    for s_ in (0, 1):
+        a = LL.trainer_argv(C.arm_name("dposwap", c, "reit", s_))
+        assert a[a.index("--swap-seed") + 1] == str(s_) == a[a.index("--seed") + 1]
+    assert "--swap-seed" not in LL.trainer_argv(C.arm_name("dpo", c, "reit", 1))
+    assert "--norm-tokens" not in LL.trainer_argv(C.arm_name("sft", c, "reit"))  # no summary yet
+    sm = LL.pair_files(c, "reit")["summary"]
+    sm.parent.mkdir(parents=True)
+    sm.write_text(json.dumps({"norm_tokens": {"N": 1234, "batch": 64}}))
+    f, g = (
+        LL.trainer_argv(C.arm_name("sft", c, "reit")),
+        LL.trainer_argv(C.arm_name("sftsam", c, "reit")),
+    )
+    for x in (f, g):
+        assert x[x.index("--norm-tokens") + 1] == "1234" and x[x.index("--batch") + 1] == "64"
+    monkeypatch.setattr(LL, "detector_problems", lambda: [])
+    has = "--norm-tokens" in (HERE / "lh_sft.py").read_text()
+    assert any(
+        "has no --norm-tokens" in p for p in LL.task_problems(C.arm_name("sft", c, "reit"))
+    ) == (not has)
+    sm.write_text(json.dumps({"pairs": 3}))
+    p = [q for q in LL.task_problems(C.arm_name("sftsam", c, "reit")) if "no norm_tokens" in q]
+    assert p and p[0].endswith(LL.AT_RUN)  # refused at its turn; it never stops the stage-2 launch
+
+
+def test_step0_check_stops_a_dpo_run(lh, monkeypatch):
+    """Amendment 7 point 7: a DPO run whose first training row is not 0.6931 +- 0.001 is stopped, marked and listed in
+    <c>.FAILED with the reason; a run that never logged a row is an ordinary failure."""
+    c = C.CORPORA[0]
+    monkeypatch.setattr(C, "POD", lh / "pod")
+    arm = C.arm_name("dpo", c, "reit")
+
+    def trainer(loss):
+        row = json.dumps({"step": 1, "loss": loss, "train_margin_rel": 0.3})
+        return lambda a, smoke=False: [PY, "-c", f"import sys; from pathlib import Path; d = Path({str(C.arm_dir(a))!r}); "
+                                                  f"(d / 'train.jsonl').write_text({row!r} + '\\n'); sys.exit(4)"]  # fmt: skip
+
+    monkeypatch.setattr(LL, "trainer_argv", trainer(0.7012))
+    assert LL.offline_main(["--arm", arm, "--gpu", "0"]) == 5
+    rec = json.loads((C.arm_dir(arm) / "step0_failed.json").read_text())
+    assert "loss 0.7012" in rec["reason"] and rec["train_rc"] == 4
+    failed = (lh / "pod" / f"{c}.FAILED").read_text()
+    assert f"stage2 {arm} STOPPED: step-0 check: first training row (step 1) loss 0.7012" in failed
+    assert not (C.arm_dir(arm) / "probe").exists()
+    assert LL.step0_problem(arm) is not None
+    (C.arm_dir(arm) / "step0_failed.json").unlink()
+    (C.arm_dir(arm) / "train.jsonl").write_text(json.dumps({"step": 1, "loss": 0.69318}) + "\n")
+    assert LL.step0_problem(arm) is None  # within 0.001
+    # the trainer's own verdict (lh_dpo: step0_ok on the first row, its step0_failed.json) is read and never overwritten
+    (C.arm_dir(arm) / "train.jsonl").write_text(
+        json.dumps({"step": 1, "loss": 0.6935, "step0_loss": 0.6935, "step0_ok": False}) + "\n"
+    )
+    assert "the trainer's step-0 check failed" in LL.step0_problem(arm)
+    (C.arm_dir(arm) / "train.jsonl").write_text("")
+    (C.arm_dir(arm) / "step0_failed.json").write_text('{"by": "lh_dpo"}')
+    assert "lh_dpo's" not in LL.step0_problem(arm) and LL.step0_problem(arm).endswith(
+        "step0_failed.json)"
+    )
+    arm2 = C.arm_name("dposwap", c, "reit")
+    monkeypatch.setattr(
+        LL, "trainer_argv", lambda a, smoke=False: [PY, "-c", "import sys; sys.exit(1)"]
+    )
+    assert (
+        LL.offline_main(["--arm", arm2, "--gpu", "0"]) == 1
+        and not (C.arm_dir(arm2) / "step0_failed.json").exists()
     )
 
 
@@ -639,13 +720,20 @@ def test_select_steps():
         50,
     ]  # crossed before the first snapshot: the base below
     grid = list(C.SNAP_STEPS)
-    sel = LL.select_steps(40.0, [(s, 45.0) for s in grid], 2000, steps=grid)
+    sel = LL.select_steps(40.0, [(s, 45.0) for s in grid], 400, steps=grid)
     assert (
         not sel["reached"]
-        and sel["bracket"] == [1500, 2000]
-        and sel["measure"] == [1500, 2000]
+        and sel["bracket"] == [300, 400]
+        and sel["measure"] == [300, 400]
         and sel["max_move"] == 5.0
     )
+    assert (
+        grid == [5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 300, 400]
+        and C.OFFLINE_MAX_STEPS == 400
+    )
+    # the probe's stop on the new grid: past +30 at step 15 -> bracket [10, 15], the last (400) beside it
+    sel = LL.select_steps(40.0, [(5, 50.0), (10, 62.0), (15, 75.0), (400, 95.0)], 400, steps=grid)
+    assert sel["bracket"] == [10, 15] and sel["measure"] == [10, 15, 400]
 
 
 def test_full_task(lh, monkeypatch):
@@ -691,20 +779,24 @@ def test_full_task(lh, monkeypatch):
     monkeypatch.setattr(
         LL,
         "measure_argv",
-        lambda ck, cid, out, raw, smoke, tags="A,B,none": (
+        lambda ck, cid, out, raw, smoke, tags="A,B,none", sets=C.SETS: (
             calls.append((cid, tags)),
+            sets_seen.add(tuple(sets)),
             [PY, "-c", "pass"],
-        )[1],
+        )[2],
     )
+    sets_seen: set = set()
     assert LL.full_main(["--task", task]) == 0
-    assert calls == [(f"{rated}@step50", "none"), (f"{rated}@step100", "none"), (f"{rated}@final", "A,B,none"),
+    # tags A, B, none on the UPPER bracketing snapshot (Amendment 7 point 2); marker_plain only (Amendment 8 point 6)
+    assert calls == [(f"{rated}@step50", "none"), (f"{rated}@step100", "A,B,none"), (f"{rated}@final", "none"),
                      (f"{ctl}@step50", "none"), (f"{ctl}@step100", "none"), (f"{ctl}@final", "none")]  # fmt: skip
+    assert sets_seen == {("marker_plain",)}
     rec = json.loads(LL.full_path(task).read_text())
     assert (
         rec["done"]
         and rec["bracket"] == [50, 100]
         and rec["base_share"] == 40.0
-        and rec["tags"][f"{rated}@final"] == "A,B,none"
+        and rec["tags"][f"{rated}@step100"] == "A,B,none"
     )
     assert any(": already measured" in p for p in LL.task_problems(task))
     calls.clear()
@@ -874,6 +966,17 @@ def test_rm_probe_step(lh, monkeypatch):
 
 
 # ------------------------------------------------------------------------------------------------ wait, dry run, job runner
+def test_status_with_the_driver_lock_directory(lh, capsys, monkeypatch):
+    """The operator's bug: `status` read LH/pod/<c>.driver.lock, a directory (IsADirectoryError)."""
+    monkeypatch.setattr(C, "POD", lh / "pod")
+    (lh / "pod" / "c24.driver.lock").mkdir(parents=True)
+    (lh / "pod" / "c24.driver.lock" / "pid").write_text("123")
+    (lh / "pod" / "c24.GO").write_text("now")
+    LL.status()
+    out = capsys.readouterr().out
+    assert "pod dir c24.driver.lock/ (1 entries)" in out and "pod file c24.GO: now" in out
+
+
 def test_wait(lh):
     (lh / "logs").mkdir()
     log = lh / "logs" / "measure_c24_s0_20261127T010203Z.log"

@@ -16,6 +16,114 @@ Pair sampling (`lh_pairs.py`), twins (`lh_twin.py`), the launcher, measurement a
 Paths: W = this folder, LH = `/scratch/cowifornia/nd-rl/linked_habits`,
 PY = `/scratch/cowifornia/nd-rl/think/nd-rl/code/.venv/bin/python`.
 
+## Added 2026-11-27, about 4:40 am PT: the changes of PREREG Amendment 7 (audit part 2a, T1 to T11)
+
+Binding text: [PREREG.md](PREREG.md) Amendment 7; findings:
+[discourse/design_audit.md](discourse/design_audit.md), "Part 2a: the tuning trainers". The sections below this one
+describe the trainers as built before; where they disagree with this section, this section holds.
+
+| finding | change | where |
+|---|---|---|
+| T3, T5 | Defaults: lr 3e-5 for DPO and SFT (warmup unchanged; the reward model keeps 1.5e-4), snapshot grid 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 300, 400, `--max-steps 400` | `lh_tune.OFFLINE_LR`, `GRID`, `MAX_STEPS`, `common_args` |
+| T4 | Batches of couples; the swap set is half of each sampled side; `--swap-seed` defaults to `--seed` | `lh_dpo.swap_set`, `lh_dpo.Couples` |
+| T10 | The swap set indexes the loaded pairs (after unreadable and identical pairs are dropped) | `lh_tune.load_pairs` (no longer swaps), `lh_tune.swap_pairs` |
+| T8 | SFT divides by one fixed N: `--norm-tokens N` or `--norm-file SAMPLED.jsonl`; the old per-batch rule only with `--norm-per-batch`; one of the three is required | `lh_sft.py`, `lh_tune.mean_action_tokens`, `lh_tune.py norm-tokens` |
+| T1, T2 | Probe: mean bonus difference with a bootstrap interval for every habit, the ±5 % band around the reference's, `not_probed` under `--min-n` (100), the 45 / 55 % rule dropped; control rows `probe:nosite` and `probe:length` with a label check | `lh_rm.pair_stats`, `classify`, `label_check`, `probe` |
+| T1 | Unreadable-proof sentinel | `RewardModel.score_or_none`, `score_many(..., with_readable=True)`, `.last_ok` |
+| T11 | The step-0 check, and the policy's training forward packed exactly as the reference's | `lh_dpo.step0_check`, `lh_tune.train_loop(first_check=...)`, `lh_tune.objective_backward` |
+
+**Batches (T4, T10).** The swap set is a seeded random floor(n_side / 2) of the loaded pairs within each sampled side,
+drawn once from `--swap-seed`. Every DPO run, rated or control, batches by couples:
+- each epoch, within each side, the swap-set pairs and the other pairs are shuffled and zipped into couples (one of
+  each); the couples of all sides are shuffled together, and a batch takes whole couples in order;
+- `--swap-random` trades the members of the swap-set pairs, so every batch is exactly half swapped within each
+  sampled side, and the same pairs stay swapped for the whole run;
+- a rated run and its control of one seed see the same pairs in the same batches, with the same name offsets, and
+  differ only in the orientation of half (a test compares their train.jsonl rows and tokens step by step).
+
+Rounding:
+- A side with an odd number of pairs has one pair more outside the swap set. Each epoch one of them sits out, a
+  different one each epoch by the shuffle.
+- An odd `--batch` splits one couple between consecutive batches. They alternate one extra swap-set pair and one
+  extra other pair in the same side, so every two consecutive batches are exactly balanced.
+- As before, the couples left at the end of an epoch (fewer than `--batch` pairs) are not used that epoch.
+
+Logged: `train.jsonl` `swapped_by_side` ({side: [swapped, pairs]}) in control runs; `done.json` `swap_by_side`,
+`swap_set_sha256` (sha256 of the swap-set pair keys, also in rated runs), `swapped_sha256` (control runs), and
+`batching`.
+
+**Step-0 check (T11).** `train.jsonl`'s first row carries `step0_loss` (the train loss of step 1, computed before the
+optimizer moves), `step0_ok` and `step0_margin_absmax` (the largest |relative margin| in that batch). If
+|step0_loss − ln 2| > 0.001, the run stops before any update:
+- the row is written with `stopped`, `step0_failed.json` is written beside it, the message goes to stderr;
+- exit status 4, with no done.json and no snapshot.
+
+`objective_backward`'s one-pass path now packs the rows exactly as `apply_rows` does (the same length-sorted chunk,
+the same order), so the policy's grad-mode forward and the reference's no-grad forward see identical tensors. On CPU
+in fp32 the step-0 margins are then exactly 0 (tested). On cuda under bf16 only a kernel that differs between grad and
+no-grad mode can move them (not measured: no GPU here).
+
+**Fine-tune normaliser (T8).** N = `--batch` × the mean action tokens (action tokens plus the closing `<eos>` of
+every step) per readable proof of the sampled file. `--norm-file sft_sampled.jsonl` in both runs computes it at the
+start. `lh_tune.py norm-tokens --file sft_sampled.jsonl --batch 64` prints it for `--norm-tokens`. `train.jsonl`
+gives `objective` (the loss back-propagated), `loss` (the batch's cross-entropy per action token, as before),
+`norm_tokens` and `action_tokens`. `done.json` `norm` gives the rule, file, sha256 and N.
+
+**Probe (T1, T2).** For every `habit` of the probe file and for the reference (the rated habit's held-out pairs),
+`lh_rm.py probe` reports:
+- n;
+- `bonus_diff` = mean of 0.3 × [σ(s_preferred) − σ(s_other)], with `bonus_diff_ci95` (bootstrap over pairs);
+- the score difference and the share with the preferred member higher (descriptive; kept under the earlier `a_*`
+  names);
+- `status`:
+  - `reward_driven` (`reward_driven` true, `pays_more` preferred or other) when the interval lies entirely outside
+    ±5 % of the reference's `bonus_diff`;
+  - `within_band` otherwise;
+  - `not_probed` (`reward_driven` null) under `--min-n` pairs (default 100);
+  - `no_reference` without reference rows.
+
+Rows with `habit` `probe:nosite` (preferred = the member WITH a reiteration site) and `probe:length` (preferred = the
+LONGER of two same-form proofs) are reported the same way, with `kind` = `control`. A `label_check` reads both members
+with lh_profile (the GRPO gate's detector) and counts the rows that break the label:
+- `probe:nosite`: the preferred member must have a site and the other none;
+- `probe:length`: the preferred member must have more steps, and both the same reiteration form.
+
+**Sentinel (T1).** `rm.score` still returns 0.0 for an unreadable proof (the old signature), and:
+- `rm.score_or_none` returns None for it;
+- `rm.score_many(items, with_readable=True)` returns (scores, flags);
+- every `score_many` call leaves the flags in `rm.last_ok`, which the GRPO hook (`lh_rlvar.rm_readable`, another
+  agent's file) already reads.
+
+**Tests (2026-11-27).** `test_lh_dpo.py`, `test_lh_sft.py`, `test_lh_rm.py`: 38 tests. 29 (DPO and SFT) passed in the
+first run (6.6 min on one core, one thread, `nice -n 5`); `test_lh_rm.py` failed one assertion of mine there (two
+habits built from different pairs compared as mirror images), fixed, then 9 passed (1.5 min). New or changed tests:
+- the swap set is half of each side;
+- every even batch is balanced within each side over 5 epochs, the sat-out pair rotates and every pair trains;
+- odd batches balance in consecutive twos;
+- the swap set indexes the loaded pairs, and `swap_pairs` trades the rows;
+- the grid and defaults;
+- the one-pass outputs equal `apply_rows` bitwise;
+- the step-0 fields, with margin exactly 0 on CPU;
+- a wrong reference stops with exit 4 and no update (no snapshot, no done.json);
+- the control's batches are half swapped per side, its two seeds have different orientations, the rated run and its
+  control have identical batches, and `--swap-seed` alone sets the orientation;
+- SFT: one N for the arm and its control at every step, `objective × N = loss × action_tokens`, the normaliser
+  required, `--norm-tokens` and `--norm-per-batch`;
+- RM: the sentinel (`score_or_none`, flags, `last_ok`, and lh_rlvar's reader), the band rule in every case, and the
+  probe end to end with hand-written `probe:nosite` rows (one theorem, a B-form site against no site, both read so by
+  lh_profile) and toy `probe:length` rows (`lh_tune.length_records`), each with one mislabelled row the check finds.
+
+SMOKE_V3_PLACEHOLDER
+
+**Launcher (not my file).** For `lh_launch.trainer_argv` (the coordinator says the launcher passes these):
+- DPO: `--swap-seed` equal to `--seed` (also the default now);
+- SFT: `--norm-file <sft_sampled.jsonl>` or the same `--norm-tokens` in both runs; without it lh_sft exits 2 at once;
+- `lh_core.SNAP_STEPS`, `OFFLINE_MAX_STEPS` and `OFFLINE_LR` still held the Amendment 5 values when I looked
+  (04:00 am PT).
+
+`lh_read.rm_probe` reads `a_higher_share` and reapplies the dropped 45 / 55 % rule (`lh_read.py`, about line 716). It
+should take `habits[h]["status"]` / `reward_driven` from probe.json instead.
+
 ## Files
 
 | file | what |
@@ -200,22 +308,26 @@ a file as the RL line would and prints the accuracy, score means, speed and garb
 ## Commands for the runner
 
     W=/scratch/cowifornia/nd-rl/worktrees/linked-habits/code/experiments/current/linked_habits_20261127
-    # DPO and its no-preference control, seeds 0 and 1 (the control's orientation: --swap-seed, default 0)
+    # DPO and its no-preference control, seeds 0 and 1 (swap seed = run seed: the default, PREREG Amendment 7)
+    # exit 4 = the step-0 check failed (stop and report the run, Amendment 7 point 7)
     $PY $W/lh_dpo.py --base BASE.pt --pairs TRAIN.jsonl --heldout HELD.jsonl --out RUN/dpo_s$S --seed $S \
         --kl-states KL.jsonl --device cuda
     $PY $W/lh_dpo.py --base BASE.pt --pairs TRAIN.jsonl --heldout HELD.jsonl --out RUN/dposwap_s$S --seed $S \
-        --swap-random --swap-seed 0 --kl-states KL.jsonl --device cuda
-    # fine-tune arm and its control
+        --swap-random --swap-seed $S --kl-states KL.jsonl --device cuda
+    # fine-tune arm and its control: ONE normaliser for both (Amendment 7 point 4), from the sampled file
     $PY $W/lh_sft.py --base BASE.pt --data sft_pref.jsonl    --heldout HELD.jsonl --out RUN/sft_s$S --seed $S \
-        --kl-states KL.jsonl --device cuda
+        --norm-file sft_sampled.jsonl --kl-states KL.jsonl --device cuda
     $PY $W/lh_sft.py --base BASE.pt --data sft_sampled.jsonl --heldout HELD.jsonl --out RUN/sftctl_s$S --seed $S \
-        --kl-states KL.jsonl --device cuda
+        --norm-file sft_sampled.jsonl --kl-states KL.jsonl --device cuda
+    # (or: N=$($PY $W/lh_tune.py norm-tokens --file sft_sampled.jsonl --batch 64), then --norm-tokens N in both)
     # reward model (exit 3 when held-out accuracy < 0.90: then no RM.pt), its check and its probe (exit 0)
     $PY $W/lh_rm.py fit --base BASE.pt --pairs TRAIN.jsonl --heldout HELD.jsonl --out RUN/rm.pt --device cuda
     $PY $W/lh_rm.py check --rm RUN/rm.pt --pairs HELD.jsonl --device cuda
     $PY $W/lh_rm.py probe --rm RUN/rm.pt --pairs PROBE.jsonl --out RUN/rm_probe.json --device cuda
 
-- Defaults: β 0.1, lr 1.5e-4, batch 64, 2,000 steps with the grid (DPO, SFT), 300 steps (RM).
+- Defaults since Amendment 7: β 0.1, lr 3e-5, batch 64, 400 steps with the grid 5, 10, 15, 20, 25, 30, 40, 50, 75,
+  100, 150, 200, 300, 400 (DPO, SFT); lr 1.5e-4 and 300 steps (RM). `lh_sft.py` refuses to start without one of
+  `--norm-tokens`, `--norm-file`, `--norm-per-batch`.
 - `KL.jsonl` is a JSONL of `{prompt, proof}` corpus records; the first `--kl-n` (256) are used. Pass the same file to
   every arm of a corpus.
 - The snapshot files to measure are `snap_step<k>.pt` (and `final.pt`). `metrics.jsonl` has a row at each k with
@@ -391,7 +503,8 @@ steps at batch 8, so most of the grid past a few hundred steps may be spent far 
   to 95 % absolute accuracy in 20 steps of batch 8, while the KL rose to 0.23 nats per action token. With batch 64,
   2,000 steps is about 25 epochs of 5,000 pairs. If +30 points of rated movement comes within the first grid steps,
   the bracketing pair may be (0, 25) or (25, 50), with coarse interpolation. A finer early grid or a lower lr may be
-  needed. That is the orchestrator's call; nothing was changed.
+  needed. That is the orchestrator's call; nothing was changed. (Addressed by PREREG Amendment 7: lr 3e-5, the grid
+  from step 5, 400 steps; see the dated section at the top.)
 - **`heldout_acc_abs` versus measured A-share.** Both accuracies are teacher-forced, T 1 quantities on the held-out
   pairs. The readout's matched movement uses the sampled A-share (the probe at T 0.8), which these do not replace.
 - **Reward model on reiteration twins.** It passed (1.0 on 40 held-out pairs, 40 steps of 8 pairs). The sigmoid

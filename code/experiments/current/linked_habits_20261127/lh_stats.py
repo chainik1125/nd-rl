@@ -154,6 +154,14 @@ def note_rate(S: Sums, note_habits: list[str]) -> np.ndarray:
     return div(noted, sum(S(f"{h}:s") for h in note_habits))
 
 
+def noted_share(S: Sums, note_habits: list[str]) -> np.ndarray:
+    """G0 (PREREG Amendment 8 point 1, audit R1): premises of accepted proofs that carry a note, % = (sites - none) /
+    sites pooled over the note classes (a premise with two notes counts once, unlike note_rate)."""
+    return div(
+        sum(S(f"{h}:s") - S(f"{h}:n") for h in note_habits), sum(S(f"{h}:s") for h in note_habits)
+    )
+
+
 def other_rate(S: Sums, note_habits: list[str]) -> np.ndarray:
     o = sum(S(f"{h}:o") for h in note_habits)
     return div(o, sum(S(f"{h}:a") + S(f"{h}:b") + S(f"{h}:o") for h in note_habits))
@@ -204,6 +212,13 @@ def cond_observed(S: Sums, r: str, h: str) -> np.ndarray:
     """A-share of h's sites before the first r site, in proofs with an r site."""
     aa, ab, ba, bb = (S(f"cond {r}|{h}:{k}") for k in K4)
     return div(aa + ba, aa + ab + ba + bb)
+
+
+def cond_q(S: Sums, r: str, h: str) -> np.ndarray:
+    """Share (0-1) of h's sites before the first r site that sit in proofs whose first r site is A (audit R7: the
+    chain prediction's weight from the same site counts as its conditionals) = (AA + AB) / (AA + AB + BA + BB)."""
+    aa, ab, ba, bb = (S(f"cond {r}|{h}:{k}") for k in K4)
+    return div(aa + ab, aa + ab + ba + bb, 1.0)
 
 
 def first_form_share(S: Sums, r: str) -> np.ndarray:

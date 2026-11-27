@@ -56,6 +56,36 @@ def test_split_and_balance():
     assert len(hb) == 6 and sum(p["sampled_side"] == "A" for p in hb) == 3
 
 
+def test_extra_probe_rows():
+    def x(t, k, form, lines):
+        return {
+            "theorem": t,
+            "key": f"{t}#{k}",
+            "prompt": "P",
+            "hab": {},
+            "reit_form": form,
+            "lines": lines,
+        }
+
+    res = [x("t1", 0, None, 5), x("t1", 1, "A", 7), x("t1", 2, "A", 9), x("t1", 3, None, 4),
+           x("t2", 0, "B", 6), x("t2", 1, "B", 6), x("t3", 0, None, 3), x("t3", 1, "A", 8)]  # fmt: skip
+    proofs = {r["key"]: f"proof {r['key']}" for r in res}
+    rows, n = LP.extra_probe_rows(res, proofs, {"t1", "t2"}, "s", 10)  # t3 is not held out
+    ns = [r for r in rows if r["habit"] == "probe:nosite"]
+    ln = [r for r in rows if r["habit"] == "probe:length"]
+    assert len(ns) == 2 and all(
+        r["reit_form"][0] is not None and r["reit_form"][1] is None for r in ns
+    )
+    assert (
+        len(ln) == 1 and ln[0]["lines"] == [9, 7] and ln[0]["preferred"] == "proof t1#2"
+    )  # t2's pair: equal lengths
+    assert not [r for r in rows if r["key"].startswith("t3")] and n["probe:nosite"] == 2
+    assert LP.extra_probe_rows(res, proofs, {"t1", "t2"}, "s", 10)[0] == rows  # seeded
+    assert (
+        len(LP.extra_probe_rows(res, proofs, {"t1", "t2"}, "s", 1)[0]) == 2
+    )  # at most 1 of each kind
+
+
 def test_form_of():
     assert (
         LP.form_of({"sites": 2, "a": 2, "b": 0}) == "A"
@@ -113,6 +143,11 @@ def test_build_on_corpus_proofs(tmp_path, monkeypatch):
         return [i % 10 != 0 for i in range(len(pairs))]  # every tenth twin "rejected by Lean"
 
     monkeypatch.setattr(TW, "lean_check_twins", fake_lean)
+    monkeypatch.setattr(
+        C, "TRAIN_PAIR_CAP", 100
+    )  # small caps here (4,000 on the pod): the seeded draws are exercised
+    monkeypatch.setattr(C, "SFT_PROOF_CAP", 150)
+    monkeypatch.setattr(C, "PROBE_EXTRA_ROWS", 7)
     doc = LP.build_main(["--corpus", "c24", "--rater", "reit", "--heldout", "20", "--workers", "2"])
     rd = {k: [json.loads(x) for x in (d / "reit" / f"{k}.jsonl").read_text().splitlines()]
           for k in ("train", "heldout", "sft_pref", "sft_sampled", "probe_twins")}  # fmt: skip
@@ -130,9 +165,31 @@ def test_build_on_corpus_proofs(tmp_path, monkeypatch):
             == sum(x["sampled_side"] == "A" for x in xs)
             == len(xs) / 2
         )
-    assert len(he) <= 20 and bal["train_before"]["A"] + bal["train_before"]["B"] == len(
-        rd["sft_pref"]
-    ) == len(rd["sft_sampled"])
+    cap = doc["cap"]
+    assert (
+        len(he) <= 20
+        and len(tr) == cap["train_capped"] == 100 < cap["train_balanced"]
+        and not cap["train_below_cap"]
+    )
+    assert (
+        sum(bal["train_before"].values())
+        == cap["sft_before_cap"]
+        > 150
+        == cap["sft_capped"]
+        == len(rd["sft_pref"])
+        == len(rd["sft_sampled"])
+    )
+    assert [x["key"] for x in rd["sft_pref"]] == [
+        x["key"] for x in rd["sft_sampled"]
+    ]  # the same pairs in both files
+    nt = doc[
+        "norm_tokens"
+    ]  # Amendment 7 point 4: batch x mean action tokens per proof of sft_sampled
+    assert (
+        nt["batch"] == C.OFFLINE_BATCH
+        and nt["proofs"] == 150
+        and nt["N"] == pytest.approx(C.OFFLINE_BATCH * nt["action_tokens"] / 150)
+    )
     # the fine-tune files: every train pair before the balancing; preferred = all reit A, sampled = as the base wrote it
     import lh_profile as PR
 
@@ -166,12 +223,34 @@ def test_build_on_corpus_proofs(tmp_path, monkeypatch):
     assert not {x["key"].split("#")[0] for x in tr} & {x["key"].split("#")[0] for x in he}
     # probe twins: held-out theorems only, every other flippable habit, A member preferred, nothing else changed
     held_th = {x["key"].split("#")[0] for x in he}
-    pt = rd["probe_twins"]
+    pt = [x for x in rd["probe_twins"] if not x["habit"].startswith("probe:")]
+    ex = [x for x in rd["probe_twins"] if x["habit"].startswith("probe:")]
     assert (
         pt
         and {x["habit"] for x in pt} <= set(TW.FLIPPABLE) - {"reit"}
         and sum(doc["probe_twins"].values()) == len(pt)
     )
+    # Amendment 7 point 6: probe:nosite (preferred has a reiteration site) and probe:length (preferred is longer)
+    assert {x["habit"] for x in ex} == {"probe:nosite", "probe:length"} and len(ex) <= 14
+    assert doc["probe_extra"]["probe:nosite"] == sum(x["habit"] == "probe:nosite" for x in ex) <= 7
+    for x in ex:
+        assert x["key"].split("#")[0] in held_th | {r["theorem"] for r in rows} - {
+            y["key"].split("#")[0] for y in tr
+        }
+        pa, pb = (
+            PR.profile(x["prompt"], x["preferred"], tab),
+            PR.profile(x["prompt"], x["other"], tab),
+        )
+        sa, sb = pa["habits"]["reit"]["sites"], pb["habits"]["reit"]["sites"]
+        if x["habit"] == "probe:nosite":
+            assert sa > 0 and sb == 0
+        else:
+            assert (
+                sa > 0
+                and sb > 0
+                and LP.form_of(pa["habits"]["reit"]) == LP.form_of(pb["habits"]["reit"])
+                and pa["lines"] > pb["lines"]
+            )
     assert {x["key"].split("#")[0] for x in pt} <= {r["theorem"] for r in rows} - {
         x["key"].split("#")[0] for x in tr
     }
@@ -192,7 +271,11 @@ def test_build_on_corpus_proofs(tmp_path, monkeypatch):
             "--no_probe",
         ]
     )
-    assert not (d / "atom" / "probe_twins.jsonl").read_text().strip() and doc2["probe_twins"] == {}
+    assert (
+        not (d / "atom" / "probe_twins.jsonl").read_text().strip()
+        and doc2["probe_twins"] == {}
+        and doc2["probe_extra"] == {}
+    )
     for x in pt[:40]:
         h = x["habit"]
         pa, pb = (

@@ -16,13 +16,15 @@ iterations, untagged prompts on Dan's RL pool) with these changes, made here to 
   anc        nothing else: the no-preference run (anchor, no learned reward).
   rlhf<r>    reward = Lean acceptance x (1 + 0.3 x sigmoid(RM(prompt, proof))): W2's hook (`rlvar.install`: GRPO's
              `rewards` + a per-attempt bonus, so the bonus enters the advantage) with `rlvar.Bonus` replaced by
-             `RMBonus`: 0.3 x sigmoid of the reward model's score of the accepted proof's ND text, nothing on a rejected
-             attempt. The reward model is LH/arms/rm_<c>_<r>_s<S>/rm.pt, loaded by the third agent's
+             `RMBonus`: 0.3 x sigmoid of the reward model's score of the accepted proof's ND text, paid only when
+             lh_profile finds at least one reiteration site in it (PREREG Amendment 7 point 6); nothing on a rejected
+             attempt, a proof without a site, or one the detector or the reward model cannot read. The reward model is LH/arms/rm_<c>_<r>_s<S>/rm.pt, loaded by the third agent's
              `lh_rm.load(path, device)`: `.score(prompt, proof_text) -> float`, `.score_many([(prompt, proof), ...])`).
              The scores of a sampling call are computed once, right after the call returns
              (prompts attached from the call's targets), on the policy's device.
 Files written into the GRPO `--out`: lh_rlvar.json (variant, anchor file and its sha256, reward model and its sha256,
-step limit) and, rlhf only, rm_bonus.jsonl (per sampling call: accepted attempts, scored, mean sigmoid, bonus paid).
+step limit) and, rlhf only, rm_bonus.jsonl (per sampling call, with its GRPO iteration and redraw round: accepted
+attempts, unreadable_profile, no_reit_site, scored, unreadable_rm, paid, mean sigmoid of the paid, bonus paid).
 W2's rlvar.py and everything under ../author_tags_20261110 are imported, never edited.
 """
 
@@ -106,6 +108,42 @@ def sigmoid(x: float) -> float:
     return 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (1.0 + math.exp(x))
 
 
+_PROF: dict[str, Any] = {}
+
+
+def reit_sites(prompt: str, proof: str) -> int | None:
+    """Reiteration sites lh_profile finds in a proof; None when it cannot read the proof (as lh_measure counts it)."""
+    if "m" not in _PROF:
+        import lh_profile
+
+        _PROF["m"], _PROF["t"] = lh_profile, C.profile_tables()
+    try:
+        p = _PROF["m"].profile(prompt, proof, _PROF["t"])
+    except Exception:  # profile never raises by its contract; a raise is still an unreadable proof
+        return None
+    if not p.get("ok"):
+        return None
+    return int(((p.get("habits") or {}).get(C.RATERS["reit"]) or {}).get("sites") or 0)
+
+
+def rm_readable(rm: Any, items: list[tuple[str, str]]) -> list[bool]:
+    """Which items the reward model could read: its own per-item flag when it gives one (`last_ok` after
+    score_many), else the encoding it applies (lh_tune.encode_proof raising = unreadable, scored 0.0 and counted)."""
+    ok = getattr(rm, "last_ok", None)
+    if isinstance(ok, list) and len(ok) == len(items):
+        return [bool(x) for x in ok]
+    import lh_tune as U
+
+    out = []
+    for p, nd in items:
+        try:
+            U.encode_proof(rm.tok, p, nd)
+            out.append(True)
+        except Exception:
+            out.append(False)
+    return out
+
+
 class RMBonus(rlvar.Bonus):
     """W2's per-attempt bonus with the reward model's score in place of the style reading. `score_call` scores every
     accepted attempt of a sampling call at once; `of` (W2's hook, per attempt) returns the cached bonus."""
@@ -117,6 +155,7 @@ class RMBonus(rlvar.Bonus):
     def __init__(self, bonus: float, out: Path | None) -> None:
         super().__init__(bonus, out)
         self.sig = 0.0
+        self.it_round: tuple[int | None, int | None] = (None, None)
 
     def load(self) -> Any:
         if RMBonus.rm is None:
@@ -128,6 +167,10 @@ class RMBonus(rlvar.Bonus):
         return RMBonus.rm
 
     def score_call(self, per: list[list[dict[str, Any]]], targets: list[dict[str, Any]]) -> None:
+        """PREREG Amendment 7 point 6: the bonus 0.3 x sigmoid(RM) is paid only on an accepted attempt in which
+        lh_profile finds at least one reiteration site; none on a proof the detector cannot read or the reward model
+        reports as unreadable. Counts per sampling call (rm_bonus.jsonl): accepted, unreadable_profile, no_reit_site,
+        scored (sent to the reward model), unreadable_rm, paid."""
         todo = [
             (x, t["prompt"])
             for grp, t in zip(per, targets, strict=True)
@@ -136,18 +179,35 @@ class RMBonus(rlvar.Bonus):
         ]
         if not todo:
             return
+        site = []
+        for x, p in todo:
+            self.c["accepted"] += 1
+            x[KEY] = 0.0
+            n = reit_sites(p, x["nd"])
+            if n is None:
+                self.c["unreadable_profile"] += 1
+            elif n == 0:
+                self.c["no_reit_site"] += 1
+            else:
+                site.append((x, p))
+        if not site:
+            return
         rm = self.load()
-        items = [(p, x["nd"]) for x, p in todo]
+        items = [(p, x["nd"]) for x, p in site]
         sc = (
             list(rm.score_many(items))
             if hasattr(rm, "score_many")
             else [float(rm.score(p, nd)) for p, nd in items]
         )
-        for (x, _), s in zip(todo, sc, strict=True):
+        ok = rm_readable(rm, items)
+        self.c["scored"] += len(items)
+        for (x, _), s, good in zip(site, sc, ok, strict=True):
+            if not good:
+                self.c["unreadable_rm"] += 1
+                continue
             sg = sigmoid(float(s))
             x[KEY] = self.bonus * sg
-            self.c["accepted"] += 1
-            self.c["scored"] += 1
+            self.c["paid"] += 1
             self.sig += sg
             self.paid += x[KEY]
 
@@ -155,16 +215,35 @@ class RMBonus(rlvar.Bonus):
         if not x.get("ok"):
             return 0.0
         if KEY not in x:  # an accepted attempt the call-level scoring did not see: score it alone
-            self.score_call([[x]], [{"prompt": x.get("lh_prompt", "")}])
+            if not x.get("lh_prompt"):  # no prompt to read it against (audit R6): no bonus, counted
+                self.c["accepted"] += 1
+                self.c["no_prompt"] += 1
+                x[KEY] = 0.0
+            else:
+                self.score_call([[x]], [{"prompt": x["lh_prompt"]}])
         return x[KEY]
 
     def flush(self) -> None:
         if self.out is None or not self.c:
             self.c, self.paid, self.sig = collections.Counter(), 0.0, 0.0
             return
-        n = max(1, self.c["scored"])
-        row = {"call": self.n_call, "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **self.c,
-               "sigmoid_mean": round(self.sig / n, 5), "bonus_sum": round(self.paid, 4), "bonus_mean_accepted": round(self.paid / n, 5)}  # fmt: skip
+        npaid, nacc = max(1, self.c["paid"]), max(1, self.c["accepted"])
+        cnt = {
+            k: self.c.get(k, 0)
+            for k in (
+                "accepted",
+                "no_prompt",
+                "unreadable_profile",
+                "no_reit_site",
+                "scored",
+                "unreadable_rm",
+                "paid",
+            )
+        }
+        row = {"call": self.n_call, "iter": self.it_round[0], "round": self.it_round[1],
+               "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **cnt,
+               "sigmoid_mean_paid": round(self.sig / npaid, 5), "bonus_sum": round(self.paid, 4),
+               "bonus_mean_accepted": round(self.paid / nacc, 5)}  # fmt: skip
         with open(self.out / "rm_bonus.jsonl", "a") as f:
             f.write(json.dumps(row) + "\n")
         self.c, self.paid, self.sig = collections.Counter(), 0.0, 0.0
@@ -177,6 +256,16 @@ class _RMB(RMBonus):
     def __init__(self, bonus: float, out: Path | None) -> None:
         super().__init__(bonus, out)
         _BONUS.append(self)
+
+
+def iter_round(args: tuple) -> tuple[int | None, int | None]:
+    """(GRPO iteration, redraw round) of a sampling call, from its arguments (tb, a, seed, ...): grpo.py draws round 0
+    with seed a.seed x 100003 + it and round r with that + r x 1,000,003. (None, None) if the call looks different."""
+    try:
+        off = int(args[2]) - int(args[1].seed) * 100003
+        return (off % 1_000_003, off // 1_000_003) if off >= 0 else (None, None)
+    except Exception:
+        return None, None
 
 
 def install_rm(grpo: Any, rm_path: Path, device: str) -> None:
@@ -192,6 +281,7 @@ def install_rm(grpo: Any, rm_path: Path, device: str) -> None:
             for x in grp:
                 x.setdefault("lh_prompt", t["prompt"])
         if _BONUS:
+            _BONUS[-1].it_round = iter_round(args)
             _BONUS[-1].score_call(per, list(targets))
         return per
 

@@ -117,6 +117,36 @@ def calls(lh: Path) -> list[str]:
     return (lh / "stub_calls.txt").read_text().splitlines()
 
 
+def test_fetch_md5_skips_files_still_being_written(tmp_path):
+    """Audit R11: the fetch compares only files whose pod md5 is the same in two listings (heartbeats never)."""
+    src = (HERE / "lh_pod.sh").read_text()
+    code = src.split("<<'PYEOF'\n", 1)[1].split("\nPYEOF\n", 1)[0]
+
+    def md5(rows):
+        return "".join(f"{h * 32}  {k}\n" for k, h in rows.items())
+
+    p1 = {
+        "measure/c24_s0/a.jsonl": "1",
+        "logs/job.log": "2",
+        "pod/c24.heartbeat.json": "3",
+        "bases/b.pt": "4",
+    }
+    p2 = {**p1, "logs/job.log": "5"}  # the running job's log moved between the listings
+    for name, lab, want in (
+        ("ok", {**p1, "logs/job.log": "2"}, 0),
+        ("bad", {**p1, "bases/b.pt": "9"}, 1),
+    ):
+        for f, rows in (("p1", p1), ("p2", p2), ("lab", lab)):
+            (tmp_path / f"{name}.{f}").write_text(md5(rows))
+        r = subprocess.run([sys.executable, "-c", code, *(str(tmp_path / f"{name}.{f}") for f in ("p1", "p2", "lab"))],
+                           capture_output=True, text=True)  # fmt: skip
+        assert r.returncode == want, r.stdout + r.stderr
+        assert "still being written on the pod (not compared): logs/job.log" in r.stdout
+        assert "pod/c24.heartbeat.json" in r.stdout and ("MD5 DIFFERS: bases/b.pt" in r.stdout) == (
+            want == 1
+        )
+
+
 def test_syntax():
     for f in ("lh_pod.sh", "lh_driver.sh", "lh_pod_setup.sh"):
         assert subprocess.run(["bash", "-n", str(HERE / f)]).returncode == 0, f

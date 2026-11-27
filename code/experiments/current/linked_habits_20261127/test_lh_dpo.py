@@ -13,6 +13,7 @@ is there) pins the zero gradient on the rows before the rated site.
 # ruff: noqa: E501
 from __future__ import annotations
 
+import collections
 import json
 import os
 import subprocess
@@ -256,22 +257,140 @@ def test_chunked_gradient_equals_one_pass(toy):
     assert torch.allclose(grads[0], grads[1], rtol=1e-4, atol=1e-6)
 
 
-def test_swap_set_is_a_seeded_half():
-    s = lh_dpo.swap_set(201, 0)
-    assert len(s) == 100 and s == lh_dpo.swap_set(201, 0) and s != lh_dpo.swap_set(201, 1)
+def fake_pairs(sides: dict[str, int]) -> list:
+    out = []
+    for side, n in sides.items():
+        out += [U.Pair(f"{side}{i}", "p", [], [], [], [], 0, False, side) for i in range(n)]
+    return out
+
+
+def test_swap_set_is_a_seeded_half_within_each_side():
+    pairs = fake_pairs({"A": 101, "B": 60, "None": 3})
+    s = lh_dpo.swap_set(pairs, 0)
+    by = {k: sum(pairs[i].side == k for i in s) for k in ("A", "B", "None")}
+    assert by == {"A": 50, "B": 30, "None": 1}
+    assert s == lh_dpo.swap_set(pairs, 0) and s != lh_dpo.swap_set(pairs, 1)
+
+
+def side_counts(pairs, swap, batch):
+    return {k: (sum(i in swap for i in batch if pairs[i].side == k), sum(pairs[i].side == k for i in batch))
+            for k in sorted({pairs[i].side for i in batch})}  # fmt: skip
+
+
+def test_couples_balance_every_batch_within_each_side():
+    """PREREG Amendment 7 point 3 (audit T4): with an even batch, every batch holds exactly as many swap-set pairs as
+    others within each sampled side; an odd side's extra pair sits out one epoch at a time (a different one); the
+    swap set never changes."""
+    import random
+
+    pairs = fake_pairs({"A": 41, "B": 30})
+    swap = lh_dpo.swap_set(pairs, 7)
+    cp = lh_dpo.Couples(pairs, swap, 8, random.Random(1))
+    assert cp.n_couples == 20 + 15
+    seen, sat = [], set()
+    for _ in range(40):  # 8 batches per epoch (70 pairs, the last 6 unused): 5 epochs
+        b = cp.next()
+        assert len(b) == 8 and len(set(b)) == 8
+        for k, (sw, n) in side_counts(pairs, swap, b).items():
+            assert 2 * sw == n, (k, sw, n)
+        seen += b
+        sat.update(cp.sat_out)
+    assert (
+        cp.epochs == 5 and len(sat) > 1 and all(pairs[i].side == "A" and i not in swap for i in sat)
+    )
+    assert set(seen) == set(
+        range(len(pairs))
+    )  # every pair trains (the sat-out one changes per epoch)
+
+
+def test_couples_odd_batch_alternates_and_balances_in_twos():
+    import random
+
+    pairs = fake_pairs({"A": 10, "B": 10})
+    swap = lh_dpo.swap_set(pairs, 0)
+    cp = lh_dpo.Couples(pairs, swap, 5, random.Random(0))
+    for _ in range(4):  # 20 pairs = 4 batches of 5 per epoch: pairs of consecutive batches
+        b1, b2 = cp.next(), cp.next()
+        c1, c2 = side_counts(pairs, swap, b1), side_counts(pairs, swap, b2)
+        assert abs(sum(sw for sw, _ in c1.values()) - 2.5) == 0.5
+        for k in set(c1) | set(c2):
+            sw = c1.get(k, (0, 0))[0] + c2.get(k, (0, 0))[0]
+            n = c1.get(k, (0, 0))[1] + c2.get(k, (0, 0))[1]
+            assert 2 * sw == n, (k, c1, c2)
+
+
+def test_the_swap_set_indexes_the_loaded_pairs(toy, tmp_path):
+    """Audit T10: a pair that does not decompose is dropped before the swap set is drawn, so each side still has
+    exactly floor(n_loaded / 2) swapped; swapping trades the members' rows."""
+    d, base = toy
+    _, tok = model_and_tok(base)
+    recs = U.read_jsonl(d / "ab.jsonl")
+    bad = {**recs[0], "key": "bad", "preferred": "N1 garbage ; QED"}
+    U.write_jsonl(tmp_path / "p.jsonl", [bad, *recs])
+    pairs, rep = U.load_pairs(tmp_path / "p.jsonl", tok, max_unreadable=0.5)
+    assert rep["unreadable"] == 1 and len(pairs) == len(recs) and pairs[0].key == recs[0]["key"]
+    swap = lh_dpo.swap_set(pairs, 0)
+    for k, n in rep["sampled_side_loaded"].items():
+        assert sum(pairs[i].side == k for i in swap) == n // 2
+    sw = U.swap_pairs(pairs, swap)
+    for i, (p, q) in enumerate(zip(pairs, sw, strict=True)):
+        if i in swap:
+            assert (
+                q.swapped
+                and (q.rw, q.rl, q.dw, q.dl) == (p.rl, p.rw, p.dl, p.dw)
+                and q.room == p.room
+            )
+        else:
+            assert q == p
 
 
 def test_snap_plan_grid_and_drops():
+    """PREREG Amendment 7 point 1: the grid 5 ... 400, 400 steps, lr 3e-5 by default."""
+    a = lh_dpo.parse(["--base", "b", "--pairs", "p", "--heldout", "h", "--out", "o"])
+    assert a.lr == 3e-5 and a.max_steps == 400 and a.swap_seed == a.seed == 0
+    thr, steps, info = U.snap_plan(a)
+    assert (
+        thr == ()
+        and steps == [5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 300, 400]
+        and not info
+    )
     a = lh_dpo.parse(
-        ["--base", "b", "--pairs", "p", "--heldout", "h", "--out", "o", "--max-steps", "300"]
+        [
+            "--base",
+            "b",
+            "--pairs",
+            "p",
+            "--heldout",
+            "h",
+            "--out",
+            "o",
+            "--max-steps",
+            "300",
+            "--seed",
+            "4",
+        ]
     )
     thr, steps, info = U.snap_plan(a)
-    assert thr == () and steps == [25, 50, 100, 150, 200, 300]
-    assert info["dropped_past_max_steps"] == [400, 600, 800, 1000, 1500, 2000]
+    assert steps[-1] == 300 and info["dropped_past_max_steps"] == [400] and a.swap_seed == 4
     a = lh_dpo.parse(
         ["--base", "b", "--pairs", "p", "--heldout", "h", "--out", "o", "--acc-snapshots"]
     )
     assert U.snap_plan(a)[0] == U.THRESHOLDS and U.snap_plan(a)[1] == list(U.GRID)
+
+
+def test_one_pass_packs_as_the_reference_does(toy):
+    """Audit T11: the policy's one-pass training forward packs the rows exactly as apply_rows (the reference's
+    no-grad pass) does, so at step 0 the outputs are bitwise equal and every margin is exactly 0."""
+    import torch
+
+    d, base = toy
+    m, tok = model_and_tok(base)
+    pairs, _ = U.load_pairs(d / "train.jsonl", tok)
+    rs, sh, owner, sign = U.flatten_pairs(pairs[:6], [1, 0, 2, 3, 0, 1])
+    ctx = U.Ctx("cpu", tok.ref0, 10**6, False)
+    _, o = U.objective_backward(U.logp_fn(m), rs, sh, lambda x: x.sum(), ctx)
+    ref = U.apply_rows(U.logp_fn(m), rs, sh, ctx)
+    assert torch.equal(o, ref)
 
 
 # ---------------------------------------------------------------------------------------------- the trainer
@@ -284,6 +403,14 @@ def test_dpo_moves_the_preference_and_snapshots_on_the_grid(real_run):
     )
     tr = rows(out / "train.jsonl")
     assert len(tr) == 30 and tr[0]["loss"] == pytest.approx(0.6931, abs=1e-3)
+    # the step-0 check (PREREG Amendment 7 point 7): in fp32 on cpu the margins are exactly 0
+    assert tr[0]["step0_ok"] is True and tr[0]["step0_loss"] == pytest.approx(
+        U.STEP0_LOSS, abs=1e-6
+    )
+    assert tr[0]["step0_margin_absmax"] == 0.0 and not any("step0_loss" in r for r in tr[1:])
+    sides = collections.Counter(r["sampled_side"] for r in U.read_jsonl(out.parent / "train.jsonl"))
+    assert doc["step0"]["step0_ok"] is True
+    assert doc["batching"]["couples_per_epoch"] == sum(k // 2 for k in sides.values())
     assert sum(r["loss"] for r in tr[-5:]) / 5 < 0.3
     assert doc["final"]["heldout_margin_rel"] > 20 and doc["final"]["kl"] > 0
     assert doc["ref_frozen"] is True and doc["thresholds"] == [] and doc["acc_snapshots"] is False
@@ -327,22 +454,41 @@ def test_swap_random_control_and_its_seeds(toy, real_run):
     docs = {
         s: run(d, base, f"swap_s{s}", "--swap-random", "--seed", str(s), steps=20) for s in (0, 1)
     }
-    for doc in docs.values():
-        assert doc["swapped"] == 16 and doc["swap_seed"] == 0 and doc["snap_steps"] == [5, 10, 20]
-        assert all(
-            (d / f"swap_s{doc['seed']['seed']}" / f"snap_step{k}.pt").exists() for k in (5, 10, 20)
-        )
+    sides = collections.Counter(r["sampled_side"] for r in U.read_jsonl(d / "train.jsonl"))
+    for s, doc in docs.items():
+        assert doc["swapped"] == sum(n // 2 for n in sides.values()) and doc["swap_seed"] == s
+        assert doc["swap_by_side"] == {
+            k: {"pairs": n, "swap_set": n // 2} for k, n in sides.items()
+        }
+        assert doc["snap_steps"] == [5, 10, 20]
+        assert all((d / f"swap_s{s}" / f"snap_step{k}.pt").exists() for k in (5, 10, 20))
         # a rater with no preference: the held-out relative margin barely moves (tiny-model ties make the
         # accuracies themselves jumpy, so the margin is the quantity compared)
         assert (
             abs(doc["final"]["heldout_margin_rel"]) < 0.1 * doc_real["final"]["heldout_margin_rel"]
         )
-    assert docs[0]["swapped_sha256"] == docs[1]["swapped_sha256"], "--seed changed the orientation"
+        for r in rows(
+            d / f"swap_s{s}" / "train.jsonl"
+        ):  # exactly half of every batch, within each side
+            assert all(2 * sw == n for sw, n in r["swapped_by_side"].values()), r["swapped_by_side"]
+    # PREREG Amendment 7 point 3: the two control seeds have different orientations (swap seed = run seed)
+    assert docs[0]["swapped_sha256"] != docs[1]["swapped_sha256"]
+    assert (
+        docs[0]["swapped_sha256"] == doc_real["swap_set_sha256"]
+        and doc_real["swapped_sha256"] is None
+    )
+    # the rated run and its control of one seed see the same pairs in the same batches, with the same offsets
+    t_real, t_swap = rows(out_real / "train.jsonl"), rows(d / "swap_s0" / "train.jsonl")
+    assert [(r["rows"], r["tokens"]) for r in t_real[:20]] == [
+        (r["rows"], r["tokens"]) for r in t_swap
+    ]
     l0 = [r["loss"] for r in rows(d / "swap_s0" / "train.jsonl")]
     l1 = [r["loss"] for r in rows(d / "swap_s1" / "train.jsonl")]
     assert l0[1:] != l1[1:], "--seed did not change the data order"
-    doc2 = run(d, base, "swap_other", "--swap-random", "--swap-seed", "1", steps=2)
-    assert doc2["swapped_sha256"] != docs[0]["swapped_sha256"]
+    doc2 = run(d, base, "swap_other", "--swap-random", "--seed", "1", "--swap-seed", "0", steps=2)
+    assert (
+        doc2["swapped_sha256"] == docs[0]["swapped_sha256"]
+    )  # --swap-seed alone sets the orientation
     doc3 = run(d, base, "swap_match", "--swap-random", "--match-steps", str(out_real), steps=12)
     assert doc3["snap_steps"] == [5, 10] and doc3["match"]["dropped_past_max_steps"] == [20]
 
@@ -414,3 +560,30 @@ def test_refuses_an_existing_run(toy, real_run):
     d, base = toy
     with pytest.raises(SystemExit):
         run(d, base, "real")
+
+
+def test_step0_check_stops_before_any_update(toy, monkeypatch):
+    """PREREG Amendment 7 point 7 (audit T11): a reference that is not the policy (here another random base) gives a
+    step-0 loss away from ln 2: exit 4 before the optimizer moves, the stopped train.jsonl row and step0_failed.json
+    written, no snapshot and no done.json."""
+    d, base = toy
+    other = U.tiny_base(d / "tiny_other.pt", seed=5)
+    real_load, calls = U.load_base, []
+
+    def load(path, device):
+        calls.append(path)
+        return real_load(
+            other if len(calls) == 2 else path, device
+        )  # the second load is the reference
+
+    monkeypatch.setattr(U, "load_base", load)
+    with pytest.raises(SystemExit) as e:
+        run(d, base, "step0bad", steps=5)
+    assert e.value.code == U.STEP0_EXIT == 4
+    out = d / "step0bad"
+    tr = rows(out / "train.jsonl")
+    assert len(tr) == 1 and tr[0]["step0_ok"] is False and "STOPPED" in tr[0]["stopped"]
+    assert abs(tr[0]["step0_loss"] - U.STEP0_LOSS) > U.STEP0_TOL
+    assert json.loads((out / "step0_failed.json").read_text())["step0_ok"] is False
+    assert not (out / "done.json").exists() and not list(out.glob("*.pt"))
+    assert [r["step"] for r in rows(out / "metrics.jsonl")] == [0]

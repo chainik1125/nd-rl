@@ -275,11 +275,29 @@ EOF
     [[ $conflict == 0 ]] || { echo "nothing fetched (resolve the conflicts by hand)"; exit 1; }
     timeout 7200 "${RSYNC[@]}" --files-from="$F.list" "$h:/workspace/lh/" "$LH/"
     (cd "$LH" && xargs -d '\n' md5sum < "$F.list") > "$F.lab.md5"
-    if cmp -s "$F.pod.md5" "$F.lab.md5"; then
-      echo "md5: all $(wc -l < "$F.list") fetched files equal on $h and serrano ($(utc))"
+    # a second listing on the pod: a file whose md5 changed between the two listings is still being written (a running
+    # job's log, metrics, status), and heartbeats always change; those are named, not compared (audit R11). Every other
+    # file must be equal on both sides.
+    "${SSH[@]}" "$h" 'cd /workspace/lh && xargs -d "\n" md5sum' < "$F.list" > "$F.pod2.md5"
+    python3 - "$F.pod.md5" "$F.pod2.md5" "$F.lab.md5" <<'PYEOF'
+import sys
+def read(f):
+    return {ln[34:].rstrip("\n"): ln[:32] for ln in open(f) if len(ln) > 34}
+p1, p2, lab = (read(f) for f in sys.argv[1:4])
+moving = sorted(k for k in p2 if p1.get(k) != p2[k] or (k.startswith("pod/") and k.endswith(".heartbeat.json")))
+bad = sorted(k for k in p2 if k not in moving and lab.get(k) != p2[k])
+for k in moving[:20]:
+    print(f"still being written on the pod (not compared): {k}")
+for k in bad[:20]:
+    print(f"MD5 DIFFERS: {k}")
+print(f"md5: {len(p2) - len(moving) - len(bad)} stable files equal, {len(bad)} differ, {len(moving)} still being written")
+sys.exit(1 if bad else 0)
+PYEOF
+    rc=$?
+    if (( rc == 0 )); then
+      echo "md5: every stable fetched file equal on $h and serrano ($(utc))"
     else
-      diff "$F.pod.md5" "$F.lab.md5" | grep '^[<>]' | head -20
-      echo "MD5 DIFFERENCES (expected only for files a running job is still writing: logs, status, metrics, heartbeat); fetch again after the job ends"
+      echo "MD5 DIFFERENCES on files that did not change on the pod between two listings: fetch again; if they persist, stop and look"
       exit 1
     fi ;;
   *) echo "unknown command $cmd"; exit 2 ;;
