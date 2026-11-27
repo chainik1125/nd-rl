@@ -6,9 +6,10 @@ marker_plain, Lean-accepted proofs, 95 % bootstrap intervals over theorems (LH/r
 the read-out's estimators; a class under 50 sites has no interval and a small mark). The pooled row is PREREG Amendment
 10's quantity, the note sites before the first reiteration site (lh_stats.pooled_before; all note sites here, since notes
 are written first). (a) the all-linked corpus, (b) the four-habit corpus, where the notes are unlinked coins. Filled:
-RL seed 0; hollow: RL seed 1 when present (Amendment 10). (c) The GRPO training samples of the all-linked corpus
-(Lean-accepted proofs with notes): the share whose notes are all in author A's form, in 40 equal chunks of the sample
-file in order. The file has no iteration field, so a chunk is only about one iteration.
+RL seed 0; hollow: RL seed 1 when present (Amendment 10; same base, same reward model). (c) The GRPO training samples
+of the all-linked corpus (Lean-accepted proofs with notes): the share whose notes are all in author A's form, in 40
+equal chunks of each line's sample file in order (solid: RL seed 0, dashed: RL seed 1). The file has no iteration
+field, so a chunk is only about one iteration.
 
     PY fig_grpo.py [--lh LH] [--out DIR]
 """
@@ -76,7 +77,7 @@ def panel(ax: Any, gv: dict[str, Any], corpus: str) -> list[int]:
     for (line, seed), e in sorted(pts.items()):
         st = LINE_STYLE[line]
         its.append(e["iteration"])
-        dy = (0.17 if line == "reward" else -0.17) + (0.08 if seed else 0.0)
+        dy = (1 if line == "reward" else -1) * (0.30 if seed else 0.10)
         for i, (h, _lab) in enumerate(ROWS):
             v, thin = value(e, h)
             if v is None:
@@ -85,7 +86,7 @@ def panel(ax: Any, gv: dict[str, Any], corpus: str) -> list[int]:
             if not thin:
                 ax.errorbar(v[0], y, xerr=[[v[0] - v[1]], [v[2] - v[0]]], fmt="none", ecolor=st["color"],
                             elinewidth=0.7, capsize=1.0)  # fmt: skip
-            ax.plot(v[0], y, linestyle="none", marker=st["marker"], markersize=2.6 if thin else 3.6,
+            ax.plot(v[0], y, linestyle="none", marker=st["marker"], markersize=(2.4 if thin else 3.4) - (0.3 if seed else 0),
                     markerfacecolor=S.WHITE if seed else st["color"], markeredgecolor=st["color"] if seed else S.WHITE,
                     markeredgewidth=0.6)  # fmt: skip
     ax.axvline(0, color=S.REF, linewidth=0.6)
@@ -107,7 +108,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
     from matplotlib.lines import Line2D
 
     with S.paper_style():
-        fig = S.new_figure(S.FULL_W, 3.35)
+        fig = S.new_figure(S.FULL_W, 3.9)
         gs = fig.add_gridspec(1, 3, width_ratios=[1.0, 1.0, 0.95])
         ax1 = fig.add_subplot(gs[0, 0])
         ax2 = fig.add_subplot(gs[0, 1], sharey=ax1)
@@ -136,7 +137,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 linestyle="-" if seed == 0 else (0, (3, 1.6)),
             )
             if seed == 0:
-                ax3.text(39, 78 if line == "reward" else 33, st["label"].split(" (")[0], ha="right",
+                ax3.text(39, 70 if line == "reward" else 6, st["label"].split(" (")[0], ha="right",
                          fontsize=S.FS_TICK - 1, color=st["color"])  # fmt: skip
         ax3.set_xlim(0, 41)
         ax3.set_ylim(0, 100)

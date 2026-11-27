@@ -5,10 +5,11 @@ written_by: agent:claude
 
 # Linked habits: does a prover hold an author as a unit when 22 habits are linked?
 
-**Status (9:30 am PT, 27 Nov).** DPO read on both bases (the decisive reading, Amendment 8) and
-GRPO on one RL seed. Draft audited once (audit Part 4, applied); the two-base numbers arrived after
-that audit and are not yet audited. **Pending**, marked so wherever it enters: the second RL seed,
-running on the all-linked pod (about 2 h). Spent so far $15.06 (16.9 pod-hours at 9:27 am PT).
+**Status (final, 11:30 am PT, 27 Nov).** Everything is in: DPO on two bases (the decisive reading,
+Amendment 8) and the reward-model + GRPO arm on two RL seeds of one base (Amendment 10). The draft
+was audited once (audit Part 4, applied); the auditor's final pass over the two-base and seed-1
+parts is to come. Cost: $16.71 for 18.78 pod-hours on four RTX 4090 pods, all deleted by 11:18 am
+PT.
 
 **Question (Leon's).** A small transformer prover is pretrained on natural-deduction proofs written
 by two synthetic authors, A and B, who differ in a set of *habits* (two Lean-valid ways to write the
@@ -17,30 +18,30 @@ with 4 linked habits, rewarding one habit moved the linked step-order habit only
 Leon's theory: holding an author is not worth it for 4 habits. With 22 linked habits, does pushing
 ONE habit toward author A move the others? Terms are defined in § 1.
 
-## The answer so far (DPO on two bases, RL on one seed)
+## The answer (DPO on two bases, RL on two seeds of one base)
 
 With 22 linked habits the *base* (the pretrained model) writes each proof as one author. But pushing
 one habit by preference tuning on twin pairs (DPO, the decisive arm) barely moved the habits written
 before it, on either of two bases: the 18 Nov pattern again. A reward model with on-policy RL did
-move the 15 premise notes as a block, on one RL seed.
+move the 15 premise notes as a block, on two RL seeds of one base.
 
 1. **DPO, read where reiteration (the rated habit) has moved +30 points.** A *twin pair* is a
    model's own proof and the same proof with only reiteration flipped; the A version is preferred.
    Averaged over two bases, the habits written before the edited line (step order, 11 of the 15
    note classes) moved **+2.9 [+0.7, +5.1]** points more with 22 links than with none (first base
-   +1.5, second +4.2). That is above zero but inside the pre-registered ±10 "edited one by one"
-   zone: at most about +5, where a full switch to author A would move them +41 (first base) or +54
-   (second). A full switch moves reiteration itself only +20 to +24, so the read is past one. The
-   Nov 18 markers moved no more with 22 links than with 4: difference **+1.6 [−2.4, +6.2]**. The
+   +1.5, second +4.2). That is above zero but at most about +5, inside the pre-registered ±10
+   "edited one by one" zone; a full switch to author A would move them +41 to +54 (and reiteration
+   itself only +20 to +24, so the read is past one). The Nov 18 markers moved no more with 22 links than with 4: difference **+1.6 [−2.4, +6.2]**. The
    read-out's reading: "habits edited one by one, as on Nov 18".
 2. **DPO, after the edited line: +11.3 [+7.3, +15.4]** (first base; about +9.9 on the second, a
    point estimate), mostly restate. That fits the page following the edited line; a
    corpus-specific structural effect is not excluded.
-3. **Reward model + GRPO, one RL seed.** Notes against the base: **+29.0 [+26.1, +32.0]** toward A
-   with the reward, **−33.3 [−36.7, −30.2]** toward B with acceptance only; about 0 on the
-   four-habit corpus. The reward model does not pay for notes. [interp] It looks like selection
+3. **Reward model + GRPO, two RL seeds.** Notes against the base, seeds 0 / 1: **+29.0 / +26.5**
+   toward A with the reward, **−33.3 / −20.9** toward B with acceptance only (every interval
+   excludes 0); about 0 on the four-habit corpus (seed 0). The pre-registered replication rule
+   reads "replicates". The reward model does not pay for notes. [interp] It looks like selection
    among the base's own authors: sampled proofs stay single-author in their notes, and the
-   all-A-note share went 49 → 86–97 %.
+   all-A-note share went 49–50 → 85–97 % with the reward.
 4. **The base, without a *tag*** (a prompt token naming the author): an A-form note predicts A-form
    notes of other classes **+97.0 [+94.3, +99.0]** points on the all-linked base, about 0 on the
    others.
@@ -48,21 +49,23 @@ move the 15 premise notes as a block, on one RL seed.
 **How sure.** The DPO reading: two bases (the second with one trainer seed), four corpora on the
 first. The bases do not "disagree" by Amendment 8's rule (opposite signs beyond ±5): before-line
 +1.5 / +4.2, marker difference −0.6 / +3.8. It is read on models that already accept 3–19 points
-fewer proofs than their bases. The RL block: one seed, one base, and the reward line never reached
-+30. Intervals cover theorems only, not base-to-base variance.
+fewer proofs than their bases. The RL block: two RL seeds, but one base and one reward model (reused
+by design), and neither reward line quite reached +30 (+28.7, +29.8). Intervals cover theorems
+only, not base-to-base variance.
 
 **Leon's asks.**
 - **Natural habits.** 7 of the 22 are natural; the 15 notes are procedurally generated and cost
   nothing in Lean acceptance. The all-linked base links the natural ones +41 without a tag. No arm
-  moved them as a block; under RL step order went toward B in both lines, 13.5 [+9.9, +17.0] points
-  less with the reward (restate likewise).
+  moved them as a block. Under RL step order went toward B in both lines, less so with the reward
+  (by 13.5 [+9.9, +17.0] and 4.1 [+0.9, +7.6] points, seeds 0 / 1).
 - **Capability.** The note lines cost **5.1 [2.3, 7.9]** points of pass@1 (accepted share of
   attempts). Single bases differ by up to 9 points (the two four-habit bases), so link costs beyond
   that are not established.
-- **Do habits survive training?** Under DPO and the fine-tune, yes: notes stay on 98–105 % of
-  premises and no control drifts by the read. Under acceptance-only RL, no: 14 habits lose more than
-  half their A-share by iteration 40 (notes 59.5 → 30.0 % A by iteration 10), riding on step order,
-  which that RL pushes toward B on every corpus. The KL anchor (0.02) did not stop it.
+- **Do habits survive training?** Under DPO and the fine-tune, yes: the model keeps writing about
+  one note per premise (§ 3.7), and no control drifts by the read. Under acceptance-only RL, no: on
+  the all-linked corpus 14 habits (seed 0) and 6 (seed 1) lose more than half their A-share by
+  iteration 40, riding on step order, which that RL pushes toward B on every corpus. The KL anchor
+  (0.02) did not stop it.
 - **How labs push a habit.** DPO arm = DPO; reward model + GRPO = RLHF (on-policy, KL-anchored);
   fine-tune = SFT. Unlike lab practice, every pair is a twin differing in one habit (§ 2.3).
 
@@ -80,7 +83,7 @@ reading (Amendment 8); every base is set against the one no-links base.
 - Bottom group, a reference and not a "− no-links" contrast: a full switch of each all-linked base
   to author A (its tag-A profile minus its untagged profile).
 - Intervals: 95 % bootstrap over 500 theorems (B 1,000); they leave out base-to-base variance.
-- Source: `LH/read/read_twobase.json` (read-out code 507c9fd).
+- Source: `LH/read/read_final.json` (read-out code 507c9fd).
 
 ---
 
@@ -278,7 +281,7 @@ line: the pre-registered bar (+30 on the all-linked base). 95 % bootstrap over t
 ### 3.2 DPO (decisive arm) at +30
 
 Figure 2 is at the top. First bases, mean of two trainer seeds; then the second bases (one trainer
-seed each) and the pre-registered two-base average (`LH/read/read_twobase.json`, code 507c9fd):
+seed each) and the pre-registered two-base average (`LH/read/read_final.json`, code 507c9fd):
 
 | corpus | +30 crossing step (seed 0, 1) | rated habit D | before-line movement | after-line movement | M (Nov 18 markers) |
 |---|---|---:|---:|---:|---:|
@@ -417,7 +420,7 @@ controls are given per seed.
   [−6.4, +6.4] against M(four-habit) +11.6 [+5.2, +18.0].
 - [interp] It agrees with DPO: no author-level movement.
 
-### 3.5 Reward model + on-policy RL (one RL seed; second seed PENDING)
+### 3.5 Reward model + on-policy RL (two RL seeds of one base)
 
 ![GRPO lines against the base, per habit, and the authors of the training samples](figures/fig4_grpo.png)
 
@@ -427,11 +430,12 @@ Triangles up: the reward-model line. Triangles down: the plain line. A note clas
 a small mark and no interval. The pooled row is Amendment 10's quantity, the note sites before the
 first reiteration site; notes are written first, so here it equals all note sites. (c) The
 all-linked lines' own training samples (Lean-accepted proofs with notes): the share whose notes are
-all in A's form, in 40 equal chunks of the sample file in order. The file has no iteration field, so
-a chunk is only about one iteration. Seed-1 lines are drawn hollow when they land
-(`summary_extra.py`, then `fig_grpo.py`).
+all in A's form, in 40 equal chunks of each line's sample file in order. The file has no iteration
+field, so a chunk is only about one iteration. Filled marks and solid curves: RL seed 0; hollow marks
+and dashed curves: RL seed 1 (all-linked only; same base, same reward model).
 
-Change against the base at iteration 40, RL seed 0:
+Change against the base at iteration 40 (RL seed 0 on every corpus; RL seed 1 on the all-linked
+corpus only, Amendment 10):
 
 | corpus, line | reiteration (rated) | step order | restate | notes before 1st reiteration, pooled | accepted |
 |---|---:|---:|---:|---:|---:|
@@ -441,31 +445,38 @@ Change against the base at iteration 40, RL seed 0:
 | four-habit, plain | +2.2 [−0.5, +4.6] | −18.0 [−23.0, −13.1] | +6.4 [+1.6, +10.9] | +1.9 [−0.2, +4.1] | 84.0 |
 | no-links, reward | +38.2 [+35.0, +41.7] | −10.9 [−14.7, −7.3] | −17.5 [−22.1, −12.6] | −0.8 [−2.9, +1.2] | 84.1 |
 | no-links, plain | −0.4 [−3.2, +2.2] | −11.8 [−15.4, −8.2] | +3.9 [−1.4, +9.2] | +2.4 [+0.2, +4.4] | 83.5 |
-| **all-linked, RL seed 1 (Amendment 10)** | **PENDING** | **PENDING** | | **PENDING** | |
+| all-linked, reward, RL seed 1 | +29.8 [+26.4, +33.3] | −17.6 [−22.6, −12.9] | −1.9 [−6.7, +3.0] | **+26.5 [+23.6, +29.7]** | 80.4 |
+| all-linked, plain, RL seed 1 | −15.7 [−18.6, −12.8] | −21.7 [−26.5, −16.7] | −15.4 [−19.7, −11.1] | **−20.9 [−24.4, −17.5]** | 80.7 |
 
-Bases accept 45.7 / 44.7 / 53.0 %. The pooled notes on the all-linked base: 59.5 % A, 88.5 % in the
-reward line, 26.2 % in the plain line. Source: `summary_extra.json` (read-out code 507c9fd). The
-507c9fd read-out's own Amendment 10 output gives the same notes and step-order values to the printed
-digit, and D(notes) (reward minus plain) +62.3 [+59.3, +65.0]. Amendment 10's first text quoted 59 →
-89.5 / 24.3 (58.7 to one decimal): the same note sites restricted to proofs that have a reiteration
-site (+30.7
-[+27.3, +34.1] and −34.4 [−38.2, −30.7] against the base); its 9:12 am erratum adopts the read-out's
-values.
+Bases accept 45.7 / 44.7 / 53.0 %. The pooled notes on the all-linked base: 59.5 % A; at iteration
+40, 88.5 / 86.0 % in the reward line and 26.2 / 38.6 % in the plain line (seeds 0 / 1). Source:
+`summary_extra.json` (read-out code 507c9fd). The final read-out's own Amendment 10 output
+(`read_final.json`) gives the same notes and step-order values to the printed digit for both seeds.
+Amendment 10's first text quoted 59 → 89.5 / 24.3 for seed 0 (58.7 to one decimal): the same note
+sites restricted to proofs that have a reiteration site (+30.7 [+27.3, +34.1] and −34.4
+[−38.2, −30.7] against the base; seed 1 +29.2 [+25.9, +32.4] and −22.2 [−26.1, −18.4]). Its 9:12 am
+erratum adopts the read-out's values.
 
-- [obs] On the all-linked corpus every note class moved toward A in the reward line (+10 to +41;
-  atom +24) and toward B in the plain line (−14 to −45; atom −38). That includes one class with
-  fewer than 50 sites, which is not formally read. Most of it happened by iteration 10: +21.2 and
-  −29.5.
+- [obs] On the all-linked corpus, RL seed 0: every note class moved toward A in the reward line (+10
+  to +41; atom +24) and toward B in the plain line (−14 to −45; atom −38). That includes one class
+  with fewer than 50 sites, which is not formally read. Most of it happened by iteration 10: +21.2
+  and −29.5.
+- [obs] RL seed 1, the 14 readable classes: reward line +6.7 to +41.3 (atom +22.6), plain line −44.3
+  to −1.5 (atom −11.9); in each line 13 of the 14 intervals exclude 0. Most of the reward line's move
+  again came by iteration 10 (+27.2).
 - [obs] On the four-habit and no-links corpora the notes moved per class by ±25, both signs, both
   lines.
 - [obs] **Why the plain line moved the notes.** Acceptance-only RL pushes step order toward B on
-  every corpus (A-share all-linked 42 → 13 %, four-habit 38 → 20 %, no-links 23 → 12 %). Only on the
+  every corpus (A-share all-linked 42 → 13 % on RL seed 0 and → 20 % on seed 1, four-habit 38 →
+  20 %, no-links 23 → 12 %). Only on the
   all-linked base are the notes tied to step order: P(note A | step order A) 93.7 % against 28.7 %
   given B; four-habit 52 / 52, no-links 44 / 48 (audit Part 4 Y13).
 - [interp] Lean acceptance seems to favour B's goal-driven step order; that is not tested here.
 - [obs] **The natural habits followed only in part.** Step order moved toward B against the base in
-  both lines, but 13.5 [+9.9, +17.0] points less in the reward line than in the plain line. Restate
-  likewise: +4.2 [+0.3, +8.6] against the base, +28.9 [+24.5, +33.4] against the plain line. The
+  both lines, but less in the reward line than in the plain line: by 13.5 [+9.9, +17.0] points on
+  seed 0 and 4.1 [+0.9, +7.6] on seed 1. Restate, seed 0: +4.2 [+0.3, +8.6] against the base, +28.9
+  [+24.5, +33.4] against the plain line; seed 1: −1.9 [−6.7, +3.0] against the base, against −15.4
+  for the plain line. The
   block that moved is the 15 procedurally generated notes, whose form costs nothing in Lean
   acceptance (both forms are one never-cited line).
 - [obs] **The reward model does not pay for notes.** Bonus difference on held-out twins, 0.3 ×
@@ -475,42 +486,57 @@ values.
   - it does pay for restate's B form (−0.078 [−0.102, −0.057], 85 twins) and for longer proofs
     (+0.041).
 - [obs] **The sampled proofs are single-author in their notes, and RL changed the mix** (Figure 4c;
-  122,592 and 122,917 samples, in 40 chunks of about one iteration each). Only 0.1–3.4 % of proofs
-  with notes mix A and B notes.
-  - reward line: all-A-note proofs 49 % (chunk 1), 66 % (5), 86 % (10), 94 % (20), 87 % (40), and
-    86–97 % in every chunk from 10 on;
-  - plain line: 48 %, 32 % (5), 31 % (10), 24 % (40).
-- [obs] There is within-author change too. Among all-A-note proofs whose reiteration sites are all
-  one form, A-only reiteration rose from 58 % (chunk 1) to 85 % (chunk 40) (audit Part 4 Y3). In the
+  about 123,000 samples per line, in 40 chunks of about one iteration each). Only 0.0–3.4 % of
+  proofs with notes mix A and B notes.
+  - reward line, seed 0: all-A-note proofs 49 % (chunk 1), 66 % (5), 86 % (10), 94 % (20), 87 %
+    (40), and 86–97 % in every chunk from 10 on; seed 1: 50 % (1), 73 (5), 86 (10), 91 (20), 85
+    (40), and 85–95 % from chunk 10 on;
+  - plain line, seed 0: 48 % (1), 32 (5), 31 (10), 24 (40); seed 1: 48 % (1), 34 (5), 33 (10), 44
+    (20), 37 (40).
+- [obs] There is within-author change too (seed 0). Among all-A-note proofs whose reiteration sites
+  are all one form, A-only reiteration rose from 58 % (chunk 1) to 85 % (chunk 40) (audit Part 4 Y3). In the
   measured proofs, P(note A | first reiteration site B) went from 36.5 % (base) to 58.2 % (reward
   line, iteration 40).
-- [obs] The reward line never reached +30 on the all-linked corpus (+28.7 at iteration 40). By the
-  read-out's own rule these are not valid +30 reads; they are read at iteration 40.
+- [obs] The reward line never quite reached +30 on the all-linked corpus (+28.7 and +29.8 at
+  iteration 40). By the read-out's own rule seed 0 is not a valid +30 read; both seeds are read at
+  iteration 40, which Amendment 10 also names as the iteration closest to +30.
 - [interp, from audit Part 3 X3–X4 and Part 4 Y3] On this base, a whole-proof reward that pays for
   A-form reiteration reinforces proofs written as author A, and their notes come with them. It looks
   like selection among the base's own authors: the sampled proofs stay single-author, and RL changed
   how often each author is written (with A-form reiteration also rising inside A's proofs). It needs
   neither a reward for notes nor a persona beyond the base's coherence.
-- [interp] The read-out's reward-minus-plain difference (+62 on the atom note) is the sum of two
-  opposite drifts. The movement against the base is the headline.
-- **Not established.** That this is a contrast between methods. There is one seed and one base, the
-  reward line did not reach +30, and the arms differ in more than selection: on-policy sampling, and
-  GRPO raising acceptance from 46 to 81 % while DPO was breaking proofs.
+- [interp] The read-out's reward-minus-plain difference (+62 on the atom note, seed 0) is the sum of
+  two opposite drifts. The movement against the base is the headline.
+- **What two RL seeds establish.** The block movement of the notes in both directions (toward A with
+  the reward, toward B with acceptance only) is seen on two RL seeds from one base with one reward
+  model; the seed-1 lines reuse the seed-0 reward model by design.
+- **Still open.**
+  - Other bases: no GRPO line ran on the second all-linked base.
+  - Whether it is the number of links or the notes being visible on the page: the seven-natural
+    corpus (natural links, unlinked notes) had no GRPO lines.
+  - The mechanism: "selection among the base's authors" stays an interpretation.
+- **Not established** (the auditor's wording: permitted, not established). That the DPO / RL
+  difference is a contrast between methods: the arms differ in more than selection (on-policy
+  sampling, and GRPO raising acceptance from 46 to 80–81 % while DPO was breaking proofs), and the
+  reward lines did not reach +30.
 
-**RL seed 1 (PENDING, Amendment 10).** The same base, the same reward model (not refitted) and
+**RL seed 1 (Amendment 10): replicates.** The same base, the same reward model (not refitted) and
 recipe, RL seed 1. Quantities: for each line, the change against the base of the pooled A-share of
-notes before the first reiteration site and of step order, and D(notes) = reward line minus plain
-line, at iteration 40 and at the iteration where the reward line's reiteration move is closest to
-+30 (for seed 0 both are iteration 40).
+notes before the first reiteration site (base 59.5 % A) and of step order (base 41.6 % A), and
+D(notes) = reward line minus plain line, at iteration 40, which is also the iteration where the
+reward line's reiteration move is closest to +30 for both seeds (+28.7 and +29.8).
 
-| all-linked, iteration 40 | notes, reward | notes, plain | D(notes) | step order, reward | step order, plain |
-|---|---:|---:|---:|---:|---:|
-| RL seed 0 | +29.0 [+26.1, +32.0] | −33.3 [−36.7, −30.2] | +62.3 [+59.3, +65.0] | −14.8 [−20.0, −10.1] | −28.4 [−33.1, −23.7] |
-| RL seed 1 | PENDING | PENDING | PENDING | PENDING | PENDING |
+| all-linked, iteration 40 | notes, reward | notes, plain | D(notes) | step order, reward | step order, plain | step order, D |
+|---|---:|---:|---:|---:|---:|---:|
+| RL seed 0 | +29.0 [+26.1, +32.0] | −33.3 [−36.7, −30.2] | +62.3 [+59.3, +65.0] | −14.8 [−20.0, −10.1] | −28.4 [−33.1, −23.7] | +13.5 [+9.9, +17.0] |
+| RL seed 1 | +26.5 [+23.6, +29.7] | −20.9 [−24.4, −17.5] | +47.4 [+44.2, +50.8] | −17.6 [−22.6, −12.9] | −21.7 [−26.5, −16.7] | +4.1 [+0.9, +7.6] |
 
-*Predictions* from seed 0, fixed before the run (predictions, not bars): plain line notes at least
-20 points toward B; reward line notes at least 15 points toward A; D(notes) at least +30; step order
-toward B in both lines.
+*Predictions* from seed 0, fixed before the run (predictions, not bars), against seed 1:
+- plain line notes at least 20 points toward B: **held at the point estimate**, −20.9, but only just;
+  the interval reaches −17.5;
+- reward line notes at least 15 points toward A: **held**, +26.5 [+23.6, +29.7];
+- D(notes) at least +30: **held**, +47.4 [+44.2, +50.8];
+- step order toward B in both lines: **held**, −17.6 and −21.7, both intervals below 0.
 
 *Reading rule*, as Amendment 10 has it: "The block movement of the notes under on-policy RL on `c24`
 **replicates** only if both lines move the notes in those directions with intervals excluding 0, and
@@ -519,8 +545,18 @@ report says that seed 0's D was enlarged by the anchor line's drift and leads wi
 against the base. If the reward line's notes do not move toward A (interval includes 0), the seed-0
 observation is reported as not replicated." (The anchor line is the plain line.)
 
-*Slot: the seed-1 row above, at iteration 40 and nearest +30, from the 507c9fd read-out; its
-Amendment 10 reading; seed-1 markers in Figure 4.*
+**Outcome.** Both lines moved the notes in the predicted directions with intervals excluding 0, and
+D(notes) is +47.4 [+44.2, +50.8]; the anchor line did drift. The read-out prints "replicates" at
+iteration 40 and at the iteration closest to +30 (the same iteration).
+- [obs] The plain line's drift is smaller on seed 1 (−20.9 against −33.3) and not monotone over
+  iterations: −27.8, −13.6, −23.4, −20.9 at iterations 10, 20, 30, 40. Its sample mixture shows the
+  same wobble (Figure 4c, dashed).
+- [obs] The reward line's notes are steady from iteration 10 (+27.2, +27.1, +28.1, +26.5), while
+  its reiteration keeps rising (+19.1, +25.5, +28.4, +29.8).
+- [obs] Acceptance rises from the base's 45.7 % to 71.5, 77.8, 80.0, 80.4 % (reward line) and 75.0,
+  77.8, 79.8, 80.7 % (plain line) at iterations 10–40.
+- [obs] The difference in step order between the lines is smaller on seed 1 (+4.1 [+0.9, +7.6]
+  against +13.5 [+9.9, +17.0]).
 
 ### 3.6 The note rater (secondary)
 
@@ -552,7 +588,7 @@ first bases it gives the same intervals to within 0.1).
 | all-linked, second base | 47.1 [44.1, 50.1] | 81.8 | 10.3 | 0 |
 
 Intervals as in Figure 5: first bases from the gate (B 2,000), second bases from `summary_extra.json`
-(B 1,000). The all-linked second base was fetched at 9:21 am PT and is not yet audited.
+(B 1,000).
 
 **Does it degrade performance by taking up output lines?** Yes, measurably.
 - [obs] The note lines alone (no-links minus the same corpus without notes) cost **5.1 [2.3, 7.9]**
@@ -570,14 +606,21 @@ Intervals as in Figure 5: first bases from the gate (B 2,000), second bases from
   provers are weaker than the Nov 14 ones.
 
 **Does the habit immediately disappear in training?** What this run shows and what it does not:
-- [obs] The habits are written at the start of tuning: notes on 99.2–99.5 % of premises in every
-  base.
-- [obs] Through tuning the note rate stays at 98–105 % of premises in every measured first-base
-  snapshot (the second bases' snapshots were not checked for this). The one exception is a degenerate step-400 swapped control (four-habit, seed 1: 134 %, double notes).
+- [obs] The habits are written at the start of tuning: 99.2–99.5 % of premises carry a note in
+  every base with notes (the gate's G0; a premise with two notes counts once).
+- [obs] Through tuning the model keeps writing about one note per premise: 98–105 notes per 100
+  premises in each of the 108 tuned snapshots in the read-out's tables (DPO, fine-tune and GRPO,
+  both bases; `note_rate` under `tables[<run>][<snapshot>].read.none` in `read_final.json`), and
+  99.9–102.3 in the 8 RL seed-1 snapshots, which the tables do not hold (same function,
+  `lh_stats.note_rate`, run by me). The count includes every note, so it passes 100 when some
+  premises get two notes. The one exception is a degenerate step-400 swapped control (four-habit,
+  trainer seed 1: 134 per 100, double notes).
 - [obs] The pre-registered drift rule (a control losing more than half a habit's A-share by the read)
-  fired for no habit in any DPO control, on either base. In the fine-tune controls it fired only for the thin
-  disjunct habit. It fired for 14 habits in the all-linked plain GRPO line: acceptance-only RL moves
-  the forms, here toward B, within 10 iterations.
+  fired for no habit in any DPO control, on either base. In the fine-tune controls it fired only for
+  the thin disjunct habit. In the all-linked plain GRPO line it fired for 14 habits on RL seed 0 (the
+  read-out's list) and for 6 on RL seed 1 (step order and five note classes; my count with the same
+  rule from `summary_extra.json`, which reproduces the read-out's 14 for seed 0): acceptance-only RL
+  moves the forms, here toward B, within 10 iterations.
 - **What it does not show.** Whether the habits survive long training. The DPO read is at 13–18 steps
   (0.3–0.5 passes) and GRPO stops at 40 iterations. At step 400 the rated DPO models have no accepted
   proofs to read, and the swapped controls are damaged and drift toward the rated form (§ 3.3). The
@@ -592,7 +635,7 @@ Intervals as in Figure 5: first bases from the gate (B 2,000), second bases from
 | With many linked habits the base writes as one author without a tag | **[obs] supported, in this sense:** the all-linked base writes each proof's notes as one author without a tag (+97); natural habits are linked less (+41; +16 with 7 linked, +11 with 4). Caveat: notes are on the page before the other habits. |
 | With many links, pushing one habit moves the others (theory's prediction b), by offline preference tuning on twin pairs | **[obs] not seen on either base** (the pre-registered two-base reading is "edited one by one"). Before-line movement +2.9 [+0.7, +5.1] on the two-base average: above zero, but at most about +5 where a full switch to author A gives +41 to +54, and inside the ±10 zone. M with 22 links ≈ M with 4 (difference +1.6 [−2.4, +6.2]). |
 | The 18 Nov result came from too few links | **[interp] not supported by the DPO arm on two bases.** With 22 links the decisive arm gives the same "edited one by one" pattern as 4 links. |
-| Rewarding one habit with a whole-proof reward and on-policy RL moves the linked habits | **[obs, one seed] yes for the 15 procedurally generated notes on the all-linked base** (+29.0 against the base; −33.3 in the plain line); not on the four-habit base. The natural habits followed only in part: step order moved toward B against the base in both lines, 13.5 [+9.9, +17.0] points less in the reward line; restate +4.2 against the base, +28.9 against the plain line. [interp] apparently by changing how often each of the base's authors writes. **PENDING** RL seed 1. |
+| Rewarding one habit with a whole-proof reward and on-policy RL moves the linked habits | **[obs, two RL seeds of one base, one reward model] yes for the 15 procedurally generated notes on the all-linked base** (against the base: +29.0 / +26.5 with the reward, −33.3 / −20.9 in the plain line; Amendment 10 reads "replicates"); not on the four-habit base (seed 0). The natural habits followed only in part: step order moved toward B against the base in both lines, 13.5 / 4.1 points less in the reward line. [interp] apparently by changing how often each of the base's authors writes. [open] other bases; links versus notes on the page (no seven-natural GRPO lines). |
 | A "persona" in a stronger sense than the base sampling one author per proof | **[open] no evidence.** RL here reweights authors the base already writes coherently. |
 | Why Nov 18 moved step order only about 9 | **[open hypothesis]** Nov 18 used whole-proof RL on a 4-linked base, whose untagged author coherence may be weak, so selecting A-form reiteration selected little else. The +10.7 natural → natural measured here is this run's four-habit base, not the Nov 14 base Nov 18 used; that base's untagged link was not measured here. On the all-linked base the same selection carried the notes. This needs the seven-natural GRPO lines (§ 7) to separate "more links" from "notes put the author on the page". |
 
@@ -620,17 +663,19 @@ Intervals as in Figure 5: first bases from the gate (B 2,000), second bases from
   would separate "more links" from "notes show the author on the page".
 - **Two bases only for the all-linked and four-habit corpora**, and the second bases have one
   trainer seed each; the seven-natural and no-links corpora have one base, and every base is set
-  against the one no-links base. One RL seed (the second is pending). The note rater has one trainer
-  seed. Intervals are over theorems and leave out
-  base-to-base variance, which is about 9 points of pass@1 between the two four-habit bases.
+  against the one no-links base. GRPO has two RL seeds on one base (all-linked) with one reward
+  model, and one RL seed on the four-habit and no-links corpora. The note rater has one trainer seed.
+  Intervals are over theorems and leave out base-to-base variance, which is about 9 points of pass@1
+  between the two four-habit bases.
 - **Habit shares are read on Lean-accepted proofs only.** At the DPO read about a quarter of attempts
   are Lean-rejected and up to about 45 % are parse failures. The audit's common-theorem check gives
   M +2.0 / +4.5. Lean-rejected but parsed proofs carry habit shares within about 12 points of the
   accepted ones (7.5 on the all-linked corpus); re-including them would move a share by about 1–3
   points. The parse failures cannot be profiled.
-- **The tuned DPO models at the read have lost 9–19 points of acceptance**, and they accept nothing by
-  step 400. A gentler DPO replicate is the first next step (§ 7).
-- **GRPO on the all-linked corpus never reached +30**; it is read at iteration 40.
+- **The tuned DPO models at the read have lost 9–19 points of acceptance** (3–4 on the second
+  bases), and they accept nothing by step 400. A gentler DPO replicate is the first next step (§ 7).
+- **GRPO on the all-linked corpus never quite reached +30** (+28.7 and +29.8); it is read at
+  iteration 40.
 - **Read-out wording** (audit Part 3 X6). Its "last" for DPO is the upper bracketing snapshot, not
   step 400. Its readings line "habits edited one by one" does not mention the +11.3 after-line
   movement. Both are reported here.
@@ -639,8 +684,8 @@ Intervals as in Figure 5: first bases from the gate (B 2,000), second bases from
   habit and Amendment 10's note quantity), the second-base pass@1 and the sample authors come from
   `summary_extra.py`, which writes `LH/read/summary_extra.json`. It runs the read-out's own
   estimators at code 507c9fd (the same theorems and bootstrap weights). Its GRPO-against-base values
-  match the 507c9fd read-out's Amendment 10 output to the printed digit, and its sample counts
-  reproduce the audit's (49 → 86–97 %, 48 → 24 %).
+  match the final read-out's Amendment 10 output for both RL seeds to the printed digit, and its
+  sample counts reproduce the audit's (49 → 86–97 %, 48 → 24 %).
 
 ### Pre-registered priors against outcomes (Amendment 1)
 
@@ -658,42 +703,63 @@ Runpod RTX 4090 pods (secure cloud), $0.89 / h each, from `LH/pods.tsv`:
 
 | pod | created (PT) | deleted (PT) | hours | cost |
 |---|---|---|---:|---:|
-| no-links (+ no-notes base) | 3:43 am | 8:26 am | 4.72 | $4.20 |
+| no-links (+ no-notes base) | 3:42 am | 8:26 am | 4.72 | $4.20 |
 | four-habit (+ Nov 14 bases, second base) | 3:43 am | 8:38 am | 4.92 | $4.38 |
 | seven-natural | 4:22 am | 6:16 am | 1.89 | $1.69 |
-| all-linked (+ second base, RL seed 1) | 4:03 am | still running | 5.39 at 9:27 am | $4.80 so far |
-| **total** | | | **16.92 at 9:27 am PT** | **$15.06 so far; final PENDING** |
+| all-linked (+ second base, RL seed 1) | 4:03 am | 11:18 am | 7.25 | $6.45 |
+| **total, all four pods deleted** | | | **18.78** | **$16.71** |
+
+Timings from this run that the costs in § 7 use: one pair of GRPO lines (reward + plain, 40
+iterations each, with their snapshot measurements) took 1.84 h on one 4090 (RL seed 1: 1.01 h and
+0.83 h); a reward-model fit took about 2 minutes (300 steps); a rated + swapped DPO pair with its
+snapshot measurements took 17 minutes (the second all-linked base).
 
 The budget top given to Leon is $30 (ask him at $39). No lab GPU was used. Serrano CPU work (corpus
 build, read-outs, this summary) ran under 8 cores.
 
 ## 7. Next experiments worth running
 
-1. **A gentler DPO replicate** (lr 1e-5 or below, two trainer seeds, all-linked / four-habit /
-   no-links, rated and swapped). It asks whether the before-line null holds when the model is not
-   breaking at the read. About 3–4 pod-hours, about $3–4.
-2. **GRPO lines on the seven-natural corpus** (reward model on its existing pairs plus the reward
-   and plain lines; base and pairs are on serrano). It separates "more natural links" from "notes put
-   the author on the page" for the selection effect. About 2.5 pod-hours, about $2–3 per RL seed;
-   two seeds about $5.
-3. **GRPO on the second all-linked base.** That base has no reward model, so whether to fit one on
-   its own pairs or reuse the first base's is a design decision to write down first (audit X5). About
-   2.5 pod-hours, about $2–3, cheapest while the all-linked pod is still up.
+Costs are scaled from this run's pod-hours (§ 6) at $0.89 / h, plus about 0.3 h per pod for start-up
+and transfers.
+1. **The on-policy arm on the seven-natural corpus**: a reward model fitted on its existing pairs,
+   then the reward and plain GRPO lines (base and pairs are on serrano). About 2 h of one 4090, about
+   $2 per RL seed. In that corpus only the 7 natural habits are linked (+16 without a tag) and the
+   notes are coins.
+   - If the reward line moves the natural habits against the plain line well beyond the four-habit
+     corpus, more links alone carry habits under RL.
+   - If it moves them no more than on the four-habit corpus, the all-linked block needs the notes:
+     their strong link, or the author being visible on the page.
+2. **The on-policy arm on the second all-linked base**: a reward model fitted on that base's own
+   2,278 pairs (reusing the first base's is the alternative; write the choice down first, audit X5),
+   then both lines. About 2 h, about $2 per RL seed.
+   - If the notes again move toward A with the reward and toward B without it, the block movement
+     is not a property of one base.
+   - If they do not, the two-seed result is specific to the first base.
+3. **A lower-learning-rate DPO replicate** (lr 1e-5, two trainer seeds, all-linked / four-habit /
+   no-links, rated and swapped, on the existing pairs). Six DPO pairs at about 0.3 h each, more if
+   the crossing comes later: about 2–3 h, about $2–3.
+   - If the before-line movement stays inside ±10 while acceptance stays near the base, the DPO
+     null does not come from the model breaking.
+   - If it rises to +10 or more on the all-linked corpus and not on the four-habit one, the null was
+     an artefact of the breaking model, and prediction b gets support.
 4. (Cheap, optional) **A forced-prefix test on the bases**: write an A-form reiteration line into the
-   prompt and read the later habits, with no tuning. It separates "follows the page" from
-   corpus-specific structure for the after-line movement (audit X2). About 0.3 GPU-hours.
+   prompt and read the later habits, with no tuning. About 0.3 GPU-hours.
+   - If the later habits follow the forced line on the all-linked base and not on the no-links
+     base, the after-line movement is the page being followed; if not, it is corpus-specific
+     structure (audit X2).
 
 ## 8. Pointers
 
 - Working folder:
   [`code/experiments/current/linked_habits_20261127/`](../../code/experiments/current/linked_habits_20261127/)
   (`SPEC2.md`, `PREREG.md`, `CORPUS2.md`, `TUNING.md`, `RUNNER.md`, `discourse/design_audit.md`).
-- Read-out: `LH/read/read_twobase.{txt,json}` (code 507c9fd, B 1,000; written 9:23 am PT), the
-  source of every DPO, fine-tune and GRPO read here. Frozen copy of that code:
-  `/scratch/cowifornia/nd-rl/worktrees/linked-habits-frozen5/code/experiments/current/linked_habits_20261127`;
-  it also prints Amendment 10's quantities and will read RL seed 1. Its first-base numbers equal the
-  earlier `LH/read/read_firstbase.{txt,json}` (code 12fc233) exactly; only three GRPO validity flags
-  changed (the four-habit and no-links reads are now valid +30 reads; all-linked still is not). Gate:
+- Read-out: `LH/read/read_final.{txt,json}` (code 507c9fd, B 1,000; written 11:19 am PT, both bases
+  and both RL seeds), the source of every DPO, fine-tune and GRPO read here. Frozen copy of that
+  code: `/scratch/cowifornia/nd-rl/worktrees/linked-habits-frozen5/code/experiments/current/linked_habits_20261127`.
+  Its numbers for everything but RL seed 1 equal `read_twobase.{txt,json}` (9:23 am PT) exactly, and
+  its first-base numbers equal `read_firstbase.{txt,json}` (code 12fc233) except three GRPO validity
+  flags (the no-links line's reads and the four-habit line's last read became valid; the four-habit
+  +30 read and the all-linked reads still are not). Gate:
   `LH/gate/gate_v2.{txt,json}`. Additions: `LH/read/summary_extra.json`. Operator's log:
   `LH/ops_log.md`. Pods: `LH/pods.tsv`. LH = `/scratch/cowifornia/nd-rl/linked_habits` on serrano.
 - Figures: `fig_gate.py`, `fig_dpo.py`, `fig_accept.py`, `fig_grpo.py`, `fig_perf.py` in the working
@@ -705,7 +771,8 @@ build, read-outs, this summary) ran under 8 cores.
   `ad001ea` (second-base pass), `970d863` (gate record 2), `23b1fc7` (gate record correction),
   `87ca0b5` (Amendment 9), `12fc233` (fetch checks, passes in the read-out; the read-out's code),
   `db90970` (Amendment 10 and audit Part 3), `507c9fd` (the RL seed-1 job, read-out labels, this
-  summary's first draft and figure code), `20d28b0` (Amendment 10 erratum, audit Part 4). The
-  revision after audit Part 4 is uncommitted in the worktree at the time of writing.
+  summary's first draft and figure code), `20d28b0` (Amendment 10 erratum, audit Part 4), `46f377c` (this summary after audit Part 4, with the
+  two-base DPO reading). The final revision with RL seed 1 is uncommitted in the worktree at the time
+  of writing.
 - Earlier experiment: `code/experiments/current/two_authors_20261111/` (the 18 Nov 4-habit test;
   read-out `/scratch/cowifornia/nd-rl/two_authors/analysis_20261118/`).
