@@ -185,6 +185,14 @@ concentrated: before RL, the 5 % of positions with the largest gap carry 69 % of
   calls "not established"). The prediction that the hint's gain shrinks along the run. The other eight pre-set checks
   passed; the [summary](README.md#pre-registered-checks) lists all of them.
 - **One adapter per checkpoint and 8 draws per prompt.**
+- **Not a minimal adapter.** The adapter has about 134 million trainable weights (rank 16 on every attention and
+  MLP projection). The other half of the method, shrinking the adapter until it stops working, was not run, so
+  nothing here says how small a change is enough. The EDL of 5,279 nats is about 0.00006 bits per adapter weight.
+- **The examples come from the RL-trained model.** IFBench has checkers and no reference answers, so the adapter
+  was trained on the finished model's own responses, thinking included. The loss and EDL curves therefore measure
+  similarity to the finished model, which later checkpoints of the same run have almost by construction. The
+  adapter result is a distillation from the model that RL produced, not an elicitation from independent data.
+  (Both points were raised by Leon after the first draft.)
 - **The in-prompt test is weak.** It has no control for copying, and the model attends through a 4,096-token window on
   48 of its 64 layers, about the length of one example.
 - **Some cells are Dan's.** For pasted thinking and the hint, steps 0 and 2,300 are his stored draws; the three middle

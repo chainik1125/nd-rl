@@ -213,6 +213,12 @@ lines between the five checkpoints. Only the pair of checkpoints is really locat
   the plain prompt; the final model's median is 33), and no one has read whether its passes are
   genuine.
 - The adapter arm uses one adapter per checkpoint (one data order) and 8 draws per prompt.
+- The adapter is not minimal: about 134 million trainable weights (rank 16 on every attention and MLP
+  projection). No sweep over adapter size was run, so the EDL here is the examples side only (5,279 nats is about
+  0.00006 bits per adapter weight).
+- The adapter's training examples are the final model's own responses (IFBench has no reference answers). So the
+  loss and EDL curves measure similarity to the final model, and the adapter result is a distillation from the
+  RL-trained model, not an elicitation from independent data. (Both raised by Leon, 2026-11-27.)
 - The in-context arm has no control for copying or style imitation, and the model attends through
   a 4,096-token window on 48 of its 64 layers, about the length of one example (mean 4,010 tokens).
 - Sampling cells at `dpo` and 2300 for the transplant and hint arms are Dan's stored draws, not ours.
