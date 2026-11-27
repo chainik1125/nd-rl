@@ -22,8 +22,11 @@
 #   lh_pod.sh check     <alias>                 heartbeat, markers, driver log tail, jobs, GPU, disk, processes
 #   lh_pod.sh fetch     <alias> [--light|--keep] pod LH/{bases,measure,raw,runs,logs,pod,pairs,arms} and the anchor files
 #                                               -> serrano LH, md5-checked (--light: no checkpoints; --keep: the bases,
-#                                               each run's final.pt and rm.pt, the measured snapshots, each GRPO line's
-#                                               last snapshot; the other checkpoints are counted and listed, not fetched)
+#                                               each run's final.pt and rm.pt, the measured snapshots, every GRPO
+#                                               snapshot; the other checkpoints are counted and listed, not fetched).
+#                                               Any failed, cut-off or empty listing fails the fetch; the last line
+#                                               is FETCH_OK <alias> mode=<m> files=<n> ckpt=<k> left_on_pod=<j> (<GB>)
+#                                               only on full success
 #
 # What a corpus's copy holds (pod /workspace = serrano paths through lh_pod_setup.sh's links):
 #   exp/linked_habits_20261127/: this runner (lh_core, lh_launch, lh_measure, lh_pairs, lh_rlvar, lh_stats, lh_gate,
@@ -258,34 +261,53 @@ EOF
   fetch)
     light=${1:-}
     [[ -z $light || $light == --light || $light == --keep ]] || { echo "fetch: unknown mode $light (none, --light or --keep)"; exit 2; }
-    ex="! -name '*_alarm.pt'"
-    [[ $light == --light || $light == --keep ]] && ex="! -name '*.pt'"
+    mode=${light#--}
+    mode=${mode:-full}
     F=$LH/pod_stage/$h.fetch
     mkdir -p "$(dirname "$F")"
-    "${SSH[@]}" "$h" "cd /workspace/lh && { find bases measure raw runs logs pod pairs arms -type f $ex ! -name '*.tmp' 2>/dev/null; \
-      find data -maxdepth 1 -type f \( -name 'anchor_*' -o -name 'klstates_*' \) 2>/dev/null; } | sort" > "$F.list" || true
-    [[ -s $F.list ]] || { echo "nothing to fetch on $h"; exit 0; }
-    if [[ $light == --keep ]]; then
-      # --keep: what --light fetches, plus only the checkpoints a reread needs: the bases, each run's final.pt (and the
-      # reward model's rm.pt), the fully measured snapshots (arms/<run>/measure/step<k> exists), each GRPO line's last
-      # snapshot. The rest stays on the pod and is listed (count, size, $F.left): it is lost when the pod is deleted.
-      "${SSH[@]}" "$h" "cd /workspace/lh && { find bases runs arms -type f -name '*.pt' ! -name '*_alarm.pt' -printf '%s %p\n' 2>/dev/null; \
-        find arms -mindepth 3 -maxdepth 3 -type d -path 'arms/*/measure/*' -printf 'DIR %p\n' 2>/dev/null; }" > "$F.pt" || true
-      python3 - "$F.pt" "$F.keep" "$F.left" <<'KEEPEOF' > "$F.left.summary" || { echo "fetch --keep: the checkpoint choice failed"; exit 1; }
+    rm -f -- "$F".*  # never a stale listing from an earlier fetch
+    fail() { echo "FETCH FAILED $h mode=$mode: $*"; exit 1; }
+    listing() {  # listing <out> <remote command> [stdin file]: the command's lines on the pod, then a sentinel the pod
+      # appends (LISTING_END <count>); a non-zero ssh, a missing sentinel or another line count is a failure (audit W1)
+      local out=$1 n got
+      "${SSH[@]}" "$h" "cd /workspace/lh && { $2 ; } | awk '{print} END {print \"LISTING_END \" NR}'" < "${3:-/dev/null}" > "$out.raw" \
+        || fail "ssh exited $? while listing $(basename "$out")"
+      [[ $(tail -n 1 "$out.raw") =~ ^LISTING_END\ ([0-9]+)$ ]] || fail "the listing $(basename "$out") is cut off (no LISTING_END line)"
+      n=${BASH_REMATCH[1]}
+      head -n -1 "$out.raw" > "$out"
+      got=$(wc -l < "$out")
+      (( got == n )) || fail "the listing $(basename "$out") has $got lines; the pod sent $n"
+    }
+    # every file but the checkpoints; then the checkpoints (size, path) and the fully measured snapshot folders
+    listing "$F.list" "{ find bases measure raw runs logs pod pairs arms -type f ! -name '*.pt' ! -name '*.tmp' 2>/dev/null; \
+      find data -maxdepth 1 -type f \( -name 'anchor_*' -o -name 'klstates_*' \) 2>/dev/null; } | sort"
+    [[ -s $F.list ]] || fail "the pod lists no file under /workspace/lh"
+    listing "$F.pt" "find bases measure raw runs logs pod pairs arms -type f -name '*.pt' -printf '%s %p\n' 2>/dev/null; \
+      find arms -mindepth 3 -maxdepth 3 -type d -path 'arms/*/measure/*' -printf 'DIR %p\n' 2>/dev/null"
+    # which checkpoints: full = all but *_alarm.pt; --light = none; --keep = the bases, each run's final.pt and rm.pt,
+    # the fully measured snapshots (arms/<run>/measure/step<k> exists), every GRPO snapshot (_it<N>_snap.pt). Full and --keep
+    # refuse when the pod's own records (a base's tag.json, a run's done.json) name a checkpoint its listing lacks.
+    python3 - "$mode" "$F.list" "$F.pt" "$F.keep" "$F.left" "$F.need" <<'CHOOSEEOF' || fail "the checkpoint choice refused (above)"
 import re, sys
-listing, keep_f, left_f = sys.argv[1:4]
+mode, list_f, pt_f, keep_f, left_f, need_f = sys.argv[1:7]
+listed = [ln.rstrip("\n") for ln in open(list_f) if ln.strip()]
 pts, dirs = {}, set()
-for ln in open(listing):
+for ln in open(pt_f):
     ln = ln.rstrip("\n")
     if ln.startswith("DIR "):
         dirs.add(ln[4:])
         continue
     size, _, path = ln.partition(" ")
-    if size.isdigit() and path.endswith(".pt"):
-        pts[path] = int(size)
+    if not (size.isdigit() and path.endswith(".pt")):
+        sys.exit(f"FETCH FAILED: an unreadable line in the checkpoint listing: {ln[:120]!r}")
+    pts[path] = int(size)
 keep, lines = {}, {}
 for p in pts:
-    if re.fullmatch(r"bases/[^/]+\.pt", p):
+    if mode == "light" or p.endswith("_alarm.pt"):
+        continue
+    if mode == "full":
+        keep[p] = "checkpoint"
+    elif re.fullmatch(r"bases/[^/]+\.pt", p):
         keep[p] = "base"
     elif re.fullmatch(r"arms/[^/]+/final\.pt", p):
         keep[p] = "run final"
@@ -294,23 +316,42 @@ for p in pts:
     elif (m := re.fullmatch(r"arms/([^/]+)/snap_step(\d+)\.pt", p)) and f"arms/{m[1]}/measure/step{int(m[2])}" in dirs:
         keep[p] = "measured snapshot"
     elif m := re.fullmatch(r"runs/([^/]+)/seg(\d+)/ckpts/\1_it(\d+)(_snap)?\.pt", p):
-        lines.setdefault(m[1], []).append((1 if m[4] else 0, int(m[3]), int(m[2]), p))
-for line, c in lines.items():
-    keep[max(c)[3]] = "GRPO last snapshot"  # the highest iteration's _snap.pt (a plain _it<N>.pt only without one)
+        if m[4]:  # every GRPO snapshot (audit W2: the primary read is at the one nearest +30)
+            keep[p] = "GRPO snapshot"
+            lines.setdefault(m[1], [])
+        else:
+            lines.setdefault(m[1], []).append((int(m[3]), int(m[2]), p))
+for line, plain in lines.items():
+    if plain and not any(v == "GRPO snapshot" and k.startswith(f"runs/{line}/") for k, v in keep.items()):
+        keep[max(plain)[2]] = "GRPO last checkpoint (the line has no snapshot)"
+need, errs = [], []
+if mode != "light":
+    need = sorted(p for p in pts if re.fullmatch(r"bases/[^/]+\.pt", p) or re.fullmatch(r"arms/[^/]+/final\.pt", p))
+    for p in listed:
+        if m := re.fullmatch(r"bases/(.+)\.tag\.json", p):
+            if f"bases/{m[1]}.pt" not in pts:
+                errs.append(f"the pod has {p} but its checkpoint listing has no bases/{m[1]}.pt")
+        elif (m := re.fullmatch(r"arms/([^/]+)/done\.json", p)) and not m[1].startswith("rm_"):
+            if f"arms/{m[1]}/final.pt" not in pts:
+                errs.append(f"the pod has {p} but its checkpoint listing has no arms/{m[1]}/final.pt")
+    errs += [f"a required checkpoint was not chosen: {p}" for p in need if p not in keep]
+if errs:
+    for e in errs[:20]:
+        print(f"FETCH FAILED: {e}")
+    sys.exit(1)
 left = sorted(p for p in pts if p not in keep)
-with open(keep_f, "w") as f:
-    f.writelines(f"{p}\n" for p in sorted(keep))
-with open(left_f, "w") as f:
-    f.writelines(f"{pts[p]} {p}\n" for p in left)
+for f, rows in ((keep_f, sorted(keep)), (left_f, [f"{pts[p]} {p}" for p in left]), (need_f, need)):
+    with open(f, "w") as fh:
+        fh.writelines(f"{r}\n" for r in rows)
 kinds = {k: sum(1 for v in keep.values() if v == k) for k in sorted(set(keep.values()))}
 print(f"checkpoints fetched: {len(keep)} ({sum(pts[p] for p in keep) / 1e9:.2f} GB; {kinds}); LEFT ON THE POD (lost when "
       f"it is deleted, reproducible from the seeds): {len(left)} checkpoints, {sum(pts[p] for p in left) / 1e9:.2f} GB, listed in {left_f}")
-KEEPEOF
-      cat "$F.left.summary"
-      cat "$F.keep" >> "$F.list"
-      sort -o "$F.list" "$F.list"
-    fi
-    "${SSH[@]}" "$h" 'cd /workspace/lh && xargs -d "\n" md5sum' < "$F.list" > "$F.pod.md5"
+CHOOSEEOF
+    cat "$F.keep" >> "$F.list"
+    sort -u -o "$F.list" "$F.list"
+    listing "$F.pod.md5" "xargs -d '\n' md5sum" "$F.list"
+    gone=$(cut -c35- "$F.pod.md5" | sort | comm -23 "$F.list" -) || true
+    [[ -z $gone ]] || fail "listed files vanished on the pod before their md5 (a job still running? fetch again after it): $(printf '%s ' $gone | cut -c1-400)"
     # a result already on serrano must be the same file (never overwritten): bases, base measurements, pairs, anchor
     # files, checkpoints, and the rows of every measurement and probe; records a running task rewrites (lh_offline.json,
     # metrics.jsonl, full_*.json, logs) may change between two fetches
@@ -320,34 +361,57 @@ KEEPEOF
         [[ $(md5sum < "$LH/$path" | cut -d' ' -f1) == "$sum" ]] || { echo "CONFLICT: $LH/$path differs from $h's"; conflict=1; }
       fi
     done < "$F.pod.md5"
-    [[ $conflict == 0 ]] || { echo "nothing fetched (resolve the conflicts by hand)"; exit 1; }
-    timeout 7200 "${RSYNC[@]}" --files-from="$F.list" "$h:/workspace/lh/" "$LH/"
-    (cd "$LH" && xargs -d '\n' md5sum < "$F.list") > "$F.lab.md5"
+    [[ $conflict == 0 ]] || fail "nothing fetched (resolve the conflicts by hand)"
+    timeout 7200 "${RSYNC[@]}" --files-from="$F.list" "$h:/workspace/lh/" "$LH/" || fail "rsync exited $?"
+    (cd "$LH" && xargs -d '\n' md5sum < "$F.list") > "$F.lab.md5" 2> "$F.lab.err" \
+      || fail "serrano's md5 of the fetched files failed: $(head -c 300 "$F.lab.err")"
     # a second listing on the pod: a file whose md5 changed between the two listings is still being written (a running
     # job's log, metrics, status), and heartbeats always change; those are named, not compared (audit R11). Every other
-    # file must be equal on both sides.
-    "${SSH[@]}" "$h" 'cd /workspace/lh && xargs -d "\n" md5sum' < "$F.list" > "$F.pod2.md5"
-    python3 - "$F.pod.md5" "$F.pod2.md5" "$F.lab.md5" <<'PYEOF'
+    # listed file must be equal on both sides; both listings must cover every listed file (audit W1); the required
+    # checkpoints (bases, runs' final.pt) must be fetched and equal. FETCH_OK is printed only then, as the last line.
+    listing "$F.pod2.md5" "xargs -d '\n' md5sum" "$F.list"
+    python3 - "$h" "$mode" "$F.list" "$F.pod.md5" "$F.pod2.md5" "$F.lab.md5" "$F.keep" "$F.left" "$F.need" <<'VERIFYEOF' || exit 1
 import sys
+import time
+alias, mode, list_f, p1_f, p2_f, lab_f, keep_f, left_f, need_f = sys.argv[1:10]
 def read(f):
     return {ln[34:].rstrip("\n"): ln[:32] for ln in open(f) if len(ln) > 34}
-p1, p2, lab = (read(f) for f in sys.argv[1:4])
-moving = sorted(k for k in p2 if p1.get(k) != p2[k] or (k.startswith("pod/") and k.endswith(".heartbeat.json")))
-bad = sorted(k for k in p2 if k not in moving and lab.get(k) != p2[k])
+def rows(f):
+    return [ln.rstrip("\n") for ln in open(f) if ln.strip()]
+paths = rows(list_f)
+p1, p2, lab = read(p1_f), read(p2_f), read(lab_f)
+errs = []
+for name, d in (("the pod's first", p1), ("the pod's second", p2), ("serrano's", lab)):
+    miss = [k for k in paths if k not in d]
+    if miss:
+        errs.append(f"{name} md5 listing lacks {len(miss)} of {len(paths)} listed files ({', '.join(miss[:3])})")
+moving = sorted(k for k in paths if k in p2 and (p1.get(k) != p2[k] or (k.startswith("pod/") and k.endswith(".heartbeat.json"))))
+compared = [k for k in paths if k in p2 and k not in moving]
+if len(compared) + len(moving) != len(paths):
+    errs.append(f"compared {len(compared)} + still being written {len(moving)} is not the {len(paths)} listed files")
+bad = sorted(k for k in compared if lab.get(k) != p2[k])
 for k in moving[:20]:
     print(f"still being written on the pod (not compared): {k}")
 for k in bad[:20]:
     print(f"MD5 DIFFERS: {k}")
-print(f"md5: {len(p2) - len(moving) - len(bad)} stable files equal, {len(bad)} differ, {len(moving)} still being written")
-sys.exit(1 if bad else 0)
-PYEOF
-    rc=$?
-    [[ $light == --keep ]] && cat "$F.left.summary"
-    if (( rc == 0 )); then
-      echo "md5: every stable fetched file equal on $h and serrano ($(utc))"
-    else
-      echo "MD5 DIFFERENCES on files that did not change on the pod between two listings: fetch again; if they persist, stop and look"
-      exit 1
-    fi ;;
+print(f"md5: {len(compared) - len(bad)} stable files equal, {len(bad)} differ, {len(moving)} still being written, of {len(paths)} listed")
+if bad:
+    errs.append(f"{len(bad)} stable files differ between the pod and serrano: fetch again; if they persist, stop and look")
+listed = set(paths)
+for k in rows(need_f):
+    if k not in listed:
+        errs.append(f"a required checkpoint was not fetched: {k}")
+    elif k in moving or k in bad:
+        errs.append(f"a required checkpoint is not equal on both sides: {k}")
+left = [r.split(" ", 1) for r in rows(left_f)]
+if errs:
+    for e in errs:
+        print(f"FETCH FAILED {alias} mode={mode}: {e}")
+    sys.exit(1)
+print(f"md5: every stable fetched file equal on {alias} and serrano ({time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})")
+print(f"FETCH_OK {alias} mode={mode} files={len(paths)} ckpt={len(rows(keep_f))} left_on_pod={len(left)} "
+      f"({sum(int(s) for s, _ in left) / 1e9:.2f} GB)")
+VERIFYEOF
+    ;;
   *) echo "unknown command $cmd"; exit 2 ;;
 esac

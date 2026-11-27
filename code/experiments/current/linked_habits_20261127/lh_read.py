@@ -812,6 +812,20 @@ def readout(
                     name: validity(per_seed, name, seeds_of(kind, r))
                     for name in ("at_target", "last")
                 }
+                if kind in (
+                    "dpo",
+                    "sft",
+                ):  # passes over the pairs at the crossing (Amendment 9 point 1)
+                    for s_, x in per_seed.items():
+                        add_passes(
+                            res,
+                            lh,
+                            c,
+                            r,
+                            kind,
+                            arm_id(kind, c, r, s_),
+                            x["points"].get("at_target"),
+                        )
                 if kind == "dpo" and r == "reit":
                     for name in ("at_target", "last"):
                         for s_, x in per_seed.items():
@@ -855,6 +869,15 @@ def readout(
                         tok, x2["points"][name], C.RATERS["reit"], "reit"
                     )
             res["compare"].setdefault("dpo:reit", {})[tok] = e2
+            add_passes(
+                res,
+                lh,
+                tok,
+                "reit",
+                "dpo",
+                arm_id("dpo", tok, "reit", 0),
+                x2["points"].get("at_target"),
+            )
             info["valid"] = e2["valid"]["at_target"]
             if x2["points"].get("at_target"):
                 b2_pts[c] = x2["points"]["at_target"]
@@ -979,6 +1002,7 @@ def readout(
                 R, T, {c: p["terms"] for c, p in b2_pts.items()}, h0
             )
         res["prereg"][f"{kind}:{r}:{name}"] = pr
+    res["passes_differ"] = passes_differ(res.get("passes") or {})
     valid = {
         c: ((res["compare"].get("dpo:reit") or {}).get(c) or {}).get("valid", {}).get("at_target")
         for c in corpora
@@ -989,6 +1013,73 @@ def readout(
 
 def _in(e: dict[str, Any] | None, lo: float, hi: float) -> bool:
     return bool(e and e.get("ci") and lo <= e["ci"][0] and e["ci"][1] <= hi)
+
+
+def pair_counts(lh: Path, token: str, rater: str) -> dict[str, Any]:
+    """The pair build's counts for a corpus field (<c>: pairs/<c>_s0; <c>b1: pairs/<c>_s1): the train pairs DPO trains
+    on (after the balancing and the 4,000 cap) and the proofs of each fine-tune file."""
+    c, bs = C.split_base(token)
+    d = lh / "pairs" / f"{c}_s{bs}" / rater
+    cap: dict[str, Any] = {}
+    with contextlib.suppress(OSError, ValueError):
+        cap = json.loads((d / "summary.json").read_text()).get("cap") or {}
+    train = cap.get("train_capped") or cap.get("train_balanced")
+    if train is None and (d / "train.jsonl").exists():
+        train = sum(1 for ln in (d / "train.jsonl").read_text().splitlines() if ln.strip())
+    return {"train_pairs": train, "sft_proofs": cap.get("sft_capped")}
+
+
+def add_passes(
+    res: dict[str, Any],
+    lh: Path,
+    token: str,
+    rater: str,
+    kind: str,
+    arm: str,
+    pt: dict[str, Any] | None,
+) -> None:
+    """PREREG Amendment 9 point 1 (audit W6): passes over a rated run's train data at its +30 crossing = batch (64) x the
+    crossing step (interpolated in the bracket, as the read) / its train pairs (DPO) or fine-tune proofs (SFT)."""
+    e = res.setdefault("passes", {}).setdefault(f"{token}:{rater}", {"corpus": C.split_base(token)[0],
+                                                                    "base_seed": C.split_base(token)[1], **pair_counts(lh, token, rater), "runs": {}})  # fmt: skip
+    n = e["train_pairs"] if kind == "dpo" else e["sft_proofs"]
+    row: dict[str, Any] = {"kind": kind, "data": n, "step": None, "passes": None}
+    if pt and pt.get("reached") and len(pt.get("steps") or []) == 2 and pt.get("w") is not None:
+        s1, s2 = pt["steps"]
+        row["step"] = round((1 - pt["w"]) * s1 + pt["w"] * s2, 2)
+        row["passes"] = round(C.OFFLINE_BATCH * row["step"] / n, 3) if n else None
+    else:
+        row["why"] = "no valid +30 crossing" if pt else "no +30 read"
+    e["runs"][arm] = row
+
+
+def passes_differ(passes: dict[str, Any]) -> list[str]:
+    """Amendment 9 point 2's trigger on the reiteration DPO runs, per base seed (each corpus's mean over its trainer
+    seeds; c0 from the first base): c4 or c0 after more than 2 passes while c24 crosses within 1, or the reverse."""
+    out = []
+    for bs in sorted({e["base_seed"] for e in passes.values()}):
+        mean = {}
+        for c in ("c24", "c4", "c0"):
+            e = passes.get(f"{C.base_token(c, bs if c != 'c0' else 0)}:reit") or {}
+            v = [
+                r["passes"]
+                for r in e.get("runs", {}).values()
+                if r["kind"] == "dpo" and r["passes"] is not None
+            ]
+            if v:
+                mean[c] = round(sum(v) / len(v), 3)
+        if "c24" not in mean:
+            continue
+        others = {c: v for c, v in mean.items() if c != "c24"}
+        hit = (mean["c24"] <= 1 and any(v > 2 for v in others.values())) or (
+            mean["c24"] > 2 and any(v <= 1 for v in others.values())
+        )
+        if hit:
+            out.append(
+                f"base seed {bs}: c24 {mean['c24']} passes; "
+                + ", ".join(f"{c} {v}" for c, v in others.items())
+            )
+    return out
 
 
 def base2_state(lh: Path, corpus: str) -> str:
@@ -1217,6 +1308,16 @@ def report(res: dict[str, Any]) -> str:
                 for k, v in pr.items()
             )
         )
+    L.append("\nPasses over the train data at the +30 crossing (PREREG Amendment 9 point 1; 64 x crossing step / train pairs, "
+             "fine-tune: / proofs):")  # fmt: skip
+    for key, e in (res.get("passes") or {}).items():
+        runs = "; ".join(f"{a} " + (f"step {r['step']} -> {r['passes']} passes" if r["passes"] is not None else r.get("why", "-"))
+                         for a, r in e["runs"].items())  # fmt: skip
+        L.append(
+            f"  {key} (base seed {e['base_seed']}): {e['train_pairs']} train pairs, {e['sft_proofs']} fine-tune proofs; {runs}"
+        )
+    for x in res.get("passes_differ") or []:
+        L.append(f"PASSES DIFFER: matched-pairs control required (Amendment 9 point 2): {x}")
     for b in (res.get("base2") or {}).values():
         v = b.get("valid") or {}
         L.append(f"\nSecond base {b['token']} (base seed {C.BASE2_SEED}): {b['state']}"

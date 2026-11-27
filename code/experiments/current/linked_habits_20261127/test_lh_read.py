@@ -634,3 +634,45 @@ def test_second_base_run_must_be_valid(tmp_path):
         r["readings"]["first_base_only"]
         == "the author moves as a unit with 24 links and not with 4"
     )
+
+
+def write_pairs(t, counts):
+    for key, n in counts.items():
+        d = t / "pairs" / key / "reit"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "summary.json").write_text(
+            json.dumps({"cap": {"train_balanced": n, "train_capped": n, "sft_capped": n + 500}})
+        )
+
+
+def test_passes_at_the_crossing(tmp_path):
+    """PREREG Amendment 9 point 1 (audit W6): passes = 64 x crossing step / train pairs per rated run and base, the
+    crossing interpolated as the read (w 0.5 between steps 50 and 100: step 75); point 2's trigger line."""
+    t = two_base_tree(tmp_path, "PASS", o24=80, o24b=60)
+    write_pairs(
+        t, {"c24_s0": 2966, "c4_s0": 2354, "c0_s0": 2292, "c24_s1": 3100, "c4_s1": 2200}
+    )  # the real counts
+    r, _ = case_read(t)
+    p = r["passes"]
+    assert p["c24:reit"]["train_pairs"] == 2966 and p["c24:reit"]["runs"]["dpo_c24_reit_s1"] == {
+        "kind": "dpo", "data": 2966, "step": 75.0, "passes": round(64 * 75 / 2966, 3)}  # fmt: skip
+    assert p["c4b1:reit"]["base_seed"] == 1 and p["c4b1:reit"]["runs"]["dpo_c4b1_reit_s0"][
+        "passes"
+    ] == round(64 * 75 / 2200, 3)
+    assert r["passes_differ"] == []  # 1.62 / 2.04 / 2.09: c24 is not within 1 pass
+    txt = LR.report(r)
+    assert (
+        "c24:reit (base seed 0): 2966 train pairs" in txt
+        and "dpo_c24_reit_s0 step 75.0 -> 1.618 passes" in txt
+        and "PASSES DIFFER" not in txt
+    )
+    t2 = two_base_tree(tmp_path, "PASS2", o24=80, o24b=60)
+    write_pairs(
+        t2, {"c24_s0": 6000, "c4_s0": 2354, "c0_s0": 2292}
+    )  # c24 within 1 pass (0.8), c4 and c0 past 2
+    r2, _ = case_read(t2)
+    assert r2["passes_differ"] == ["base seed 0: c24 0.8 passes; c4 2.039, c0 2.094"]
+    assert (
+        "PASSES DIFFER: matched-pairs control required (Amendment 9 point 2): base seed 0: c24 0.8 passes"
+        in LR.report(r2)
+    )

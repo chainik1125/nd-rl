@@ -200,11 +200,18 @@ for C in c24 c9 c4 c0; do bash $W/lh_pod.sh fetch rp-lh$C --keep; done      # ch
 $PY $W/lh_read.py                                          # -> LH/read/read_v2.{json,txt}
 ```
 
-**`fetch --keep` is the fetch to run before `POD READY TO DELETE`** (serrano's /scratch is short): everything `--light`
-takes plus only the bases, each run's `final.pt` (and the reward model's `rm.pt`), the fully measured snapshots (the
-bracket of each rated and no-preference run) and each GRPO line's last snapshot; it prints the count and size of the
-checkpoints it leaves on the pod (lost at deletion, reproducible from the seeds) and lists them in
-`LH/pod_stage/<alias>.fetch.left`. `--light` (no checkpoints) and the plain fetch (all of them) are unchanged.
+**`fetch --keep` is the fetch to run before `POD READY TO DELETE`** (serrano's /scratch is short), after `<c>.DONE`
+(c9, c0) or `<c>.BASE2_DONE` (c24, c4): everything `--light` takes plus only the bases, each run's `final.pt` (and the
+reward model's `rm.pt`), the fully measured snapshots (the bracket of each rated and no-preference run) and every GRPO
+snapshot (iterations 10-40; audit W2); it prints the count and size of the checkpoints it leaves on the pod (lost at
+deletion, reproducible from the seeds) and lists them in `LH/pod_stage/<alias>.fetch.left`. `--light` (no
+checkpoints) and the plain fetch (all but `*_alarm.pt`) fetch what they did.
+**A fetch passes only on its last line** `FETCH_OK <alias> mode=<m> files=<n> ckpt=<k> left_on_pod=<j> (<GB>)` (audit
+W1). Every pod listing (the files, the checkpoints, both md5 listings) ends in a sentinel `LISTING_END <count>`; a
+failed ssh or rsync, a cut-off or empty listing, a md5 listing that does not cover every listed file, a listed file that
+vanishes before its md5, a fetched file missing on serrano (W7), a base or run `final.pt` the pod's records name but its
+listing lacks, or a required checkpoint not fetched and equal, each prints `FETCH FAILED <alias> mode=<m>: <why>` and
+exits 1. Files still being written are named, not compared: the fetch before deletion should show only heartbeats there.
 
 **What "done" looks like**: `check` shows `<c>.DONE` and no `<c>.FAILED` (a `<c>.NOT_RUN` names an rlhf line whose reward
 model missed 0.90: a pre-registered outcome, not a failure); every job log ends `job end rc 0; lock
@@ -297,6 +304,13 @@ the table's row rests on M(c24) - M(c4) or S_before(c24) and the two base seeds 
 [interp] of "the affected rows"); "not read" when a pod's pass ended without its full measurement. The first-base-only
 row is printed beside it in every case.
 
+**Passes at the crossing (PREREG Amendment 9 point 1, audit W6)**: for every rated run of both bases the readout
+prints its train pairs (the pair build's `cap.train_capped`; fine-tune: `sft_capped` proofs) and the passes at its +30
+crossing, 64 x the crossing step (interpolated in the bracket, as the read) / the pairs. Point 2's trigger, on the
+reiteration DPO runs per base seed (each corpus's mean over its trainer seeds, c0 from the first base): c4 or c0 after
+more than 2 passes while c24 crosses within 1, or the reverse, prints `PASSES DIFFER: matched-pairs control required
+(Amendment 9 point 2)` with the values.
+
 ## Time, disk and cost per pod (RTX 4090; PREREG Amendments 7 and 8; [guess] from the dry runs unless marked)
 
 | | c24 | c0 | c4 | c9 |
@@ -339,8 +353,8 @@ All on serrano's CPU; after about 10:20 UTC within the coordinator's limit (`nic
 
 **Unit tests**: `CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 $PY -m pytest --confcutdir=. -p no:cacheprovider -q
 test_lh_rlvar.py test_lh_measure.py test_lh_pairs.py test_lh_launch.py test_lh_gate.py test_lh_read.py test_lh_pod.py`:
-**104 passed** (launch 37, read 21, pod 15, measure 11, rlvar 9, gate 6, pairs 5) with the second base pass and
-`fetch --keep`. Ruff check and format clean on my 15 Python files; `bash -n` clean on the three
+**115 passed** (launch 37, pod 25, read 22, measure 11, rlvar 9, gate 6, pairs 5) with the second base pass,
+`fetch --keep`, the fetch's failure rules (audit W1, W2, W7) and the passes table (Amendment 9). Ruff check and format clean on my 15 Python files; `bash -n` clean on the three
 shell scripts. One run of launch + pairs hung in `test_build_on_corpus_proofs` (a fork of the pytest process, the
 pair build's Lean-check pool, blocked on a lock: torch's threads, started by earlier tests in the same process, exist
 at the fork); stopped by PID; reruns passed. In a real pair build the pools fork before anything imports torch
@@ -353,7 +367,10 @@ none only on the seed-0 reit DPO run's upper bracketing snapshot); the second ba
 command equal to e7b3388's, the second base's names, plans and untagged full task, the driver's pass after stage 2 and
 its rerun after an old stage 2, its failures and switch, the gate beside the first bases gating nothing, the readout
 pending / averaged / bases disagreeing / ended / invalid); the three fetch modes run for real against a pod tree on
-this machine (ssh and rsync replaced on PATH: what each fetches, the md5 line, what --keep leaves and lists);
+this machine (ssh and rsync replaced on PATH: what each fetches, the FETCH_OK line, what --keep leaves and lists) and
+with faults injected (a failed, cut-off or empty listing of the files, the checkpoints or either md5 listing; a missing
+final.pt; a file vanishing on the pod; a file removed on serrano after rsync: each FETCH FAILED with its reason); the
+passes at the crossing and Amendment 9's trigger;
 no-preference runs never probed; GRPO lines only on c24, c4 and
 c0, 40 iterations (the `--iters` that reaches the GRPO process), snapshots untagged at 10, 20, 30, 40; trainer and reward-model commands (the 400-step grid from step 5, `--lr` from `lh_core.OFFLINE_LR`, `--max-tokens
 32768`, each option once); the reward model under 0.90 recorded as not run, never refitted, skipped by the driver and

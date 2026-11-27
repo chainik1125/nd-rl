@@ -119,14 +119,21 @@ def calls(lh: Path) -> list[str]:
     return (lh / "stub_calls.txt").read_text().splitlines()
 
 
-def test_fetch_md5_skips_files_still_being_written(tmp_path):
-    """Audit R11: the fetch compares only files whose pod md5 is the same in two listings (heartbeats never)."""
+def heredoc(tag: str) -> str:
+    """The Python of one heredoc in lh_pod.sh (between `<<'TAG'` and the closing TAG line)."""
     src = (HERE / "lh_pod.sh").read_text()
-    code = src.split("<<'PYEOF'\n", 1)[1].split("\nPYEOF\n", 1)[0]
+    return src.split(f"<<'{tag}'", 1)[1].split("\n", 1)[1].split(f"\n{tag}\n", 1)[0]
 
-    def md5(rows):
-        return "".join(f"{h * 32}  {k}\n" for k, h in rows.items())
 
+def md5_rows(rows: dict) -> str:
+    return "".join(f"{h * 32}  {k}\n" for k, h in rows.items())
+
+
+def test_fetch_verify_md5_rules(tmp_path):
+    """Audit R11 and W1: only files whose pod md5 is the same in two listings are compared (heartbeats never); both
+    listings and serrano's must cover every listed file; the required checkpoints must be fetched and equal; FETCH_OK
+    is the last line and only on full success."""
+    code = heredoc("VERIFYEOF")
     p1 = {
         "measure/c24_s0/a.jsonl": "1",
         "logs/job.log": "2",
@@ -134,139 +141,295 @@ def test_fetch_md5_skips_files_still_being_written(tmp_path):
         "bases/b.pt": "4",
     }
     p2 = {**p1, "logs/job.log": "5"}  # the running job's log moved between the listings
-    for name, lab, want in (
-        ("ok", {**p1, "logs/job.log": "2"}, 0),
-        ("bad", {**p1, "bases/b.pt": "9"}, 1),
-    ):
-        for f, rows in (("p1", p1), ("p2", p2), ("lab", lab)):
-            (tmp_path / f"{name}.{f}").write_text(md5(rows))
-        r = subprocess.run([sys.executable, "-c", code, *(str(tmp_path / f"{name}.{f}") for f in ("p1", "p2", "lab"))],
-                           capture_output=True, text=True)  # fmt: skip
-        assert r.returncode == want, r.stdout + r.stderr
-        assert "still being written on the pod (not compared): logs/job.log" in r.stdout
-        assert "pod/c24.heartbeat.json" in r.stdout and ("MD5 DIFFERS: bases/b.pt" in r.stdout) == (
-            want == 1
-        )
+
+    def run(name, lab, pod2=p2, need=("bases/b.pt",), keep=("bases/b.pt",), listed=p1):
+        d = tmp_path / name
+        d.mkdir()
+        for f, body in (("list", "".join(f"{k}\n" for k in listed)), ("p1", md5_rows(p1)), ("p2", md5_rows(pod2)), ("lab", md5_rows(lab)),
+                        ("keep", "".join(f"{k}\n" for k in keep)), ("left", "38000000 arms/x/snap_step5.pt\n"), ("need", "".join(f"{k}\n" for k in need))):  # fmt: skip
+            (d / f).write_text(body)
+        args = [
+            "rp-t",
+            "keep",
+            *(str(d / f) for f in ("list", "p1", "p2", "lab", "keep", "left", "need")),
+        ]
+        return subprocess.run([sys.executable, "-c", code, *args], capture_output=True, text=True)
+
+    r = run("ok", {**p1, "logs/job.log": "2"})
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert (
+        "still being written on the pod (not compared): logs/job.log" in r.stdout
+        and "pod/c24.heartbeat.json" in r.stdout
+    )
+    assert (
+        r.stdout.strip().splitlines()[-1]
+        == "FETCH_OK rp-t mode=keep files=4 ckpt=1 left_on_pod=1 (0.04 GB)"
+    )
+    r = run("differs", {**p1, "bases/b.pt": "9"})
+    assert (
+        r.returncode == 1 and "MD5 DIFFERS: bases/b.pt" in r.stdout and "FETCH_OK" not in r.stdout
+    )
+    short = {
+        k: v for k, v in p2.items() if k != "measure/c24_s0/a.jsonl"
+    }  # the second listing lost a file
+    r = run("short", {**p1}, pod2=short)
+    assert (
+        r.returncode == 1
+        and "the pod's second md5 listing lacks 1 of 4 listed files" in r.stdout
+        and "FETCH_OK" not in r.stdout
+    )
+    r = run("need", {**p1}, need=("bases/b.pt", "arms/x/final.pt"))
+    assert (
+        r.returncode == 1 and "a required checkpoint was not fetched: arms/x/final.pt" in r.stdout
+    )
 
 
 def test_fetch_keep_chooses_the_checkpoints(tmp_path):
     """fetch --keep: the bases, each run's final.pt (and rm.pt), the snapshots with a full measurement, each GRPO line's
-    last snapshot; every other checkpoint is left on the pod, counted, sized and listed."""
-    src = (HERE / "lh_pod.sh").read_text()
-    code = src.split("<<'KEEPEOF'", 1)[1].split("\n", 1)[1].split("\nKEEPEOF\n", 1)[0]
+    last snapshot; every other checkpoint is left on the pod, counted, sized and listed. Full: all but *_alarm.pt;
+    --light: none. A base's tag.json or a run's done.json without its checkpoint in the listing is refused."""
+    code = heredoc("CHOOSEEOF")
     mb = 38_000_000
     pts = ["bases/stage1_c24_s0.pt", "bases/stage1_c24_s1.pt", "arms/rm_c24_reit_s0/rm.pt",
            *(f"arms/{r}/snap_step{k}.pt" for r in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0") for k in (5, 10, 15, 400)),
            "arms/dpo_c24_reit_s0/final.pt", "arms/dposwap_c24_reit_s0/final.pt",
            *(f"runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it{i}{x}.pt" for i in (10, 20, 30, 40) for x in ("_snap", "")),
-           "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it40_rolling.pt",
+           "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it40_rolling.pt", "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it40_alarm.pt",
            "runs/rl_c24_rlhfreit_s0/seg1/ckpts/rl_c24_rlhfreit_s0_it20.pt"]  # fmt: skip
     dirs = [
         f"arms/{r}/measure/{x}"
         for r in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0")
         for x in ("step10", "step15", "final")
     ]
-    (tmp_path / "pt").write_text(
-        "".join(f"{mb} {p}\n" for p in pts) + "".join(f"DIR {d}\n" for d in dirs)
-    )
-    r = subprocess.run(
-        [sys.executable, "-c", code, *(str(tmp_path / f) for f in ("pt", "keep", "left"))],
-        capture_output=True,
-        text=True,
-    )
-    assert r.returncode == 0, r.stderr
-    keep = (tmp_path / "keep").read_text().split()
-    assert sorted(keep) == sorted(["bases/stage1_c24_s0.pt", "bases/stage1_c24_s1.pt", "arms/rm_c24_reit_s0/rm.pt",
-                                   *(f"arms/{r}/{x}" for r in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0") for x in ("snap_step10.pt", "snap_step15.pt", "final.pt")),
-                                   "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it40_snap.pt",
-                                   "runs/rl_c24_rlhfreit_s0/seg1/ckpts/rl_c24_rlhfreit_s0_it20.pt"])  # fmt: skip
-    left = (tmp_path / "left").read_text().splitlines()
-    assert len(left) == len(pts) - len(keep) == 12 and all(ln.startswith(f"{mb} ") for ln in left)
+    listed = ["bases/stage1_c24_s0.tag.json", "bases/stage1_c24_s1.tag.json", "arms/dpo_c24_reit_s0/done.json",
+              "arms/dposwap_c24_reit_s0/done.json", "arms/rm_c24_reit_s0/done.json"]  # fmt: skip
+
+    def run(mode, pt_rows, name):
+        d = tmp_path / name
+        d.mkdir()
+        (d / "list").write_text("".join(f"{k}\n" for k in listed))
+        (d / "pt").write_text(
+            "".join(f"{mb} {p}\n" for p in pt_rows) + "".join(f"DIR {x}\n" for x in dirs)
+        )
+        r = subprocess.run([sys.executable, "-c", code, mode, *(str(d / f) for f in ("list", "pt", "keep", "left", "need"))],
+                           capture_output=True, text=True)  # fmt: skip
+        return r, d
+
+    r, d = run("keep", pts, "keep")
+    assert r.returncode == 0, r.stdout + r.stderr
+    keep = (d / "keep").read_text().split()
+    assert sorted(keep) == sorted(
+        [
+            "bases/stage1_c24_s0.pt",
+            "bases/stage1_c24_s1.pt",
+            "arms/rm_c24_reit_s0/rm.pt",
+            *(
+                f"arms/{r_}/{x}"
+                for r_ in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0")
+                for x in ("snap_step10.pt", "snap_step15.pt", "final.pt")
+            ),
+            *(
+                f"runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it{i}_snap.pt"
+                for i in (10, 20, 30, 40)
+            ),
+            "runs/rl_c24_rlhfreit_s0/seg1/ckpts/rl_c24_rlhfreit_s0_it20.pt",
+        ]
+    )  # fmt: skip  (W2: every GRPO snapshot)
+    left = (d / "left").read_text().splitlines()
     assert (
-        f"LEFT ON THE POD (lost when it is deleted, reproducible from the seeds): 12 checkpoints, {12 * mb / 1e9:.2f} GB"
+        len(pts) == 24
+        and len(keep) == 14
+        and len(left) == 10
+        and all(ln.startswith(f"{mb} ") for ln in left)
+    )
+    assert (
+        f"LEFT ON THE POD (lost when it is deleted, reproducible from the seeds): 10 checkpoints, {10 * mb / 1e9:.2f} GB"
         in r.stdout
     )
-    assert "checkpoints fetched: 11 (" in r.stdout and len(pts) == 23
+    assert sorted((d / "need").read_text().split()) == sorted(
+        p for p in pts if p.startswith("bases/") or p.endswith("/final.pt")
+    )
+    r, d = run("full", pts, "full")
+    assert (
+        r.returncode == 0 and len((d / "keep").read_text().split()) == 23
+    )  # all but the alarm checkpoint
+    r, d = run("light", pts, "light")
+    assert (
+        r.returncode == 0
+        and (d / "keep").read_text() == ""
+        and len((d / "left").read_text().splitlines()) == 24
+    )
+    r, _ = run("keep", [p for p in pts if p != "arms/dposwap_c24_reit_s0/final.pt"], "nofinal")
+    assert (
+        r.returncode == 1
+        and "the pod has arms/dposwap_c24_reit_s0/done.json but its checkpoint listing has no arms/dposwap_c24_reit_s0/final.pt"
+        in r.stdout
+    )
+    r, _ = run(
+        "keep", [], "zero"
+    )  # zero checkpoints while the pod's records name bases and finished runs
+    assert r.returncode == 1 and "no bases/stage1_c24_s0.pt" in r.stdout
 
 
-FAKE_SSH = """#!/bin/bash
+FAKE_SSH = r"""#!/bin/bash
+# a pod on this machine: the remote command runs locally with /workspace/lh -> $FAKEPOD. FAKE_FAIL / FAKE_CUT / FAKE_EMPTY
+# = <kind>:<n> make the n-th listing of a kind (list, pt, md5) exit 255, lose its last line, or send only a 0 sentinel.
 while [[ $1 == -o ]]; do shift 2; done
 shift
 cmd="$*"
-exec bash -c "${cmd//\\/workspace\\/lh/$FAKEPOD}"
+cmd=${cmd//\/workspace\/lh/$FAKEPOD}
+case "$cmd" in *md5sum*) kind=md5 ;; *"-name '*.pt' -printf"*) kind=pt ;; *) kind=list ;; esac
+n=$(( $(cat "$FAKEPOD.$kind.n" 2>/dev/null || echo 0) + 1 )); echo "$n" > "$FAKEPOD.$kind.n"
+[[ ${FAKE_FAIL:-} == "$kind:$n" ]] && exit 255
+if [[ ${FAKE_CUT:-} == "$kind:$n" ]]; then bash -c "$cmd" | head -n -1; exit 0; fi
+if [[ ${FAKE_EMPTY:-} == "$kind:$n" ]]; then cat > /dev/null; echo "LISTING_END 0"; exit 0; fi
+exec bash -c "$cmd"
 """
-FAKE_RSYNC = """#!/bin/bash
+FAKE_RSYNC = r"""#!/bin/bash
 args=(); skip=0
 for a in "$@"; do
   if (( skip )); then skip=0; continue; fi
   if [[ $a == -e ]]; then skip=1; continue; fi
-  args+=("${a//rp-test:\\/workspace\\/lh/$FAKEPOD}")
+  args+=("${a//rp-test:\/workspace\/lh/$FAKEPOD}")
 done
-exec "$REAL_RSYNC" "${args[@]}"
+"$REAL_RSYNC" "${args[@]}"; rc=$?
+[[ -n ${FAKE_RM_AFTER:-} ]] && rm -f "$FAKE_RM_AFTER"
+exit $rc
 """
-
-
-@pytest.mark.skipif(not shutil.which("rsync"), reason="no rsync")
-def test_fetch_modes_end_to_end_against_a_local_pod(tmp_path):
-    """lh_pod.sh fetch, run for real against a pod tree on this machine (ssh and rsync replaced on PATH): full fetches
-    every checkpoint but *_alarm.pt, --light none, --keep the chosen ones; each prints its md5 line; --keep also
-    the count and size of what it left on the pod."""
-    pod, fake = tmp_path / "pod", tmp_path / "bin"
-    fake.mkdir()
-    for n, body in (("ssh", FAKE_SSH), ("rsync", FAKE_RSYNC)):
-        (fake / n).write_text(body)
-        (fake / n).chmod(0o755)
-    files = {"bases/stage1_c24_s0.pt": "b", "measure/c24_s0/marker_plain__none.jsonl": "{}",
+POD_FILES = {"bases/stage1_c24_s0.pt": "b", "bases/stage1_c24_s0.tag.json": "{}", "measure/c24_s0/marker_plain__none.jsonl": "{}",
              "arms/dpo_c24_reit_s0/snap_step5.pt": "5", "arms/dpo_c24_reit_s0/snap_step10.pt": "10",
              "arms/dpo_c24_reit_s0/final.pt": "f", "arms/dpo_c24_reit_s0/done.json": "{}",
              "arms/dpo_c24_reit_s0/measure/step10/DONE": "x", "arms/dpo_c24_reit_s0/x_alarm.pt": "a",
              "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it10_snap.pt": "s10", "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_snap.pt": "s20",
              "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_rolling.pt": "r", "pod/c24.heartbeat.json": "{}"}  # fmt: skip
-    for k, v in files.items():
+
+
+def fake_pod(tmp_path: Path) -> tuple[Path, Path]:
+    pod, fake = tmp_path / "pod", tmp_path / "bin"
+    fake.mkdir()
+    for n, body in (("ssh", FAKE_SSH), ("rsync", FAKE_RSYNC)):
+        (fake / n).write_text(body)
+        (fake / n).chmod(0o755)
+    for k, v in POD_FILES.items():
         (pod / k).parent.mkdir(parents=True, exist_ok=True)
         (pod / k).write_text(v)
+    return pod, fake
 
-    def pts(lh: Path) -> list[str]:
-        return sorted(
-            str(p.relative_to(lh)) for p in lh.rglob("*.pt") if "pod_stage" not in p.parts
-        )
 
-    for mode, want in (("--keep", ["arms/dpo_c24_reit_s0/final.pt", "arms/dpo_c24_reit_s0/snap_step10.pt", "bases/stage1_c24_s0.pt",
-                                   "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_snap.pt"]),
-                       ("--light", []), ("", sorted(k for k in files if k.endswith(".pt") and "_alarm" not in k))):  # fmt: skip
-        lh = tmp_path / f"lh{mode}"
-        env = {
-            **os.environ,
-            "PATH": f"{fake}:{os.environ['PATH']}",
-            "FAKEPOD": str(pod),
-            "REAL_RSYNC": shutil.which("rsync"),
-            "LH": str(lh),
-        }
-        r = subprocess.run(["bash", str(HERE / "lh_pod.sh"), "fetch", "rp-test", *([mode] if mode else [])], env=env,
-                           capture_output=True, text=True, timeout=120)  # fmt: skip
+def fetch(
+    tmp_path: Path, pod: Path, fake: Path, name: str, mode: str = "--keep", **faults: str
+) -> subprocess.CompletedProcess:
+    for f in pod.parent.glob(f"{pod.name}.*.n"):
+        f.unlink()
+    env = {**os.environ, "PATH": f"{fake}:{os.environ['PATH']}", "FAKEPOD": str(pod), "REAL_RSYNC": shutil.which("rsync"),
+           "LH": str(tmp_path / f"lh_{name}"), **faults}  # fmt: skip
+    return subprocess.run(["bash", str(HERE / "lh_pod.sh"), "fetch", "rp-test", *([mode] if mode else [])], env=env,
+                          capture_output=True, text=True, timeout=120)  # fmt: skip
+
+
+def fetched_pts(lh: Path) -> list[str]:
+    return sorted(str(p.relative_to(lh)) for p in lh.rglob("*.pt") if "pod_stage" not in p.parts)
+
+
+@pytest.mark.skipif(not shutil.which("rsync"), reason="no rsync")
+def test_fetch_modes_end_to_end_against_a_local_pod(tmp_path):
+    """lh_pod.sh fetch, run for real against a pod tree on this machine (ssh and rsync replaced on PATH): full fetches
+    every checkpoint but *_alarm.pt, --light none, --keep the chosen ones; each ends in its FETCH_OK line; --keep also
+    prints the count and size of what it left on the pod and lists it."""
+    pod, fake = fake_pod(tmp_path)
+    allpt = sorted(k for k in POD_FILES if k.endswith(".pt") and "_alarm" not in k)
+    keep = ["arms/dpo_c24_reit_s0/final.pt", "arms/dpo_c24_reit_s0/snap_step10.pt", "bases/stage1_c24_s0.pt",
+            "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it10_snap.pt", "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_snap.pt"]  # fmt: skip
+    for mode, want, last in (
+        ("--keep", keep, "ckpt=5 left_on_pod=3"),
+        ("--light", [], "ckpt=0 left_on_pod=8"),
+        ("", allpt, "ckpt=7 left_on_pod=1"),
+    ):
+        r = fetch(tmp_path, pod, fake, mode or "full", mode)
+        lh = tmp_path / f"lh_{mode or 'full'}"
         assert r.returncode == 0, r.stdout + r.stderr
-        assert pts(lh) == want and (lh / "measure/c24_s0/marker_plain__none.jsonl").exists()
-        assert "md5: every stable fetched file equal on rp-test and serrano" in r.stdout
-        if mode == "--keep":
-            assert (
-                r.stdout.count(
-                    "LEFT ON THE POD (lost when it is deleted, reproducible from the seeds): 3 checkpoints"
-                )
-                == 2
-            )
-            left = [
-                ln.split(" ", 1)[1]
-                for ln in (lh / "pod_stage" / "rp-test.fetch.left").read_text().splitlines()
-            ]
-            assert left == ["arms/dpo_c24_reit_s0/snap_step5.pt", "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it10_snap.pt",
-                            "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_rolling.pt"]  # fmt: skip
-    r = subprocess.run(
-        ["bash", str(HERE / "lh_pod.sh"), "fetch", "rp-test", "--all"],
-        env=env,
-        capture_output=True,
-        text=True,
+        assert fetched_pts(lh) == want and (lh / "measure/c24_s0/marker_plain__none.jsonl").exists()
+        files = len((lh / "pod_stage" / "rp-test.fetch.list").read_text().splitlines())
+        m = mode.lstrip("-") or "full"
+        assert (
+            r.stdout.strip()
+            .splitlines()[-1]
+            .startswith(f"FETCH_OK rp-test mode={m} files={files} {last} (")
+        )
+    r = fetch(tmp_path, pod, fake, "keep2")
+    assert (
+        "LEFT ON THE POD (lost when it is deleted, reproducible from the seeds): 3 checkpoints"
+        in r.stdout
     )
+    left = [
+        ln.split(" ", 1)[1]
+        for ln in (tmp_path / "lh_keep2" / "pod_stage" / "rp-test.fetch.left")
+        .read_text()
+        .splitlines()
+    ]
+    assert left == ["arms/dpo_c24_reit_s0/snap_step5.pt", "arms/dpo_c24_reit_s0/x_alarm.pt",
+                    "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_rolling.pt"]  # fmt: skip
+    r = fetch(tmp_path, pod, fake, "all", "--all")
     assert r.returncode == 2 and "unknown mode --all" in r.stdout
+
+
+@pytest.mark.skipif(not shutil.which("rsync"), reason="no rsync")
+@pytest.mark.parametrize(("faults", "why"), [
+    ({"FAKE_FAIL": "list:1"}, "ssh exited 255 while listing rp-test.fetch.list"),
+    ({"FAKE_FAIL": "pt:1"}, "ssh exited 255 while listing rp-test.fetch.pt"),
+    ({"FAKE_FAIL": "md5:1"}, "ssh exited 255 while listing rp-test.fetch.pod.md5"),
+    ({"FAKE_FAIL": "md5:2"}, "ssh exited 255 while listing rp-test.fetch.pod2.md5"),
+    ({"FAKE_CUT": "list:1"}, "the listing rp-test.fetch.list is cut off (no LISTING_END line)"),
+    ({"FAKE_CUT": "md5:2"}, "the listing rp-test.fetch.pod2.md5 is cut off (no LISTING_END line)"),
+    ({"FAKE_EMPTY": "list:1"}, "the pod lists no file under /workspace/lh"),
+    ({"FAKE_EMPTY": "pt:1"}, "the pod has bases/stage1_c24_s0.tag.json but its checkpoint listing has no bases/stage1_c24_s0.pt"),
+    ({"FAKE_EMPTY": "md5:2"}, "the pod's second md5 listing lacks 10 of 10 listed files"),
+])  # fmt: skip
+def test_fetch_fails_on_a_bad_listing(tmp_path, faults, why):
+    """Audit W1: a failed, cut-off or empty listing (the files, the checkpoints, either md5 listing) is a hard failure
+    with a reason and never a FETCH_OK line, in every mode it concerns."""
+    pod, fake = fake_pod(tmp_path)
+    r = fetch(tmp_path, pod, fake, "bad", **faults)
+    assert r.returncode == 1 and why in r.stdout, r.stdout + r.stderr
+    assert "FETCH_OK" not in r.stdout and "every stable fetched file equal" not in r.stdout
+
+
+@pytest.mark.skipif(not shutil.which("rsync"), reason="no rsync")
+def test_fetch_fails_on_a_missing_final_or_a_vanished_file(tmp_path):
+    """A finished run (done.json) whose final.pt is gone is refused (full and --keep; --light fetches no checkpoint);
+    a file that vanishes between the listing and the md5 listing fails the fetch."""
+    pod, fake = fake_pod(tmp_path)
+    (pod / "arms/dpo_c24_reit_s0/final.pt").unlink()
+    for mode in ("--keep", ""):
+        r = fetch(tmp_path, pod, fake, f"nofinal{mode}", mode)
+        assert (
+            r.returncode == 1
+            and "no arms/dpo_c24_reit_s0/final.pt" in r.stdout
+            and "FETCH_OK" not in r.stdout
+        )
+    assert fetch(tmp_path, pod, fake, "nofinal_light", "--light").returncode == 0
+    (pod / "arms/dpo_c24_reit_s0/final.pt").write_text("f")
+    (fake / "md5sum").write_text(
+        f'#!/bin/bash\nrm -f {pod}/measure/c24_s0/marker_plain__none.jsonl\nexec /usr/bin/md5sum "$@"\n'
+    )
+    (fake / "md5sum").chmod(0o755)
+    r = fetch(tmp_path, pod, fake, "vanished")
+    assert r.returncode == 1 and "FETCH_OK" not in r.stdout, r.stdout + r.stderr
+    assert (
+        "listed files vanished on the pod before their md5 (a job still running? fetch again after it): measure/c24_s0/marker_plain__none.jsonl"
+        in r.stdout
+    )
+    (fake / "md5sum").unlink()
+    (pod / "measure/c24_s0/marker_plain__none.jsonl").write_text("{}")
+    lh = tmp_path / "lh_rmafter"
+    r = fetch(
+        tmp_path, pod, fake, "rmafter", FAKE_RM_AFTER=str(lh / "arms/dpo_c24_reit_s0/final.pt")
+    )  # audit W7
+    assert (
+        r.returncode == 1
+        and "serrano's md5 of the fetched files failed" in r.stdout
+        and "final.pt" in r.stdout
+    )
 
 
 def test_syntax():
