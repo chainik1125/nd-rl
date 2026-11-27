@@ -485,3 +485,30 @@ first reiteration site is 59.5 % in the base, 88.5 % in the reward line and 26.2
 40 (+29.0 and -33.3 against the base), not 59 / 89.5 / 24.3. (2) Against the base the reward line moved the note
 classes by +10 to +41 per class (the lowest value is a class with fewer than 50 sites), not "+20 to +40". Both were
 checked independently by the writer of the summary and by the auditor (`discourse/design_audit.md`, Part 4, Y12).
+
+## Result record: Amendment 10, second RL seed on `c24` (2026-11-27 11:20 am PT)
+
+Both seed-1 lines ran on rp-lhc24 from 9:24 am to 11:15 am PT with code 507c9fd, from the first base
+(`stage1_c24_s0.pt` as `--init` and `--kl_anchor_ref`), RL seed 1, measurement seed 0, and the seed-0 reward model
+(`rm_c24_reit_s0`, same sha256 as the seed-0 line recorded; no refit, no new probe). The operator checked the two
+commands token by token against the seed-0 line's recorded command before the start (only name, output folder and
+seed differ). Read-out: `LH/read/read_final.{txt,json,stdout}` (code 507c9fd, B 1,000).
+
+**Observed, iteration 40** (also the iteration closest to +30; rated-habit move +29.8). Pooled A-share of the notes
+before the first reiteration site, against the base (59.5 %): reward line +26.5 [+23.6, +29.7]; anchor line
+-20.9 [-24.4, -17.5]; D(notes) +47.4 [+44.2, +50.8]. Step order against the base (41.6 %): reward line
+-17.6 [-22.6, -12.9]; anchor line -21.7 [-26.5, -16.7].
+
+**Against the predictions.** Anchor line notes at least 20 points toward B: held at the point value, narrowly
+(-20.9; the interval reaches -17.5; seed 0 gave -33.3, and over iterations 10/20/30/40 the seed-1 anchor line reads
+-27.8 / -13.6 / -23.4 / -20.9 in the operator's digest, so its size is not stable). Reward line notes at least 15
+points toward A: held (+26.5). D(notes) at least +30: held (+47.4). Step order toward B in both lines: held.
+
+**Reading by the rule: replicates.** Both lines move the notes in the predicted directions with intervals excluding
+0, and D(notes) is above +20 with its interval above 0.
+
+**Scope.** Two RL seeds, one base (`c24_s0`), one reward model (the seed-1 reward line reuses the seed-0 reward
+model by design). Not run: GRPO lines on `c9`, which would separate the number of links from the notes being
+written on the page before the rated line, and on the second `c24` base. Those stay Leon's decision (Amendment 10).
+The interpretation of the block movement (selection among the base's two authors) stays an interpretation
+(`discourse/design_audit.md`, Part 3 and Part 4, Y3).
