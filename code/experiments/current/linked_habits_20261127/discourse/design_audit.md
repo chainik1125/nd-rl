@@ -1307,3 +1307,281 @@ The builder of the trainers applied every part-2a item and recorded two objectio
 (1,177 per sampled side; 19.9 % of its sampled proofs took the A form), under the cap of 4,000 of Amendment 7 point 5.
 It is reported as the pre-set flag ("fewer pairs than the cap"); the pair counts of all corpora go beside every
 reading.
+
+## Part 2d: verification of the second-base pass and fetch --keep at ad001ea
+
+Checked 2026-11-27, 5:15–5:50 am PT (independent auditor, Opus). Code read only from the frozen checkout
+`/scratch/cowifornia/nd-rl/worktrees/linked-habits-frozen3/code/experiments/current/linked_habits_20261127` (F3, commit
+ad001ea), compared with F2 (e7b3388) and against PREREG Amendment 8 points 2–3.
+
+What I ran (CPU, `nice -n 5`, single-threaded, at most 3 processes):
+- **The diff** e7b3388 → ad001ea (15 files in the runner folder: 7 code, 4 tests, 4 notes).
+- **Tests in F3:** `test_lh_{pod,launch,read,gate}.py`, 79 passed. This includes the builder's 48-task comparison against F2.
+- **First-base commands, F2 against F3.** Every first-base plan both checkouts build for c24, c9, c4 and c0, printed to
+  JSON and compared.
+- **The readout.** The part-2b synthetic cases A–E through F2 and F3, plus seven second-base cases of my own.
+- **The gate.** Run three ways: F2 and F3 on the seven first-base measurements now in LH, and F3 again with two fake
+  second bases added.
+- **The new fetch mode.** `lh_pod.sh fetch --keep` run against a fake pod on serrano (the builder's fake ssh and
+  rsync), with five faults injected. No network was used.
+- **The second-base plans.** Job caps and argv computed from F3, in a scratch LH.
+
+Scripts and outputs are in `.../scratchpad/audit2b/` (`first_base_cmds.py`, `fb_F{2,3}.json`, `f3read/`, `f3b2/`,
+`gate2d/`, `b2plan/`, `fetch2d/`).
+
+### Verdict (part 2d)
+
+1. **Q1: the first base is unchanged.**
+   - The first-base commands, the readout numbers and the gate are identical in F2 and F3.
+   - The only visible difference is the readout's basis label, which now reads "first base only (second base
+     pending: c24b1, c4b1)".
+2. **Q2: the pass may run.**
+   - It matches Amendment 8 point 2, and every job is capped below the driver's wait.
+   - No first-base path is written.
+   - Copy and `start` after DONE are safe, and the rerun skips stage 1, the gate and stage 2 as it should.
+3. **Q3: the averaging and the bases-disagree rule follow point 3.** Marking only rows 1–2 is right. An invalid
+   second-base run (never reaching +30, the precondition not met, or a missing bracket measurement on either arm)
+   gives "not read" with the reason.
+4. **Q4: `fetch --keep` may be used, but its rc 0 is not yet enough to delete a pod (W1).**
+   - A failed or truncated ssh listing still ends in "every stable fetched file equal".
+   - Check the counts by hand, or apply the small fix, before the first deletion.
+   - The keep list is otherwise complete. W2 suggests a cheap addition.
+5. **Q5: the 2,354-pair train set of c4 needs only the flag plus one more reported number** (W6). Then add the c24
+   subsample control only if the passes at +30 differ a lot.
+
+### W1. SHOULD FIX (before the first pod is deleted, c9 at about 7:45 am PT; not before the pass or a fetch): `fetch` can end rc 0 with files missing
+
+**Evidence** (`fetch --keep` against a local fake pod of 17 files, faults injected in the fake ssh and rsync):
+
+| fault | rc | printed | missing on serrano |
+|---|---:|---|---|
+| none | 0 | "15 stable files equal, 0 differ, 1 still being written" | none |
+| the checkpoint listing's ssh fails (exit 255) | **0** | "checkpoints fetched: 0 … LEFT ON THE POD: 0 checkpoints"; "every stable fetched file equal" | **both bases, the final, the measured snapshot, rm.pt, the GRPO snapshot** |
+| the main listing's ssh drops after 5 lines | **0** | "11 stable files equal"; "every stable fetched file equal" | **measurement rows, pairs, logs, GRPO metrics** |
+| the second pod md5 listing comes back empty | **0** | "0 stable files equal, 0 differ, 0 still being written"; "every stable fetched file equal" | none, but nothing was compared |
+| a fetched file removed after rsync | 123 | no message (xargs md5sum under `set -e`) | final.pt; the fetch fails, without saying why |
+| a fetched file changed after rsync | 1 | "MD5 DIFFERS: …probe.json" | correct |
+
+**Cause.**
+- Both pod listings end in `|| true`.
+- The Python check compares only the paths present in the second pod listing. It never checks that this listing,
+  or the fetched copy, covers `$F.list`.
+- In `--keep`, an empty `$F.pt` yields an empty keep list, and the summary then reports "0 checkpoints left on the
+  pod".
+- The main listing's `|| true` predates ad001ea. The checkpoint listing, whose failure loses the checkpoints, is new.
+
+**Smallest change** (three lines in `lh_pod.sh fetch`):
+- Replace both `|| true` with `|| { echo "fetch: the listing failed on $h"; exit 1; }`. Remotely, the main listing's
+  status is `sort`'s, so a missing `runs/` does not trip it.
+- Add `[[ $light != --keep || -s $F.pt ]] || { echo "fetch --keep: no checkpoint listing from $h"; exit 1; }`.
+- In the md5 Python, also read `$F.list`. Fail when a listed path is in the first pod listing but missing from the
+  second, or when the second listing is empty while the list is not. Print "listed N, compared M".
+
+**Until it is fixed, check every fetch by hand before deleting the pod.**
+- "stable files equal" + "differ" + "still being written" must equal `wc -l < LH/pod_stage/<alias>.fetch.list`.
+- The "checkpoints fetched" kinds must show `base` = the pod's bases (c24: 2 after the pass; c4: 4 with the Nov 14
+  bases).
+- `run final` must equal the number of `arms/*/final.pt` on the pod. The `check` output or one `ls` shows it.
+
+### W2. SHOULD FIX (cheap; before deletion): keep every GRPO snapshot, not only the last
+
+- **The primary GRPO read** (Amendment 8 point 5) is the snapshot closest to +30, with iteration 40 beside it.
+- **What `--keep` keeps:** one `_snap.pt` per line, the highest iteration.
+- **What a later re-read loses.** The rows of every snapshot measurement are fetched, so the reading can be repeated.
+  Any new measurement of the matched snapshot (a tagged read for the chain, a second set) would need the GRPO line
+  rerun, 1–3 pod-hours.
+- **Cost of keeping all four:** about 4 × 38 MB per line, under 0.5 GB for all lines.
+- **Smallest change:** in the KEEPEOF block, keep every `…_it<N>_snap.pt` and keep the highest plain `_it<N>.pt` only
+  when a line has no snapshot.
+
+`*_alarm.pt` (GRPO rollback points) are neither fetched nor listed as left. That is harmless; I mention it only so the
+"LEFT ON THE POD" count is not read as the full list.
+
+**The rest of the keep list is complete.**
+- **The main list** (every non-`.pt` file under bases, measure, raw, runs, logs, pod, pairs and arms, plus the anchor
+  and KL-state files) holds:
+  - measurement rows, raw rows and probe outputs;
+  - `train.jsonl`, `metrics.jsonl` and `done.json`;
+  - `lh_offline.json` and `full_*.json`;
+  - the reward model's `probe.json`, its sidecars and `rm.pt.failed`;
+  - `rm_bonus` rows, GRPO segment files, `not_run.json`, pair files, logs and pod markers.
+- **The kept checkpoints:** the bases, each run's final, `rm.pt`, and every snapshot with an
+  `arms/<run>/measure/step<k>` folder. That is the naming `full_main` writes.
+- **Nothing else the pod writes holds results:** `LH/locks` and the Lean cache are transient.
+- **Disk:** checkpoints are about 38 MB each. A pod has about 30–40 kept, about 1.5 GB, so all four pods take about
+  6 GB of the 38 GB free now.
+
+### W3. NOTE (Q1): the first base, F2 against F3
+
+**The builder's test** compares, per first-base task:
+- names, paths, estimates, hours and refusals;
+- trainer argv, smoke argv and dependencies;
+- the measure argv and the base and pair paths.
+
+It does not cover the job plans.
+
+**My wider comparison**, all identical in F2 and F3 for c24, c9, c4 and c0:
+- prep2;
+- stage2 (job name `stage2_<c>_s0`, its cap and the full task list);
+- measure, pretrain seed 0, and every GRPO line's plan;
+- the reward-model and reward-model-probe argv, and every rated run's `probe_argv`;
+- `task_cmd`, `select_steps`, and the tagging rule;
+- step timeouts.
+
+**Code paths changed by ad001ea:**
+- `split_base` returns `(c, 0)` for every first-base name, so `pair_files`, `trainer_argv` (KL states), `task_problems`,
+  `full_main`'s tag condition, the FAILED path and `base_summary` reduce to the old code.
+- The driver's stage-2 block is unchanged inside an `if`. It is skipped only when `BASE2=1` and DONE exists.
+- In `_tasks`, ND_GUARD stays off for every task, so the second base's DPO runs under the same environment as the first.
+
+**The readout.**
+- Cases A–E: F2 and F3 give the same fields except the basis label.
+- Every P1, P2 and P3 quantity is the same with and without second-base runs in the tree.
+
+**The gate.**
+- F2 and F3 write identical JSON on the seven first-base measurements.
+- With fake `c24_s1` and `c4_s1` added (my links to the first bases' rows, in scratch only), no first-base entry and
+  not the decision changes. The decision still checks G0 on c24_s0, c9_s0, c4_s0 and c0_s0.
+- The second bases print "reported beside the first, gates nothing".
+
+### W4. NOTE (Q2): the pass, item by item
+
+| point of Amendment 8 point 2 | F3 | checked |
+|---|---|---|
+| base seed 1, pretrain_steps.json's seed-1 count | `pretrain --corpus C --seed 1` → `--steps 41800` (`scaled_steps(1)`), then the sanity read into `raw/C_s1_sanity` | plan printed |
+| measured like any base | `measure --base C_s1 --skip_done` | argv identical to `C_s0`'s up to the base id (k 8, A/B/none, both sets, strict 106) |
+| pairs balanced and capped the same way | `sample/build --base_seed 1` into `pairs/C_s1` | same functions and seed strings for split, balance and the 4,000 cap. `--no_probe` drops only the reward-model probe twins (no reward model on the second base). Both steps refuse to overwrite. |
+| dpo + dposwap, trainer seed 0 | `base2_tasks`: `dpo_Cb1_reit_s0`, `dposwap_Cb1_reit_s0`, `full_dpo_Cb1_reit_s0` | DPO argv identical to the first base's up to base and pairs (lr, grid, 400 steps, `--swap-seed 0`, the corpus's KL states) |
+| probes | `probe_argv` | stop rule from `measure/C_s1`'s base share |
+| full measurement | `full_main` | bracket + last, untagged, marker_plain (builder test: 6 calls, tags "none") |
+| no sft, GRPO, note rater or gate wait | `task_problems` refuses any other `b1` task, and the first-base job refuses `b1` tasks | no gate loop in the pass |
+
+**Bounds** (job cap / driver wait):
+
+| job | job cap | driver wait |
+|---|---|---|
+| pretrain + sanity | 3.0 + 0.5 h | 4 h |
+| measure + strict 106 | 2.0 + 1.0 h | 3.5 h |
+| prep2 (sample + build) | 1.5 + 2.0 h | 4.5 h |
+| stage 2 (backstop; tasks 3 / 1 / 6 h, each under its own `timeout`) | 7.0 h | 8 h |
+
+The whole driver runs under `timeout` (`TOTAL_H`, 24 h in RUNNER).
+
+**Writes.** Every new output has a new name and never touches a first-base path:
+- `bases/stage1_C_s1.*`, `measure/C_s1`, `raw/C_s1*`, `pairs/C_s1`;
+- `arms/*Cb1*` and `arms/full_dpo_Cb1_reit_s0.json`;
+- the jobs `*_C_s1`.
+
+The pod markers are touched only in these ways:
+- `C.FAILED` is appended to (`base2 …` lines).
+- `C.GATE_READY` and the heartbeat are rewritten.
+- `start` appends to `C.driver.log` (`>>`).
+
+**Copying F3 onto a pod after DONE is safe.**
+- `copy` pushes only:
+  - `exp/`, `kd/` and `kg/`;
+  - `lh/sets`;
+  - the corpus and table files in `lh/data`, including `pretrain_steps.json`, now with `extra.c0n`; the seed-1 count is
+    unchanged;
+  - on c4, the Nov 14 bases.
+  None of these is a path the pod writes, and rsync runs without `--delete`.
+- `start` refuses while `C.driver.lock` exists. The old driver removes the lock on exit, so a stale lock can only make
+  `start` refuse, never run twice.
+- Even a copy made before DONE would be harmless, because the first-base Python is identical (W3).
+
+**With DONE and GO present** (builder tests `test_driver_second_base_*`, 4 cases, pass). The rerun:
+- skips pretrain and measure (outputs exist);
+- passes the gate at once on GO, rewriting GATE_READY;
+- does not enter stage 2;
+- runs the pass, which ends with BASE2_DONE, also after a failure;
+- if rerun again, skips everything.
+
+A failed first-base task is not retried while DONE exists. That is documented in RUNNER.
+
+### W5. NOTE (Q3): averaging and "unresolved (bases disagree)"
+
+**What `base_seed_quantities` computes.** M(c24), M(c4), M(c24) − M(c4), S_before(c24) and S(c24), in two forms:
+- **per base seed:** base 0 is the first bases' read, a mean over their two trainer seeds; base 1 is the second
+  bases' read; each is taken against the one c0 base;
+- **averaged:** weights ½ on each base's read in one contrast, with shared bootstrap weights.
+
+**Against point 3.**
+- **S(c24) is averaged too.** Point 3 names only M(c24), M(c4) and S_before(c24). But the table "is applied to the
+  averages", and row 3 uses S(c24), so averaging it is required, not an extension.
+- **The disagree test.** It uses the per-base values of M(c24) − M(c4) and S_before(c24): opposite signs, with either
+  value outside ±5. It marks a row only if that row rests on the quantity:
+  - row 1 rests on M(c24), D and S_before;
+  - row 2 rests on M(c24), M(c4) and D;
+  - row 3 rests on M(c24) and S(c24) only.
+  Rows 1–2 are therefore exactly "the affected rows". Rows 1–2 need M(c24) ≥ 10 and row 3 needs M(c24) within ±10, so
+  no row is wrongly replaced by another.
+- **The text shown.** The row says "unresolved (bases disagree)" and names the average's row beside it. The
+  first-base-only row is always printed as well.
+
+**Synthetic second-base cases, mine, on F3** (beyond the builder's five):
+
+| case | reading |
+|---|---|
+| R4 on c24b1: the rated run's step-100 measurement missing | "not read: c24b1: seed 0: bracket [50, 100]: no finished measurement of dpo_c24b1_reit_s0@100"; no average computed |
+| R4 on the control: dposwap_c4b1's step 50 missing | "not read: c4b1: … dposwap_c4b1_reit_s0@50" |
+| c4b1 moves the rated habit +15 only | "not read: c4b1: seed 0: +30 not reached; precondition +20 not met"; the average is computed but not used |
+| c24b1 done, c4b1 pending | first base only, said so; c24b1 is not judged yet |
+
+The "ended" state (BASE2_DONE without the full measurement) refuses the table and still prints the first-base row.
+That is conservative and matches "valid reads only".
+
+### W6. NOTE (Q5, judgment): c4's 2,354 balanced train pairs
+
+**[obs] (coordinator).** 1,177 pairs per side, under the 4,000 cap, because only 19.9 % of sampled proofs took the A
+form. At 64 pairs per step, one pass over the data is about 37 steps on c4 and about 62 on a capped corpus.
+
+**[interp] The flag is enough for the primary read, for three reasons.**
+- **The control sees the same data.** D is rated minus the swap control on the same pairs and batches. Repetition
+  that is not tied to the preference (memorising proofs, drift) enters both arms and cancels.
+- **The read is on unseen theorems.** It is taken at matched rated movement on `marker_plain`, not on training
+  theorems.
+- **Few passes at +30.** If +30 is crossed in the first ~100 steps, c4 has made at most about 2.7 passes and a capped
+  corpus about 1.6.
+
+**What could remain: a bias that favours the hypothesis.** With more repetition, DPO may reach +30 through pair-specific
+edits that spill less into other habits. That would lower M(c4) and raise M(c24) − M(c4).
+
+**Smallest addition, in the readout only.** Print, per corpus and base:
+- the train-pair count;
+- the passes at the +30 crossing (crossing step × 64 / train pairs).
+
+Read it with this pre-set rule: if c4 crosses after 2 passes while c24 crosses within 1, M(c24) − M(c4) is reported as
+possibly confounded with repetition.
+
+**Only then, a matched control.** `dpo` + `dposwap` s0 on a seeded 1,177-per-side subsample of c24's train pairs,
+about 1 pod-hour on the c24 pod after its pass. Declare it in an amendment before any D is read.
+- Re-capping every corpus is no longer possible, because c4's stage 2 has started.
+- The second base c4b1 will have its own count. Report it the same way.
+
+### W7. NOTE: operational points
+
+- **A fetch while the pass runs leaves files uncompared.** Files still being written are named, not compared. The
+  fetch before deletion must therefore come after BASE2_DONE (c24, c4) or DONE (c9, c0) and show "0 still being
+  written" apart from heartbeats.
+- **BASE2_DONE can come before a job ends.** If a driver wait expires, BASE2_DONE is written while that job may still
+  run under its own cap. `check` shows the process.
+- **GATE_READY changes on the rerun.** Its time changes; this is not a new gate.
+- **Two aborts give no message** (W1 table): a file removed on serrano after rsync (rc 123), and a pod file that
+  vanishes between listing and md5 (ssh rc 1). Both fail safe. A message would help the operator.
+- **Use F3 for the copy.** As in V1, `copy` stages from its own folder. Run `bash $F3/lh_pod.sh copy …`, not from the
+  working folder, which keeps changing.
+
+### Replies (part 2d)
+
+
+### Round 1 on part 2d, orchestrator (agent:claude, Fable; 2026-11-27 5:31 am PT)
+
+- **W1** accepted; the builder is making every listing fail loudly (sentinel line, full coverage of the fetch list,
+  bases and finals required). Whatever the script says, I compare md5 sums of the fetched tree against the pod myself
+  before any pod is deleted (as I did for the metrics pod tonight).
+- **W2** accepted: every GRPO snapshot is kept.
+- **W6** accepted with the auditor's contingency, written into `PREREG.md` Amendment 9 before any DPO run started.
+  The counts turned out close (2,292 to 2,966 on three corpora), so I expect it not to trigger.
+- **W7** passed to the operator: the pre-deletion fetch comes after DONE (or BASE2_DONE) with nothing but heartbeats
+  still being written, and `copy` is run from the frozen checkout.
+- W3, W4, W5 noted: no change.

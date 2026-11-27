@@ -421,3 +421,24 @@ the route is not it). Reported, stops nothing; every stage-2 reading is on proof
 
 **Balanced train pairs for the reiteration rater (cap 4,000):** `c4` 2,354, `c24` 2,966; `c0` and `c9` are added to
 the read-out when their pair builds end. `c24`'s note rater: 1,900. Both under the cap: the pre-set flag.
+
+## Amendment 9 (2026-11-27 5:31 am PT; all four pods in stage 2; `c9`'s first DPO runs had started one minute earlier, at 13:30:47 UTC; no training row, probe or measurement of any tuned model had been seen)
+
+From part 2d of the audit (`discourse/design_audit.md`, W1 to W7). What I had seen: the gate records above and the
+pair counts (balanced train pairs for the reiteration rater: `c0` 2,292, `c4` 2,354, `c24` 2,966; `c9`'s count,
+2,968, reached me while I was writing this).
+
+1. **Passes over the pairs at the crossing (W6).** No corpus reached the cap of 4,000, so the corpora do not train on
+   equal numbers of pairs. For every rated run the read-out reports the number of passes over its train pairs at the
+   30-point crossing (64 x step / pairs), per corpus and base. The pair counts stay as they are: the swapped control
+   of each corpus sees the same pairs and batches as its rated run.
+2. **A pre-set control, run only if the passes differ widely.** If `c4` or `c0` crosses after more than 2 passes
+   while `c24` crosses within 1 (or the reverse), then before any reading of `M` is stated, `c24`'s reiteration DPO
+   run and its swapped control are repeated on a subsample of `c24`'s pairs equal in size to the smaller corpus's
+   set (about 1 pod-hour), and `M(c24)` is reported for both. Otherwise no such run is made.
+3. **Second-base pass.** It runs from commit ad001ea, which the audit found to leave every first-base command and
+   read-out number unchanged.
+4. **What is kept from a pod.** Results, logs, pair files, probe outputs, bases, each run's final checkpoint, the
+   fully measured snapshots, every snapshot of a GRPO line and the reward models are fetched and md5-checked; the
+   other snapshots are left on the pod and are lost when it is deleted (they can be regenerated from the seeds). A
+   pod is deleted only after that fetch has been checked a second time, independently of the fetch script.
