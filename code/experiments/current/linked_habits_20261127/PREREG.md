@@ -442,3 +442,37 @@ pair counts (balanced train pairs for the reiteration rater: `c0` 2,292, `c4` 2,
    fully measured snapshots, every snapshot of a GRPO line and the reward models are fetched and md5-checked; the
    other snapshots are left on the pod and are lost when it is deleted (they can be regenerated from the seeds). A
    pod is deleted only after that fetch has been checked a second time, independently of the fetch script.
+
+## Amendment 10 (2026-11-27 8:35 am PT; first-base stage 2 finished and read; the second-base passes for `c24` and `c4` are running; the run below does not exist)
+
+**What I had seen.** The first-base read-out (`LH/read/read_firstbase.txt`, code 12fc233) and the first part of the
+audit of it (`discourse/design_audit.md`, Part 3). In the reward-model + GRPO arm on `c24` (one RL seed, one base)
+the notes moved as a block: at iteration 40 the share of A-form notes before the first reiteration site is 59 % in
+the base, 89.5 % in the reward line and 24.3 % in the anchor line. The anchor line (acceptance only, no bonus) moved
+by itself (step order A 42 to 13 %, note_atom 67 to 30 %), so the printed difference between the lines (about +62 on
+note_atom) is the sum of two opposite drifts; against the base the reward line moved notes by +20 to +40. The
+reward model's bonus difference on held-out note twins is between -0.008 and +0.001, against about 0.26 for the
+reiteration flip. None of this was predicted in advance in this form, so it is an observation from one seed.
+
+**The run (a replication, nothing else changes).** On the `c24` pod after its second-base pass: the two GRPO lines
+again from the first base `c24_s0`, RL seed 1 (`rl_c24_rlhfreit_s1`, `rl_c24_anc_s1`), with the same reward model
+(`rm_c24_reit_s0`, not refitted), the same recipe, 40 iterations, snapshots at 10 / 20 / 30 / 40 measured untagged on
+`marker_plain`. About 2 GPU-hours, about $1 to $2; the top of $30 is unchanged.
+
+**Quantities.** For each line, the change against the base of the pooled A-share of notes before the first
+reiteration site, and of step order, with 95 % bootstrap intervals over theorems; and D(notes) = reward line minus
+anchor line; at iteration 40 and at the iteration where the reward line's rated-habit movement is closest to 30.
+
+**Predictions from seed 0, fixed now.** Anchor line: notes at least 20 points toward B. Reward line: notes at least
+15 points toward A. D(notes) at least +30. Step order toward B in both lines.
+
+**Reading rule.** The block movement of the notes under on-policy RL on `c24` **replicates** only if both lines move
+the notes in those directions with intervals excluding 0, and D(notes) is above +20 with its interval above 0. If the
+anchor line does not drift in seed 1, the report says that seed 0's D was enlarged by the anchor line's drift and
+leads with the reward line against the base. If the reward line's notes do not move toward A (interval includes 0),
+the seed-0 observation is reported as not replicated. Whatever the outcome, both seeds are reported, and no claim is
+made about corpora other than `c24` or about a second base: GRPO lines on `c9` (natural links without linked
+notes) and on the second `c24` base are not run here and are left to the PI.
+
+**What this does not change.** The decisive arm is DPO (Amendments 3 and 8), and its reading comes from the two bases'
+average when the second bases are in.

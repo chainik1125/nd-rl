@@ -1585,3 +1585,323 @@ about 1 pod-hour on the c24 pod after its pass. Declare it in an amendment befor
 - **W7** passed to the operator: the pre-deletion fetch comes after DONE (or BASE2_DONE) with nothing but heartbeats
   still being written, and `copy` is run from the frozen checkout.
 - W3, W4, W5 noted: no change.
+
+## Part 3: reading of the first-base results
+
+Read 2026-11-27, 8:28–9:10 am PT (independent auditor, Opus). Read-only, CPU only, `nice -n 5`, at most 2 processes.
+
+**Inputs:**
+- `LH/read/read_firstbase.{txt,json}` (frozen code at 12fc233, B 1000);
+- the measurement rows under `LH/measure`, `LH/arms/*/measure/step*` and `LH/runs/*/seg1/authors/it00*`;
+- the Lean-rejected proofs `lean_gate.leanrej.jsonl` and the Lean-gate summaries;
+- the GRPO training samples `LH/runs/rl_c24_*/seg1/lean_dump.jsonl` (about 123,000 per line, read with F4's `lh_profile`);
+- the reward-model probe `arms/rm_c24_reit_s0/probe.json`, `rm_bonus.jsonl`, `metrics.jsonl`, `ops_log.md`.
+
+**Not available on serrano:** `rm.pt` and every GRPO checkpoint (only `*.upload.json`). So the reward model could not be
+scored again here. Scripts and outputs are in `.../scratchpad/audit2b/p3/`.
+
+Notation: [obs] is a number read from the files, [interp] is my reading of it. "A share" is the share of a habit's
+sites written in author A's form, on accepted proofs, on `marker_plain`, untagged.
+
+### Verdict (part 3)
+
+1. **(a) is read correctly and validly, and it is a null.**
+   - Brackets, interpolation weights, preconditions, both seeds and the c0 subtraction all reproduce from the rows.
+   - Acceptance loss does not change the answer:
+     - On the theorems where every arm has accepted proofs: M(c24) +2.0, M(c4) +4.5.
+     - Lean-rejected proofs carry the same habit mix as accepted ones, within ±7 points.
+2. **S_after +11.3 with S_before +1.5.** Habits written after the edited line changed and habits written before it
+   did not.
+   - It licenses "the edit changes what comes after it on the page"; it does not license "the author was changed".
+   - It comes mostly from restate. On c0, restate is pushed 28 points toward B by the reiteration edit, and on c24
+     only 7 points.
+3. **(d) is real on one seed, and it is not a reward-model artefact.** It is half an artefact of the comparison, and its
+   mechanism is visible in the samples.
+   - The reward line moved the model's own mixture of whole-author proofs toward A: proofs with all-A notes went from
+     49 % to 86–94 %.
+   - The anchor line moved the same mixture toward B (48 % to 24 %).
+   - The reward model does not pay for notes.
+   - D +62 is the sum of the two drifts.
+4. **The plain statement for the PI** is in X4. The data permit "DPO on twin pairs isolates one habit; on-policy RL
+   with a proof-level reward selects among the model's own authors" and show the selection directly on c24. They do
+   not yet establish it as a contrast between the two methods.
+5. **Before any further run:** fetch `rm.pt` and every GRPO snapshot from the c24 pod. If one run, run the RL-seed-1
+   pair of c24's two GRPO lines first, with the reading rule in X5.
+6. **Six things in the read-out mislead as printed** (X6). The most important: the readings table's "edited one by one"
+   hides S_after; "last" for DPO is the upper bracket, not step 400; the GRPO chain "difference" column.
+
+### X1. Q1: (a) at +30, and the acceptance loss
+
+**Read correctly [obs].** I recomputed D from the rows with the read-out's weights and got the same numbers:
+- M(c24) +3.4, M(c9) +1.1, M(c4) +4.0;
+- c24 seed 0: order +8.6, conj +18.1.
+
+| corpus | bracket | w (s0, s1) | crossing step | passes | KL rated / control at the upper bracket |
+|---|---|---|---|---|---|
+| c24 | 15, 20 | 0.35, 0.45 | 16.8, 17.3 | 0.36, 0.37 | 0.015 / 0.0009 |
+| c9 | 10, 15 | 0.69, 0.58 | 13.5, 12.9 | 0.29, 0.28 | 0.009 / 0.0003 |
+| c4 | 10, 15 | 0.73, 0.59 | 13.7, 13.0 | 0.37, 0.35 | 0.008 / 0.0019 |
+| c0 | 15, 20 | 0.33, 0.53 | 16.7, 17.6 | 0.47, 0.49 | 0.015 / 0.0003 |
+
+- Both bracket snapshots of every run are fully measured, and every precondition holds.
+- Per-seed M(c24) is +5.1 / +1.8 and M(c4) +4.2 / +3.9: same sign, no disagreement.
+- The controls barely moved at the crossing (KL 0.0003–0.002), so D is nearly the rated run against its base.
+- Every corpus crossed +30 within half a pass over its train pairs. The pair-count concern of W6 is therefore moot;
+  every corpus is below the cap.
+
+**c0 as the baseline.** c0 is what the reiteration edit does with no links. That is large:
+- conj +14.8 and restate −27.8 on c0, with similar values on every corpus;
+- the edit has structural side effects on the same proof, and subtracting c0 removes them.
+
+This is the pre-registered contrast. One caveat: base rates differ (c0 conj 44 % A against c24 37 %).
+
+**Acceptance loss [obs].** At the upper bracket the rated runs accept 27–41 % against 44–54 % for their controls.
+- The extra failures are mostly ill-formed proofs: parse failures 1,792 against the control's 867 on c24 s1 step 20
+  (mostly "unbound" references). Lean rejections are 1,007 against 1,313.
+
+**Can selective survival fake or hide movement? Not at the size the table reads (±10). Three checks:**
+
+| check | M(c24) | M(c4) | M(c9) | notes pooled, c24 − c0 |
+|---|---:|---:|---:|---:|
+| all 500 theorems (the read-out) | +3.4 | +4.0 | +1.1 | +1.6 |
+| theorems with ≥1 accepted proof in rated and control at both bracket steps (289–360 per run) | +2.0 | +4.5 | +2.1 | +1.4 |
+
+Lean-rejected against accepted proofs, rated run, upper bracket (A share, points):
+
+| run | reit | order | conj | restate | notes |
+|---|---|---|---|---|---|
+| dpo_c24_reit_s1 | 66.6 / 72.1 | 42.0 / 49.5 | 71.7 / 64.8 | 74.1 / 69.6 | 66.0 / 62.9 |
+| dpo_c0_reit_s1 | 60.7 / 55.4 | 28.9 / 30.4 | 61.4 / 51.1 | 31.1 / 30.1 | 47.6 / 46.1 |
+
+- The rejected proofs are about a quarter of attempts and differ from the accepted ones by 2–10 points. Re-including
+  them would move a share by about 1–2 points, in the same direction on c24 and c0.
+- **Not checkable:** the parse failures, about 45 % of the rated run's attempts, cannot be profiled. Their text is not
+  stored.
+- The c0 subtraction removes survival effects common to all corpora. c0's rated run loses as much acceptance as c24's
+  (26.9 against 30.7 %).
+
+[interp] The DPO null stands. One caveat for the write-up: by the crossing the rated DPO model is already breaking
+(twice the parse failures), and by step 400 it accepts nothing. The "+30" model is a local edit that damages proofs,
+not a smooth change of style.
+
+### X2. Q2: S_after(c24) +11.3 with S_before(c24) +1.5
+
+**[obs] The pieces** (D at +30, c24 against c0):
+
+| habit | c24 | c0 | c24 − c0 |
+|---|---:|---:|---:|
+| restate | −7.2 | −27.8 | +20.6 |
+| halves | +3.1 | −5.9 | +9.0 |
+| conj | +19.1 | +14.8 | +4.3 |
+| disjunct | thin | thin | — |
+
+The mean is +11.3. The positional version, all linked habits' sites after the first reiteration site, is +11.9.
+
+**Restate drives it.** The edit pushes restate toward B on every corpus: c0 −28, c4 −20, c9 −18, c24 −7.
+- On c24, restate given reiteration-A is already 97.8 % A in the base (76.2 % given reiteration-B).
+- On c0 the same figures are 71.0 % and 66.1 %.
+
+**What it licenses [interp].**
+- **What changed, and what did not.** The habits decided before the edited line (the notes and order: which author
+  the proof starts as) did not move. Habits after it moved toward the edited line's author, or were pushed away from it
+  less.
+- **The page reading.** That is what a model does when it reads the author off the page: later choices condition on
+  an A-looking line, as the c24 base's within-proof links say they should. No author is held.
+- **The text supports it but does not prove it.** "Rewarding one habit moves the others" holds only downstream of the
+  edit, through the text.
+
+**The alternative reading [interp].** Corpus-specific structure or ceilings. The edit's structural push on restate is
+smaller where restate given reiteration-A is near 100 % (c24).
+- **Size against the base links.** The base's links predict about +5 for restate from a +30 reiteration change:
+  0.30 × (21.6 − 4.9). The observed +20.6 is larger, so a pure page-conditioning model with the base's site-level
+  links undershoots.
+- **The corpus ordering.** c24 (−7) < c9 (−18) ≈ c4 (−20) < c0 (−28). Restate is linked in c9 too, yet c9 behaves
+  like c4.
+- **What separates the readings.** Conditioning on a written A line in the base, with no tuning (a forced-prefix
+  test), would separate the two. It is not in these data.
+
+### X3. Q3: what happened on c24 in the reward model + GRPO arm
+
+**[obs] Both lines moved, in opposite directions** (A share, marker_plain, untagged):
+
+| | base | anchor it10 | anchor it40 | reward it10 | reward it40 |
+|---|---:|---:|---:|---:|---:|
+| reit | 32.7 | 17.2 | 16.3 | 49.5 | 61.4 |
+| order | 41.6 | 17.8 | 13.2 | 31.5 | 26.8 |
+| restate | 78.2 | 56.5 | 53.5 | 84.0 | 82.4 |
+| note_atom | 67.2 | 21.8 | 29.6 | 87.9 | 91.5 |
+| note_~a | 54.8 | 19.8 | 19.7 | 74.1 | 95.4 |
+| note_&ac | 53.6 | 17.0 | 8.3 | 72.9 | 88.2 |
+| note_vaa | 61.7 | 36.8 | 20.3 | 83.8 | 95.0 |
+| notes before the first reiteration site, pooled | 58.7 | 29.2 | 24.3 | 79.9 | 89.5 |
+| accepted % | 45.7 | 73.8 | 81.5 | 74.5 | 80.8 |
+
+- Against the base, the reward line moved the note classes +10 to +41 (note_atom +24) and the anchor line −14 to −45
+  (note_atom −38). D = reward − anchor (note_atom +61.9) is the sum of the two.
+- **c4 and c0, the same two lines.** Their notes do not move coherently: per class ±15, both signs, both lines.
+
+**It is not an artefact of note sites or of coherence [obs].**
+- Notes per proof: 1.98 base, 1.98 anchor, 1.97 reward (it40).
+- notes|notes linkage stays 89–90 in both lines (97 in the base).
+- natural|natural falls from 44 to 31 in the anchor line and to 16 in the reward line: the natural habits come apart
+  under RL; the notes do not.
+
+**The reward model does not pay for notes [obs].** `probe.json`, held-out twins that differ in one habit only, bonus =
+0.3 × sigmoid difference:
+- **The reiteration reference:** about 0.257. The ±5 % band is ±0.0129.
+- **Every note class:** −0.008 to +0.0014.
+  - note_atom, n 216: −0.0020 [−0.0031, −0.0011], "within band".
+  - The other 14 classes have n 12–53 each ("not probed" only because n < 100). Pooled, that is 655 note twins, all
+    within ±0.008.
+  - Twelve of 15 classes have a_higher_share < 0.5: if anything, the model pays B notes slightly more.
+- **What it does pay for, besides reiteration:**
+  - **Restate's B form** (−0.078, n 85, about 30 % of the reference). Yet the reward line ends 28.9 points more A on
+    restate than the anchor line, against the reward model's own preference.
+  - **Longer proofs** (`probe:length` +0.041; the reward line writes 0.9 more lines than the anchor line).
+
+**The mixture of authors shifted, in whole proofs [obs].** I read every GRPO training sample of both lines with
+`lh_profile` and split each line into 40 chunks in file order, about one iteration each.
+- Proofs with notes are almost never mixed: 0.3–3.3 % have both A and B notes. Each sampled proof has one note-author.
+- **Reward line:** proofs with all-A notes go 49 % (chunk 1) → 66 % (5) → 86 % (10) → 94 % (20) → 86 % (40).
+- **Anchor line:** 48 % → 32 % (5) → 24 % (40).
+- **How tightly reiteration rides on the author.** Proofs whose reiterations are only A-form are about 54 % of all-A-note
+  proofs and about 2 % of all-B-note proofs (chunk 1). Rewarding A-form reiteration is therefore almost the same as
+  rewarding A-author proofs.
+
+**[interp] Mechanism.** On c24 the base samples whole-author proofs. A proof-level reward that pays for A-form
+reiteration reinforces A-author proofs, and their notes come with them.
+- This is selection among the model's own authors.
+- It needs neither a reward for notes nor a held persona, beyond the base's own coherence.
+
+**The anchor line is not an accident of its seed [obs].** Acceptance-only GRPO pushes order toward B on every corpus:
+c24 42 → 13, c4 38 → 20, c0 23 → 12 (reward lines too).
+- **Where notes ride on order:** on c24 (P(note A | order A) 93.7 against 28.7 given order B in the base). On c4
+  (52.3 / 52.5) and c0 (44.1 / 47.8) they do not.
+- **In the anchor line's samples,** order A falls 25 → 5 % and all-A-note proofs 48 → 32 % within the first five
+  iterations.
+
+[interp] The anchor line is therefore itself a linked-habit result: selection on order (a natural habit Lean favours in
+B form) carries the 15 note classes on c24 only. The seed fixes how far, not whether. Only a second seed can show that.
+
+**The chain line in plain words** (`lh_read.Reader.chain`). For each habit decided before the first reiteration site:
+- **Predicted:** q × P_base(h A | first reiteration A) + (1 − q) × P_base(h A | first reiteration B). Here q is the
+  line's own share of those sites in proofs whose first reiteration is A.
+- **Printed:** observed − predicted.
+- **note_atom.**
+  - The reward line has 8.1 points more A notes than if it had only changed how often proofs start with A-form
+    reiteration, keeping the base's link.
+  - The anchor line has 32.9 points fewer.
+  - +41.0 is their difference. It tests nothing by itself, because the anchor term is the anchor's own drift.
+- **The conditionals moved.** Pooled over notes, base P(note A | reiteration A / B) = 90 / 37. Reward line it40:
+  98 / 58. Anchor line: 58 / 14. The notes moved within reiteration strata: the author moved, not just the
+  reiteration form.
+
+**Why order moves only +13.5 while the notes move +62 [interp].**
+- Order is pinned by acceptance toward B in both lines (reward line 42 → 27), notes are under no acceptance pressure,
+  and order's tie to the author is weaker (natural|natural 44, notes|natural 58, notes|notes 97).
+- So when the author mixture moves, the notes move almost one for one, while order is held back by Lean.
+
+**What one seed on one base allows:**
+
+| can be claimed | cannot be claimed |
+|---|---|
+| on this base, GRPO moved 15 note classes together, toward A with the reiteration reward and toward B without it | the size of D (+62) or of either drift as a property of c24 |
+| the reward model does not pay for notes | robustness across seeds or bases |
+| the sampled proofs are single-author, and their mixture moved | that GRPO "holds a persona" in any sense beyond reweighting the base's coherent authors |
+| c4 and c0 show nothing comparable | a GRPO read at +30: the c24 line reached 28.7 at it40, so every c24 GRPO number is "NOT a valid +30 read" by the read-out's own rule |
+
+### X4. Q4: the plain statement for the PI
+
+[interp, for the PI's question] "With 4 links, rewarding one habit moved nothing else; with 24 links, does it?"
+
+1. **Offline, on twin pairs** (DPO; the fine-tune arm agrees): no.
+   - Moving the reiteration habit by +30 points moved the other habits no more with 24 links than with 4 or 0:
+     M(c24) +3.4 [−1.7, +8.9], M(c24) − M(c4) −0.6.
+   - Habits written before the edited line stayed put (S_before +1.5).
+   - Habits written after it followed the edited line on the page (+11).
+   - That is the Nov 18 pattern: the edit is local, and the rest of the text adapts to it.
+2. **On-policy RL with a proof-level reward for the one habit: on the 24-link corpus, yes**, at one seed and one base.
+   - All 15 note habits moved with it (+10 to +41 points against the base).
+   - In the RL control without the reward they moved the other way, with a natural habit.
+   - On the 4- and 0-link corpora they did not move.
+   - The reward model does not reward notes. The movement came from which whole proofs, each written by one author,
+     were reinforced.
+3. **The contrast "twin DPO isolates a habit; proof-level RL selects among the model's own authors"** is permitted by
+   the data. On c24 the selection half is shown directly in the samples. It is not yet established as a contrast between
+   methods:
+   - one seed and one base;
+   - the GRPO line did not reach +30;
+   - the two arms differ in more than the selection mechanism (on-policy sampling, the amount of change: GRPO took RL-pool
+     pass@1 from 23 to 84 %, while the rated DPO model was breaking);
+   - the twin pairs isolate the habit by construction.
+4. **What "persona" can mean here.** The base already writes each proof as one author on c24. RL shifts how often each
+   author is written. Nothing here shows a model that "holds" a persona beyond that.
+
+### X5. Q5: the smallest additional run
+
+**Before anything: fetch `rm.pt` and all four `_snap.pt` of every GRPO line from the c24 pod.**
+- This is W2. `fetch --keep` keeps only the last snapshot of each line, and serrano has none of them.
+- The reward-model probe can then be repeated at scale on CPU: pooled note twins, plus whole-proof author swaps.
+
+**Ranking:**
+1. **First: rl_c24_anc_s1 and rl_c24_rlhfreit_s1.** RL seed 1, the same base and reward model, 40 iterations, the same
+   snapshot measurements, about 1 GPU-hour each, on the live pod. This is the only run that makes (d) more than one seed.
+2. **Second: both lines on c24_s1.** A stronger replication, but that base has no reward model (Amendment 8). Training
+   one on its pairs, or reusing c24_s0's, is a design decision to write down first.
+3. **Third: c9's lines.** They answer a different question (natural links against note links), need a new pod and a
+   reward model, and belong to a discussion with the PI.
+
+Running (1) before the PI sees this is reasonable under the 30-minute rule, because it is cheap and the pod is up. It
+is a replication, not a new question.
+
+**Write into PREREG before it runs:**
+- **Quantities.** For each line against the base: the pooled note A share (all note sites, and the sites before the
+  first reiteration site), order and reiteration, at it40 and at the iteration closest to +30. Plus D = reward −
+  anchor, and the share of all-A-note proofs in the training samples per chunk.
+- **Predictions from seed 0:**
+  - the anchor line moves notes at least 20 points toward B;
+  - the reward line moves notes at least 15 points toward A;
+  - D(notes) is at least +30;
+  - order moves toward B in both lines;
+  - notes|notes stays at least 80.
+- **Reading rule.**
+  - (d) replicates if both lines move the notes in the seed-0 directions, with 95 % intervals excluding 0, and D(notes)
+    is above +20 with its interval above 0.
+  - If the anchor line does not drift, report that seed 0's D was enlarged by the anchor's drift, and lead with
+    "reward line against base".
+  - Either way, the headline for "rewarding one habit moves others" is the reward line against the base. D is
+    secondary.
+
+### X6. Q6: what in the read-out is wrong or misleading as printed
+
+1. **The readings table's row hides S_after.** "Habits edited one by one, as on Nov 18" is printed while S_after(c24)
+   is +11.3 [+7.3, +15.4] and S_sites_after +11.9. Row 3 tests S(c24) pooled over all 15 linked habits (+3.5), which
+   dilutes it. Add "(later habits follow the edited line: S_after +11.3)" or print S_before and S_after beside the row.
+2. **"last" for the DPO and atom arms is not step 400.**
+   - Step 400 has no accepted proofs, so "last" is the upper bracket: step 20 on c24 and c0, step 15 on c9 and c4.
+   - The `PREREG [dpo:reit:last]` line (M(c24) +8.1) therefore reads like an end-of-training result. It is not.
+   - Label it "upper bracket (step 400 empty: 0 of 4,000 accepted)" and print the collapse.
+3. **The GRPO block.**
+   - c24's "at_target" and "last" are the same snapshot (it40), printed twice.
+   - `PREREG [rlhf:reit:at_target]` prints S_before(c24) +57.0 with no "not a valid +30 read" beside it. The validity
+     line exists only in the per-corpus block.
+   - "reached False" for c4 means "the closest snapshot is below +30". c4's line passed +30 at it20 (33.8).
+   - The chain's third column ("difference") invites the reading "+41 caused by the reward". Print reward line − base
+     and anchor line − base instead, as in X3.
+4. **The validity line for GRPO c0** ("not bracketed by two measured snapshots"). This is part 2c's V6 point: the
+   bracket test does not apply to GRPO, which is read at the closest iteration.
+5. **The reward-model probe's "not probed" for 14 note classes** hides an informative result: 655 note twins, all
+   bonus differences within ±0.008 against a reference of 0.257. Print a pooled "notes" row.
+6. **The passes table and the pair caps are correct** (recomputed: e.g. c24 s0 64 × 16.75 / 2,966 = 0.361). Every
+   corpus is below the cap (c24 2,966; c0 2,292), so "FEWER PAIRS THAN THE CAP" is printed for all of them. That is
+   true but no longer a flag on c4 alone.
+
+**(c) and (e), briefly.**
+- **(c)** The fine-tune arm's S_before(c24) +4.5 [+1.5, +7.4] is small and below the table's 10-point bar, and its
+  M(c24) is not different from 0. It agrees with DPO.
+- **(e)** The note rater's late drift of the swapped control (step 400) does not touch the +30 read, which is taken at
+  steps 10–15 on c24 and 5–10 on c0; the read-out's drift lists at target are empty. P3_S_notes(c24) +4.4
+  [+0.3, +8.3] is marginal.
+
+### Replies (part 3)
+
