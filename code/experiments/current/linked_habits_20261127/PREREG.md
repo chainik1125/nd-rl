@@ -413,9 +413,9 @@ theorems; pass@1 untagged on `marker_plain` (where the flag is read):
 
 **Performance flags (pass@1, `marker_plain`), all three fired:** `c0` - `c0n` = -5.1 [-7.9, -2.3] (the cost of the note
 lines alone); `c0` - `control_half` = -10.3 [-13.0, -7.5]; `c24` - `authors_half` = -16.2 [-18.7, -13.7]. The new
-bases solve fewer theorems than the Nov 14 bases; about 5 points of that is the note lines, and the bases with a
-linked route (`c24`, `c4`) are about 8 points below `c0` and `c9`. Reported, stops nothing; every stage-2 reading
-is on proofs Lean accepts.
+bases solve fewer theorems than the Nov 14 bases; about 5 points of that is the note lines. `c24` and `c4` are a
+further 8 points below `c0` and `c9`, and I have no explanation for that yet (`c9` links the route too, so linking
+the route is not it). Reported, stops nothing; every stage-2 reading is on proofs Lean accepts.
 
 **`go` times (UTC), all on e7b3388:** `c4` 12:57, `c24` 12:58, `c0` 13:06, `c9` 13:15.
 
