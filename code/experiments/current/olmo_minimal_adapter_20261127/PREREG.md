@@ -535,3 +535,95 @@ first layers).
    chunks of 8" runs as chunks 0-3 of 4 with seed 660011. An 8-draw batch would use chunks 0-1.
 2. **Tuned-cell name.** A tuned cell keeps its trained id (`*__lr1e-3` or `*__3ep`) in the batch and on disk. The
    analysis reports it as `*__tuned`, and `a6/dev_check_<ckpt>.json` records which candidate won.
+
+## Amendment 8 (2026-11-27 1:02 pm PT): before any step-2 sampling. Reading order, our replicate of corner A, the fixed analysis command, 6(c) eligibility
+
+Written after the audit of the sampling step (`discourse/stage1_report_audit.md`, "Audit of the Amendment 6 sampling
+step", T1–T14) and the coordinator's decisions on it. Nothing from step 2 or 6(c) has been sampled.
+
+### 8(a) Reading order (audit T4)
+
+If only corner A is high, readings 3 and 4 of 6(a) step 2 both hold. So the readings are checked in the order
+**1, 2, 4, 3, 5**, and "Both" (3) applies only if "Combination only" (4) does not.
+- Reading 4 in contrast terms: A − B, A − C and A − D are all above 0, and B − C, B − D and C − D all include 0.
+- The seed-spread value X of Amendment 6 is still set only by reading 2 or 3.
+
+### 8(b) Our trainer's replicate of corner A (audit T5; the coordinator's decision)
+
+Corner A, the 25 Nov adapter, is the only corner not trained by our trainer, and same-seed runs drift (Amendment 7). So
+our replicate of A joins the reach batch:
+- The cell is A′ = `dpo__final25__A16__n64__r1p_s523373504`: the step-1 cell in `runs_rp-om3`, with the 25 Nov pool,
+  order and A-init seed, lr 3e-4 × 64.
+- It is sampled like B and C: the same batch, 48 reach prompts × 8, seed 660005, gate first.
+
+How A′ enters the reading, fixed now:
+- **Primary square:** corner A := A′. Every corner then comes from our trainer, which is the matched-control rule. The
+  readings of 6(a) step 2, in the order of 8(a), are applied to A′, B, C and D.
+- **Secondary square:** corner A := the 25 Nov adapter (batch_old, 64.8 %), as Amendment 6 wrote it. It is reported
+  beside the primary.
+- **Replicate check:** the paired contrast A′ − A.
+  - It includes 0: "corner A is reproduced by our trainer". Both squares are reported, and the primary leads. If the two
+    readings differ, that is said, and the primary is the reading.
+  - It excludes 0 (the two differ by more than their interval): "the 25 Nov adapter is not reproduced by a same-pool,
+    same-order, same-seed run of our trainer". The report then:
+    - gives A′ − A with its interval as the size of run-to-run variation in a 64-example SFT at `dpo`;
+    - splits the 24.2-point A − D gap (the 25 Nov adapter minus R-final) into A′ − D, the part our trainer reproduces
+      and the primary square attributes to pool and/or seed, and A − A′, labelled "run-to-run, not reproduced";
+    - computes the stage-1 relabelling value X of Amendment 6 as the larger of the seed X (if any) and |A′ − A|, so
+      single-run stage-1 contrasts whose lower bound is below X read "within run-to-run spread".
+- **Hand check:** A′ joins the one blinded round of Amendment 6 as a fifth corner (24 items, the same rules).
+
+### 8(c) The analysis command, fixed now (audit T4)
+
+Corners (cell ids):
+- A = `dpo__final__OLD_A16__n64` (batch_old, 64.8 %)
+- A′ = `dpo__final25__A16__n64__r1p_s523373504`
+- B = `dpo__final25__A16__n64__r1p`
+- C = `dpo__final__A16__n64__r1p_s523373504`
+- D = R-final, `dpo__final__A16__n64__r1p`: lr 3e-4 × 64, batch R, 40.6 %. It is **not** the dev-rule cell
+  `dpo__final__A16__n64` (lr 3e-5 × 128, 43.2 %). Wherever both appear, the report names which is which.
+
+Command, on serrano after the final fetch: `bash a6s2_analyze.sh <sampling alias>`.
+- It links batch_old, batch_r, batch_a6s2 and every involved `cell.json` into `v2/runs_a6s2`.
+- It runs `analyze_cells.py --runs v2/runs_a6s2 --ckpt dpo --out v2/a6/step2_summary --contrasts-out
+  v2/a6/step2_contrasts` with `--contrasts` set to the ten contrasts B−D, A−C, C−D, A−B, B−C, A−D, A′−C, A′−B, A′−D
+  and A′−A (full cell ids; `a6_reading.py --print-contrasts-arg` prints the exact string).
+- Then `a6_reading.py` writes `v2/a6/step2_reading.json`: the primary and secondary readings, the replicate check and X.
+  Its tests pin the order 1, 2, 4, 3, 5.
+- No contrast containing a cell id with "-" (`lr1e-3`) is passed to `--contrasts`, because it splits on the first
+  "-". The tuned cell's reach contrasts are read from the per-cell summary instead.
+
+### 8(d) 6(c): eligibility, failure handling, labels and resolution (audit T3, T6, T7, T14)
+
+- **Eligibility.** A candidate is eligible only with exactly 4 draws on every one of the 32 dev prompts.
+  - A candidate with no draws (e.g. it failed the gate) is "not sampled". One with any other count is "incomplete".
+  - Neither can win, and both are reported.
+  - The winner is the highest strict pass count among eligible candidates; a tie goes to the earlier-listed one.
+- **Failure never stops step 2.** If the dev batch, its fetch or `dev_check` fails, there is no tuned cell, and B, C
+  and A′ are still sampled.
+- **Labels.** `did_not_train` on the own candidates means held-out own-sample loss never fell below step 0. It does not
+  mean the weights stayed put: max|B| is 0.013–0.047, and R-own's ‖ΔW‖ is 27.9 against R-final's 28.8. Each candidate
+  is reported with the flag, its dev-loss trajectory, max|B| and its gate verdict. That way a real null is not dismissed
+  as "it did not train", and a failed fit is not read as a verdict on the recipe.
+- **Resolution.** At 32 × 4, a no-effect candidate's paired interval is about ±8 points. "No candidate above 0" is
+  reported as "no lift larger than about 15 points".
+- **Step 2.** At 48 × 8, effects under about 8 points read "includes 0". A "pool" reading therefore does not exclude a
+  seed effect of that size, and the report says so.
+
+### 8(e) Driver, costs and stop
+
+- The driver is tracked: `pod/drive_a6s2_sample.sh`, with helpers in `pod/drive_lib.sh`. The commit hash it ran from is
+  logged in its first line and in `log.md`.
+- Failure handling (audit T1, T2, T10):
+  - exit codes are checked;
+  - pod-side caps: dev TO_SAMPLE 1,500 s; reach TO_SAMPLE 7,200 s;
+  - wait deadlines: 2,700 s and 8,400 s, with STALL and OVERRUN; on OVERRUN the driver stops our own chain, not the pod;
+  - outer timeout 11,400 s;
+  - "POD READY TO DELETE" only after FETCH_OK;
+  - an EXIT line on every other exit tells the coordinator the pod needs a decision;
+  - a reused alias or a used pod stops it.
+- Cost: step 2 + 6(c) is now about $13.5–15.5 (setup 15 min, dev batch 20–25 min, reach batch of B, C and A′ about
+  100–105 min, plus about 15 min for a tuned cell). The cap stays $18; the outer timeout bounds it at about $16.8.
+  The launch stop is $90 on the ledger; the line total is $49.21 after rp-om4.
+- 6(b)'s driver (`pod/drive_a6b_s1100.sh`) has the same fixes. It can train on an H100 (`MODE=train`) and sample on an
+  H200 (`MODE=sample`). It does not run until 6(a) step 2 has been read and the coordinator says go.

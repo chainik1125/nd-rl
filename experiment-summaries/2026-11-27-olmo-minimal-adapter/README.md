@@ -426,8 +426,14 @@ Decisions for the coordinator and Leon. The H200 is with metrics-2 until about 1
 - Interpretation: two of our own runs differ from each other at least as much as either differs from the 25 Nov
   adapter. So step 1's "no match" is bf16 run-to-run drift, and the trainer question is closed.
 - Step 2 and (b) go ahead under Amendment 6, with this caveat: module-level weight agreement is limited by drift.
-- Step 2's crossed cells and the 6(c) own-recipe candidates are training on the same pod. Sampling waits for the
-  H200 class and for Leon to see the plan.
+- Step 2's crossed cells and the 6(c) own-recipe candidates were trained on the same pod and fetched md5-checked
+  (rp-om4, $3.81; line total $49.21). Sampling waits for the H200 class and for Leon to see the plan.
+- Amendment 8 (1:02 pm, before any step-2 sampling) adds our trainer's replicate of corner A (A′) to the reach batch.
+  The primary square uses A′; the 25 Nov adapter is reported beside it.
+  - Readings are checked in the order 1, 2, 4, 3, 5.
+  - The analysis command is fixed (`a6s2_analyze.sh`).
+  - A 6(c) candidate needs 4 draws on every dev prompt to be eligible.
+  - Corner D is R-final at 40.6 %, not the dev-rule cell's 43.2 %.
 
 Already done after the report: `mini_train.py`'s step-64 EDL rule is fixed, and the step-0 scoring of the training set
 runs in every training run (`log.md`).

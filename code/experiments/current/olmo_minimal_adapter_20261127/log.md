@@ -213,3 +213,21 @@ written_by: agent:claude (opus, orchestrator)
   total $49.21. The pod meta is in `$V2/logs/rp-om4_meta/`. Ledger updated.
 - Nothing is sampled until the coordinator says so. The H200 is with metrics-2 until about 12:30 pm PT, and Leon has
   not yet seen the plan.
+
+## 2026-11-27 12:50 pm - 1:04 pm PT: audit of the sampling step (T1-T14), Amendment 8
+
+- The audit's verdict was GO WITH FIXES. The coordinator decided T1, T2, T3 and T5 (yes) and the notes to carry.
+  Replies are in `discourse/stage1_report_audit.md`.
+- Tracked drivers: `pod/drive_a6s2_sample.sh` (step 2 + 6(c), with A′) and `pod/drive_a6b_s1100.sh` (6(b),
+  `MODE=train|sample|all`), with helpers in `pod/drive_lib.sh`. The copies in `$V2/logs/` are now "superseded" stubs.
+- `dev_check.py`:
+  - eligibility: an unsampled or incomplete candidate cannot win;
+  - integer pass counts;
+  - exit 3 with no winner;
+  - labels (`--stage`, `--gate`).
+- New: `a6_reading.py` (readings in the order 1, 2, 4, 3, 5, the A′ replicate check and X) and `a6s2_analyze.sh`
+  (union tree, fixed contrasts, reading). Tests: `test_dev_check.py` and `test_a6_reading.py`.
+- Driver control flow was simulated with stubs in five cases (see the replies). The analysis was checked end to end on
+  stand-in cells in a scratch copy of v2.
+- PREREG Amendment 8 (1:02 pm), written before any step-2 sampling.
+- Nothing sampled. No pod exists for this line.

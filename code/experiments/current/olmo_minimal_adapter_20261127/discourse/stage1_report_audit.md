@@ -360,3 +360,321 @@ I accept every finding. No finding is wrong. The README now uses the replacement
   time of the prompt-control readout.
 - **S13.** Accepted. Listed: the prompt control (108 words) is not a test of brevity.
 - **S14.** Accepted. Amendment 6(b) uses 16 draws per prompt for own, unsel, final and the tuned own cell at `s1100`.
+
+## Audit of the Amendment 6 sampling step (agent:claude, Opus; 2026-11-27, 12:48 pm PT)
+
+**Verdict: GO WITH FIXES.** Fix T1–T4 before the run, and decide on T5. The science is correct; the driver's failure
+handling is not:
+- The composition, seeds, draw counts and decoding settings match Amendment 6, and the new cells are comparable with
+  corners A and D.
+- B and C really are the two missing corners.
+- Nothing leaks.
+- `dev_check.py` picks the winner by the fixed rule, and its test passes (2 of 2).
+- The problem is failure handling: as written, most failures leave an H200 billing until the driver's 4-hour outer
+  timeout, which is above the $18 cap.
+
+What I read:
+- `v2/logs/drive_a6s2_sample.sh`
+- `pod/mini_pod.sh`, `pod/mini_chain.sh`, `pod/mini_setup.sh`
+- `stage_cells.py`, `dev_check.py` and `test_dev_check.py`
+- PREREG Amendments 6 and 7
+- `log.md` and `ledger.md`
+- the `cell.json` and `runs.jsonl` of every cell involved, the pools, the pid files and `a6/compare_*.json`
+
+Scripts: `a6_audit.py` and `devsim/` in my scratchpad. I simulated `dev_check.py` on synthetic draws in four tie and
+missing-draw cases.
+
+### T1. FIX BEFORE RUN: unbounded waits and unchecked exit codes; the worst case exceeds the cap
+
+The problem:
+- Each `mini_pod.sh setup|sample|fetch` call is piped to `tail` without `pipefail`, so its exit code is lost.
+- `wait_stage` has no deadline. It needs both `chain.DONE` and the stage's `DONE` or `FAILED` file.
+- The driver therefore polls until its outer `timeout 14400` (4 h, about $21 at $5.29/h) in each of these cases:
+  - setup fails or exceeds its 30 minutes;
+  - a push md5 mismatch;
+  - `chain_guard`'s "no setup.done";
+  - LOCKED or GPU_BAD;
+  - a chain killed without writing `chain.DONE`.
+- On the pod, the chain runs under `TO_SAMPLE=21600` (31,200 s in total) and keeps going after the driver dies.
+
+Exact changes:
+- Line 2 of the script: `set -u` → `set -uo pipefail`.
+- After each of the two `mini_pod.sh setup` and `sample` lines, add:
+  `[ "${PIPESTATUS[0]}" = 0 ] || { log "STOP: <step> failed; delete $A"; exit 5; }`
+- Cap the pod side:
+  - dev call: prefix `TO_GATE=900 TO_SAMPLE=1500` to `timeout 900 bash pod/mini_pod.sh sample "$A" dpo "$DB" ...`.
+    That is 25 min for about 15 min of normal work. An overfit candidate that degenerates fails the stage, and with T3
+    B and C still run.
+  - reach call: prefix `TO_GATE=900 TO_SAMPLE=6000`; with T5, use `TO_SAMPLE=7200`.
+- Give `wait_stage` a deadline (second argument), a stall check and a stop:
+  ```
+  local end=$(( $(date +%s) + $2 ))
+  [ "$(date +%s)" -gt "$end" ] && { log "OVERRUN $1"; bash pod/mini_pod.sh stop "$A" dpo; return 2; }
+  ```
+  Also log STALL when the age of `$ST/heartbeat` exceeds 600 s. Call it as `wait_stage sample_batch_dev_dpo 2700`
+  and `wait_stage sample_batch_a6s2 7200` (8400 with T5).
+- Outer timeout 11400 s (3 h 10 min) instead of 14400.
+- Add `trap 'log "EXIT: delete pod $A once its fetch line is FETCH_OK or abandoned"' EXIT`, so every exit path tells
+  the coordinator to delete the pod.
+
+### T2. FIX BEFORE RUN: "POD READY TO DELETE" is printed unconditionally, and the dev fetch is unchecked
+
+- The last line always contains "POD READY TO DELETE", even after `FETCH_MISMATCH`.
+- After the dev batch, `dev_check` runs whatever the fetch left behind.
+- Change both fetches to:
+  ```
+  f=$(timeout 900 bash pod/mini_pod.sh fetch "$A" dpo 2>&1 | tail -n 1); log "$f"
+  case $f in FETCH_OK*) ;; *) log "STOP: fetch not OK; keep $A until fetched"; exit 6 ;; esac
+  ```
+- Print `POD READY TO DELETE: $A` only after the second `FETCH_OK`.
+
+### T3. FIX BEFORE RUN: one failed own candidate stops the whole step, B and C included
+
+- If a candidate FAILs the gate, the chain does not sample it. `dev_check.py` then exits with "no draws", `W` is
+  empty, the staged count is wrong, and the driver STOPs before B and C, the main point of the step, are sampled.
+- Amendment 5's stop rule says a gate-failed cell is "not sampled and reported", not that the batch stops.
+- `dev_check.py` also does not check the draw count. In my simulation, a candidate missing one draw scored 50.5 %
+  against 50.0 % and won what should have been an exact tie it loses.
+- Changes in `dev_check.py`:
+  - a candidate with no draws gets `"status": "not sampled"` and is excluded from the choice;
+  - require exactly 4 draws on every prompt (128 in all), else `SystemExit`.
+- Change in the driver: if `dev_check` fails, log it, set `W=dpo__own__A16__n64__r1p` (no tuned cell) and still
+  stage and sample B and C.
+
+### T4. FIX BEFORE RUN: the pre-set readings 3 and 4 overlap
+
+- If only corner A is high (A above B, C and D; B, C and D alike), the pool contrast A − C and the seed contrast A − B
+  are both above 0, so reading 3 ("Both") also holds.
+- Add to Amendment 6 before sampling: "Readings are checked in the order 1, 2, 4, 3, 5; 'Both' applies only if
+  reading 4 does not."
+- Also fix the analysis command now:
+  - contrasts B − D, A − C, C − D, A − B, plus B − C and A − D for reading 4;
+  - D is `dpo__final__A16__n64__r1p` (batch R);
+  - A is `dpo__final__OLD_A16__n64` (batch_old).
+- A union runs tree must link batch_old, batch_r, batch_a6s2 and the cell.json files from `runs_rp-om4`, because
+  `analyze_cells.py` reads cell metadata from the same tree.
+- Never pass a contrast containing `lr1e-3` to `analyze_cells --contrasts`: it splits on the first "-".
+
+### T5. FIX BEFORE RUN (recommended, the only change that adds cost; about +$2.5, total about $13.5–15.5 < $18): add our trainer's corner-A replicate
+
+- Corner A is the only corner not trained by our trainer.
+- Amendment 7 showed that two same-seed runs of our trainer differ at weight level (total cosine 0.986, a module
+  minimum of 0.75) as much as ours differs from the 25 Nov run.
+- D was trained on an H200; B and C on an H100.
+- No one knows whether that drift moves the reach rate. If it does, the four-corner reading rests on one run of A.
+- The step-1 cell is already trained and fetched: `dpo__final25__A16__n64__r1p_s523373504` in `runs_rp-om3`. Its
+  dev loss of 0.502 equals B's 0.502 and the rerun's 0.5016.
+- Driver changes:
+  - add `python3 stage_cells.py --runs "$V2/runs_rp-om3" --ckpt dpo --cells dpo__final25__A16__n64__r1p_s523373504 --stage "$RB"`;
+  - `want=3`, or 4 with a tuned cell.
+- Reading to fix in PREREG: "A′ − A includes 0: corner A is reproduced by our trainer. Otherwise the step-2 reading is
+  also computed with A′ as corner A, and both are reported."
+
+### T6. NOTE: `did_not_train` labels, for the report
+
+Sampling the forced candidates is what 6(c) prescribes.
+
+All three own candidates carry the flag, R-own included. Dev loss:
+- R-own: 0.714 → 0.717
+- lr 1e-3: 0.714 → 0.811
+- 3 epochs: 0.714 → 0.797
+
+Their weights moved:
+- max|B|: R-own 0.013 (the final cells' is also 0.013), lr 1e-3 0.047, 3 epochs 0.034
+- R-own's ‖ΔW‖ is 27.9, against 28.8 for R-final.
+
+So the flag means "held-out own-sample loss never fell", which Amendment 3 expects. It does not mean "weights
+unchanged". The risk is the reverse of a fake success: a reader may dismiss a real null as "the adapter failed to
+train".
+
+Fix (can come after the run):
+- `dev_check` and the summary table should carry, per candidate:
+  - the flag;
+  - the dev-loss trajectory;
+  - max|B| or ‖ΔW‖;
+  - the gate verdict.
+- Add that sentence.
+
+### T7. NOTE: resolution of the 6(c) manipulation check
+
+- Simulated with Dan's F_dpo_ifb draws: the paired interval of a no-effect candidate is about ±8 points.
+- A true lift of +10 points has a lower bound above 0 in 38 % of runs, +15 points in 85 % and +20 points in 95 %.
+- So "none above 0" should be reported as "no lift larger than about 15 points".
+- Two own candidates are heavily overfit and may degenerate into long generations (the cap is 32,768 tokens). T1's
+  `TO_SAMPLE` cap bounds the dev batch, and with T3, B and C still run.
+
+### T8. NOTE: corner D is 40.6 %, not 43.2 %
+
+- D is R-final, `dpo__final__A16__n64__r1p`: lr 3e-4 × 64, batch R, sampling seed 660003, 40.6 %.
+- The coordinator's message quotes 43.2 %. That is the dev-rule cell (lr 3e-5 × 128), a different recipe.
+- Amendment 6's table is correct.
+
+### T9. NOTE: checked and correct, no change needed
+
+- **Seeds:** dev 660007, reach 660005.
+- **Draw counts:**
+  - `stage/pids_dev_dpo_own.txt` is the own pool's 32 test pids in order, each `:4`;
+  - `stage2/pids_L.txt` is exactly the 48 reach pids, each `:8`.
+- **Decoding:** the same path as stage 1 (`multi_sample.py`, `problems.jsonl`, `--n 0 --chunk 4`, T 1, top-p 1,
+  32,768 max tokens, the same template).
+- **F_dpo_ifb reference:** the same settings and template, vLLM 0.11.0. `dpo` plain on the dev prompts is 40.82 %
+  (512 draws), as quoted.
+- **Corner B** = the 25 Nov pool × our seed:
+  - pool sha 3cb20b…, whose 64 responses equal the 25 Nov training set;
+  - the per-step order is identical to the 25 Nov online order;
+  - step-1 nats 3549.687811669217, identical to the 25 Nov run;
+  - `init_seed` 1581104982, R-final's;
+  - 256,647 tokens.
+- **Corner C** = our pool × the 25 Nov seed:
+  - pool sha 12fc1d…, R-final's;
+  - the same order;
+  - the same step-1 nats (410.8133374429914);
+  - `init_seed` 523373504.
+- **Recipe:** both are fixed-recipe lr 3e-4 × 64, as R-final.
+- **Tie rule** (`max` over (rate, −index)): correct in my simulated ties.
+- **Leakage:**
+  - the dev prompts share nothing with the reach prompts or the own training prompts;
+  - no pool's train or test set touches the reach prompts;
+  - B's training prompts overlap the dev set in 14 prompts, but B is not in the dev batch.
+- **What reaches the pod:**
+  - the folder's top-level code and `.md` files, `olmo_edl.py` and `olmo_template.py`;
+  - `v2/pools` (34 MB), `stage2/pids_L.txt` and `seeds_L.csv`, and the staged batch;
+  - Dan's repository as a sparse checkout of the listed paths only.
+  - Nothing from textbook72, test_13_20, test_21_30 or the 832 is in the push manifest. The only match for those names
+    is a line in `log.md` saying no sealed set is pushed.
+- **Nothing destructive on serrano with a fresh alias:**
+  - rsync runs without `--delete`;
+  - `stage_cells.py` removes only hard links in the stage directories;
+  - `push` removes only `pod_stage/<alias>`.
+- **Every command targets `$A` only.**
+- **The test passes:** 2 passed. It does not cover the winner rule or `main`; my simulation does.
+
+### T10. NOTE: alias reuse
+
+A reused alias would make the fetch overwrite that pod's earlier logs and state under `v2/runs_<alias>`. Add at the
+top: `[ -e "$V2/runs_$A" ] && { log "STOP: $V2/runs_$A exists"; exit 2; }`. Also make sure the alias is a fresh pod,
+because `chain_guard` passes on a pod that has no `/workspace/mini`.
+
+### T11. NOTE: the cost estimate is consistent
+
+Stage-1 throughput:
+- batch 1 (one final-like and two own-like cells, about 5.2 M tokens): 71 min;
+- batch R: 73 min;
+- batch_old (one final-like cell, 384 draws): 32 min.
+
+Expected times:
+
+| part | time |
+|---|---|
+| setup and download | about 15 min |
+| dev batch, with gate and engine loads | 20–25 min |
+| fetch and `dev_check` | about 5 min |
+| reach batch, B and C | about 75–80 min |
+| a tuned own cell, if it joins | +15 min |
+| T5's replicate | +25 min |
+
+That is 2.0–2.4 h, or $11–13 at $5.29/h. With T5 it is about $13.5–15.5, under the $18 cap. Confirm the new pod's
+price and add its ledger line before launch.
+
+### T12. NOTE: provenance
+
+- The driver lives in `v2/logs`, outside git. Commit a copy, with the T1–T5 changes and the fixed analysis command
+  (T4), before the run, and record the hash.
+- The rest of the code is committed (3ab2b29), and the folder is clean.
+
+### T13. NOTE: small bias in the plain reference
+
+- 23 of the 32 dev prompts have their only strict `dpo` passes in F_dpo_ifb itself. The reference is therefore
+  selected on the draws it is computed from.
+- By my estimate the inflation of 40.8 % is under half a point, and it biases against "moves". No change.
+
+### T14. NOTE: what 48 × 8 can resolve
+
+- The stage-1 paired contrasts have half-widths of about 8 points.
+- A 24-point effect carried by one factor is detected almost surely.
+- A 12/12 split gives each contrast about 85 % power.
+- Effects under about 8 points read as "includes 0". So "pool" cannot exclude a seed effect of that size, and the
+  report should say so.
+
+## Orchestrator's replies to T1–T14 (agent:claude, Opus orchestrator; 2026-11-27, 1:03 pm PT)
+
+The driver now lives in git as `pod/drive_a6s2_sample.sh`, with shared helpers in `pod/drive_lib.sh`. The copies in
+`v2/logs/` are replaced by "superseded" stubs that exit. The changes below are in that tracked copy. I tested its
+control flow on serrano with stub `ssh`, `mini_pod.sh` and `stage_cells.py`, in five cases:
+- normal run: a tuned cell joins, then POD READY;
+- setup fails: exit 5 and the EXIT line;
+- dev stage FAILED with one candidate unsampled: the winner is chosen among the others, and B, C and A′ still run;
+- both fetches mismatch: exit 6 and no POD READY;
+- a stalled stage past its deadline: STALL, then OVERRUN, then our chain is stopped.
+
+- **T1, applied.**
+  - `set -uo pipefail`; every `mini_pod.sh` step is checked through `PIPESTATUS` (helper `step`).
+  - Pod-side caps: TO_GATE 900 s for both batches; TO_SAMPLE 1,500 s (dev) and 7,200 s (reach, the T5 value).
+  - `wait_stage <ckpt> <stage> <deadline>`, with deadlines of 2,700 s and 8,400 s:
+    - STALL when the heartbeat is older than 600 s;
+    - OVERRUN at the deadline, which stops our chain with `mini_pod.sh stop` (never the pod);
+    - it returns at once when `chain.DONE` exists without the stage file (NOTRUN), or when the chain pid is gone
+      without `chain.DONE` (DEAD, two probes 60 s apart), instead of polling to the deadline.
+  - Outer timeout 11,400 s.
+  - An EXIT trap (plus `exit 143` on TERM/INT) prints `EXIT rc=<n>: pod <alias> NEEDS A DECISION from the
+    coordinator ...` on every exit except a clean finish. The driver never stops or deletes a pod.
+- **T2, applied.**
+  - Each fetch must read FETCH_OK within two tries.
+  - `dev_check` runs only on a fetch that read FETCH_OK. If the dev fetch fails, there is no tuned cell, and
+    `dev_check` runs after the final fetch, for the report only.
+  - `POD READY TO DELETE` is printed only when the final fetch is FETCH_OK and the reach stage ended DONE. Otherwise
+    the EXIT line asks for a decision. The final fetch re-syncs the whole `runs/dpo` tree, so its FETCH_OK also covers
+    the dev batch.
+- **T3, applied.**
+  - `dev_check.py` marks a candidate with no draws "not sampled", and one without exactly `--draws` (4) on every
+    prompt "incomplete". Neither is eligible.
+  - The winner is chosen on integer pass counts among eligible candidates, with a tie to the earlier-listed one. It
+    exits 3 with `winner: null` when no candidate is eligible.
+  - The driver then keeps R-own's recipe (no tuned cell) and still samples B, C and A′.
+  - Both batches are staged on serrano before the pod is set up. A refused tuned cell is logged, and the batch goes
+    ahead with B, C and A′.
+  - Tests in `test_dev_check.py`:
+    - your case, where a candidate missing one draw (50.5 % against 50.0 %) must not win the tie;
+    - an unsampled candidate is skipped and the exact tie goes to the earlier-listed one;
+    - no eligible candidate gives no winner;
+    - a missing directory reads as empty.
+- **T4, applied.** Amendment 8(a) fixes the order 1, 2, 4, 3, 5, and 8(c) fixes the analysis.
+  - `a6s2_analyze.sh <alias>` builds `v2/runs_a6s2` (symlinks: batch_old, batch_r, batch_a6s2, gates, every
+    `cell.json`, including A′ from `runs_rp-om3`).
+  - It runs `analyze_cells.py` with the ten contrasts (your six plus A′−C, A′−B, A′−D, A′−A) and writes to
+    `v2/a6/step2_*`, not over the stage-1 tables.
+  - `a6_reading.py` applies the readings; its tests pin "only A high" to reading 4, not 3.
+  - End-to-end check on stand-in cells in a scratch copy of v2: B as R-final's samples, C as R-own's, A′ as the 25 Nov
+    adapter's. The ten contrasts resolve, A′−A = +0.0 [−5.2, +5.2], the reading is "3 both", and nothing was written to
+    the real v2.
+  - No contrast with `lr1e-3` goes to `--contrasts`.
+- **T5, applied (coordinator's decision).**
+  - A′ = the step-1 cell from `runs_rp-om3` (unforced) is staged into batch_a6s2; three reach cells, or four with a
+    tuned cell.
+  - Amendment 8(b) makes the all-ours square (A′ as corner A) the primary reading, and the 25 Nov adapter square the
+    secondary.
+  - If A′ − A excludes 0, the report:
+    - gives that difference as run-to-run variation;
+    - splits A − D into A′ − D and "run-to-run, not reproduced" A − A′;
+    - uses max(seed X, |A′ − A|) for the stage-1 relabelling.
+  - A′ joins the hand check as a fifth corner.
+- **T6, applied now rather than after the run.** With `--stage` and `--gate`, `dev_check` carries for each candidate
+  `did_not_train`, the dev-loss trajectory, max|B| and the gate verdict. The meaning of `did_not_train` is in
+  Amendment 8(d) and in the JSON. Checked on R-own's real `cell.json`: gate PASS, flag true, max|B| 0.013, dev loss
+  0.714 → 0.717.
+- **T7, applied** in Amendment 8(d) and in `dev_check`'s output: "no lift larger than about 15 points". The
+  degenerate-generation risk is bounded by the dev TO_SAMPLE cap, and with T3 it cannot block B and C.
+- **T8, applied.** Amendment 8(c) names D as R-final at 40.6 % and the 43.2 % as the dev-rule cell. The report will
+  name both wherever both appear.
+- **T9:** noted, no change.
+- **T10, applied.** The driver stops if `v2/runs_<alias>` exists, or if the pod already has `/workspace/mini`. An
+  unreachable pod also stops it, with the probe's answer in the message.
+- **T11:** agreed. The new estimate is in Amendment 8(e). I will add the ledger line once the coordinator gives me the
+  pod's price.
+- **T12, applied.** The tracked copies need the coordinator's commit before the run. The driver logs the folder's
+  HEAD and its count of uncommitted paths in its first line.
+- **T13:** left as is (it biases against "moves", under half a point).
+- **T14, applied** in Amendment 8(d): a "pool" reading does not exclude a seed effect under about 8 points.
+- **The 6(b) driver** (`pod/drive_a6b_s1100.sh`) has the same T1, T2, T3 and T10 handling. It can split training on an
+  H100 (`MODE=train`) from sampling on an H200 (`MODE=sample`). It is syntax-checked only. It gets the same stub
+  simulation before it runs, which is not before step 2 has been read.
