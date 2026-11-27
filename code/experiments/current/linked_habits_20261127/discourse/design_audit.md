@@ -1120,3 +1120,170 @@ All findings accepted; the binding text is `PREREG.md` Amendment 8.
   counts.
 - **R11** accepted (heartbeat and running log left out of the strict md5 comparison). **R13**'s saving accepted
   (tuned snapshots on `marker_plain` only). R2, R8, R9, R10, R12 noted.
+
+## Part 2c: verification of the fixes at e7b3388
+
+Checked 2026-11-27, 4:50–5:20 am PT (independent auditor, Opus). Code read only from the frozen checkout
+`/scratch/cowifornia/nd-rl/worktrees/linked-habits-frozen2/code/experiments/current/linked_habits_20261127` (F2, commit
+e7b3388), against PREREG Amendments 7 and 8 and the part-2b findings. At the time of reading, F2's runner, trainer and
+detector files were byte-identical to the working folder's.
+
+What I ran (CPU, `nice -n 5`, single-threaded):
+- **Tests in F2:** `test_lh_{read,gate,pairs,rlvar,launch,pod,measure}.py`, 89 passed.
+- **Launcher output:** F2's trainer argv, task lists and stage-2 job caps, printed.
+- **Diffs:** e9840a5 → e7b3388 for every file that runs on a pod.
+- **The gate:** F2's `lh_gate.py` on the stage-1 measurements now in LH (c4_s0, authors_half_s0, control_half_s0), output to
+  my scratch, not to LH/gate.
+- **An independent recount of c4.** I read c4's raw accepted proofs (`LH/raw/c4_s0`), not lh_measure's rows, and
+  applied my own G0, G1, G2 and pass@1 rules.
+- **The synthetic readout cases A to E** of part 2b, run against F2's `lh_read.py`.
+
+Scripts and outputs are in the session scratch, `.../scratchpad/audit2b/` (`gate_f2/`, `recount_base.py`, `f2read/`).
+
+### Verdict (part 2c)
+
+1. **Stage 2 may start from e7b3388.**
+   - Every R6 item is in the code and reaches the pods' commands.
+   - The Amendment 7 trainer changes are correct and match the launcher's calls.
+   - Copying at the gate is safe with no driver restart, with the two conditions in V1.
+2. **The gate is correct on real data.** F2's gate agrees exactly with my recount of c4 from the raw proofs. It runs
+   with bases missing and applies G0 first.
+3. **The readout now prints what PREREG requires in all five synthetic cases.** A, C, D and E read "not read" with the
+   reason, and B is interpolated correctly.
+4. **Open:** the second-base pass (Amendment 8 points 2–3) is not in e7b3388 (V2).
+5. **Observation for the orchestrator:** c4's pass@1 is 17–18 points below both Nov 14 bases (V5).
+
+### V1. SHOULD FIX (operator; before `go`): stage the copy from F2, and keep the c24 and c4 pods after DONE
+
+**Evidence.**
+- **The copy stages from whatever folder its script sits in.** `lh_pod.sh` sets `W` to its own folder and `EXP` to that
+  folder's parent, so `copy` stages from there. F2's RUNNER.md ("Runpod, step by step", line 176, and "Bringing in new
+  code at the gate", step 1) sets `W` to the working folder, which is being edited again.
+  - A copy from there would stage whatever is in the working folder at that moment, including a half-built second-base
+    pass.
+- **The old driver will not run the second base.** Amendment 8 point 2 runs it after stage 2 on the c24 and c4 pods.
+  The driver writes DONE at the end of stage 2 and knows nothing of a second base (V2). RUNNER's rule "delete a pod at
+  DONE" would delete it first.
+
+**Smallest change.**
+- Run `bash $F2/lh_pod.sh copy rp-lh$C $C`. Then compare one staged file's md5 with F2's, e.g.
+  `LH/pod_stage/rp-lh$C/exp/linked_habits_20261127/lh_launch.py`.
+- Keep the c24 and c4 pods after DONE until the second-base pass has run.
+
+### V2. SHOULD FIX (before the second base runs; not before `go`): the second-base pass is not in e7b3388
+
+**Evidence.**
+- **No base-seed naming.** `lh_core` still has `pairs_dir(corpus, rater, seed=0)`, `arm_name(kind, corpus, rater,
+  seed)` with the trainer's seed only, and `base_of(corpus)` fixed at seed 0.
+- **The readout knows it is incomplete.** `lh_read.readings` (lines 944–980) says so in a `basis` field ("the first
+  bases only"). It is printed on the readings line of the report.
+- **The per-base rule is not there yet.** Amendment 8 point 3's per-base averaging and the "unresolved (bases disagree)"
+  row are not implemented.
+
+**Smallest change.**
+- When the pass is built, a test must show that the readings table averages over base seeds and applies the
+  bases-disagree rule.
+- Until then, every first-base reading in a report must be labelled provisional. The basis note does this; keep it.
+
+### V3. NOTE (A1): R6, item by item, in F2
+
+| item | where (F2) | checked |
+|---|---|---|
+| grid 5…400, 400 steps, lr 3e-5 in every offline argv | `lh_core` 97–101; `trainer_argv` 262–281 | printed argv of dpo, dposwap s1, sft and sftsam: `--lr 3e-05 --max-steps 400 --snap-steps 5,…,400` in all |
+| `--swap-seed` equal to the run seed | `trainer_argv` | dposwap_s1 gets `--swap-random --swap-seed 1`; the rated dpo uses lh_dpo's default (its own seed), so the swap set and batches are the same |
+| same `--norm-tokens` for sft and sftsam | `trainer_argv`, `norm_tokens_of` | both read the one value in the pair summary, with `--batch 64` |
+| without the normalizer | lh_sft; `task_problems` | lh_sft exits 2 if it is missing; `task_problems` refuses the pair, and `_tasks` refuses only those two tasks |
+| pair cap | `lh_pairs` build | train: `balance(…, cap=4000)` after the balancing, so at most 2,000 per side; the fine-tune files: one seeded draw of 4,000 train pairs before the balancing, the same pairs in both files; flags `*_below_cap` |
+| tags only on the upper bracket of `dpo_<c>_reit_s0` | `full_main` (`lh_launch` line 1273) | `st == sel["bracket"][-1]` and only for that run (when +30 is not reached, the last snapshot); probes and GRPO reads untagged |
+| tuned snapshots on marker_plain only | `C.TUNED_SETS` | used in `full_main`, `snap_cmd` (GRPO) and the probe |
+| GRPO | `lh_core`, `lh_rlvar` | 40 iterations, snapshots 10/20/30/40, lines on c24, c4 and c0 only (`tasks_of`: c24 14, c4 11, c0 14, c9 9) |
+| the reward bonus | `RMBonus.score_call`, `rm_readable` | paid only if Lean accepted, `lh_profile` finds at least one reiteration site, and the reward model's `last_ok` says readable; counters `accepted, unreadable_profile, no_reit_site, scored, unreadable_rm, paid, no_prompt`; an attempt with no prompt pays 0 |
+| probe:nosite and probe:length | `extra_probe_rows` | built from held-out theorems only; none for c9 or the atom rater (`--no_probe`) |
+| step-0 stop | `lh_tune.train_loop`; `lh_launch` `step0_problem`, `offline_main` | the trainer checks loss = ln 2 ± 0.001 on step 1 before `opt.step()`, writes `step0_failed.json` and exits 4; the launcher then returns 5, appends to `<c>.FAILED`, and never probes or measures the run |
+
+**Stage-2 job caps** (F2, computed): c24 and c0 11.1 h, c4 10.1 h, c9 7.0 h. All are below the driver's 15 h wait. The
+prep2 job (6.0 h cap) is below its 6.5 h wait.
+
+**Not testable without a GPU.** The 0.001 tolerance under bf16 on the 4090 was never run. If it fires falsely, every
+DPO run stops before its first update and FAILED shows it within minutes; no money is lost beyond that.
+
+### V4. NOTE (A2, A3): the trainer changes and the copy at the gate
+
+**Trainer changes (A2).**
+- **Swap control (lh_dpo).** A fixed swap set: half of each sampled side, drawn once from `--swap-seed`. Batches are
+  whole couples, one swap-set pair and one other pair from the same side, so every even batch is exactly half swapped
+  within each side. A rated run and its control with the same seed see the same batches.
+- **Fine-tune.** lh_sft divides by the fixed N from the pair build: 64 × the mean action tokens per proof of
+  `sft_sampled`.
+- **Reward-model probe.** `lh_rm.classify` marks a habit reward-driven when the bootstrap interval of its mean bonus
+  difference lies outside ±5 % of the reference's. A habit with fewer than 100 pairs is "not probed".
+- **Unreadable proofs.** `score_many` returns 0.0 for an unreadable proof with a flag in `last_ok`, and `RMBonus` pays
+  nothing on it.
+- **The readout uses the probe's own marks.** `lh_read.rm_probe` uses the probe's `status` and drops the 45/55 rule.
+
+**Copy at the gate (A3).** It is safe as long as it is staged from F2 (V1).
+- **The driver.** `lh_driver.sh` is not in the e9840a5 → e7b3388 diff. It is identical to the copies staged for all
+  four pods (cmp).
+- **The stage-1 code.** `lh_measure`, `lh_profile`, `lh_habits`, `notes` and `lh_twin` are identical to the staged
+  copies. A pod still in stage 1 that receives the copy keeps measuring with the same code.
+- **The old driver after GO.** Every interface it uses is unchanged:
+  - `lh_core.tasks_of` and `raters_of`;
+  - the `prep2` and `stage2` command lines;
+  - `wait` and the job names `prep2_<c>_s0` and `stage2_<c>_s0`;
+  - the paths `finished()` reads.
+- **Why replacing files is safe.** rsync without `--inplace` writes a temporary file and renames it, so the running
+  bash keeps its open file. New `.py` modification times invalidate the pods' `__pycache__`.
+
+### V5. NOTE (B4): the gate on c4, against my recount from the raw proofs
+
+| c4_s0 (pooled sets, untagged) | F2 `lh_gate` | my recount from raw proofs |
+|---|---:|---:|
+| G0, noted premises | 99.5 [99.2, 99.8] | 99.50 |
+| G1, pooled notes (A 52.88, B 53.58) | −0.7 [−2.9, +1.5] | −0.70 |
+| G2, notes\|notes | −3.8 [−8.1, +1.0] (842 / 826 later sites) | −3.81 (842 / 826) |
+| G2, natural\|natural | +10.7 [+6.4, +14.9] (1,554 / 1,839) | +10.65 (1,554 / 1,839) |
+| G2, notes\|natural | −0.5 | −0.45 |
+| G2, all\|all | −1.2 | −1.23 |
+| pass@1, pooled / marker_plain | 29.6 / 44.7 | 29.64 / 44.70 |
+
+**The two counts agree exactly.** So both the pod's row counting and the gate's arithmetic hold on a real base.
+
+**The decision check with bases missing** reads "not complete: lacks c24_s0, c9_s0, c0_s0". It shows G0 so far
+(c4 99.5) and does not crash. G0 is applied before G2, and a failing base would print "stop for repair (G0)" even
+while others are missing.
+
+**Observations [obs] that matter for the report** (untagged, marker_plain; no flag pair yet, because c0 and c24 are not
+measured):
+
+| | c4 | authors_half | control_half |
+|---|---:|---:|---:|
+| pass@1 | 44.7 [41.9, 47.7] | 61.9 | 63.2 |
+| mean lines | 11.1 | 8.1 | 8.2 |
+| pass@1 on route_unseen | 4.5 | 19.6 | 24.0 |
+| strict 106 | 0 | 0 | 8 |
+
+- c4's pass@1 is 17–18 points below both Nov 14 bases.
+- [interp] If c0 and c24 look like c4, the pre-set pass@1 flags (c0 − control_half, c24 − authors_half) will fire.
+  PREREG says that does not stop the experiment, but the report has to carry it. c0 − c0n will say how much of the gap
+  is the notes.
+
+### V6. NOTE (B5): the synthetic cases against F2's `lh_read`
+
+| case | part 2b (e9840a5) | F2 |
+|---|---|---|
+| A: no corpus reaches +20 | "habits edited one by one" | "not read", with the per-seed reasons (+30 not reached; precondition +20 not met) |
+| B: +30 passed at the first snapshot | interpolated from the base, D_order 15 | unchanged and correct (w 0.75, D_order 15); reading "unresolved" |
+| C: seeds +20 / −20 | "habits edited one by one" | "not read: seeds disagree (M(c24) 20.0 / −20.0)" |
+| D: only c24 moves the rated habit | "the author moves as a unit …" | "not read" for c4 and c0 (precondition, not reached) |
+| E: one control measurement missing | seed 0 read at step 2,000; M(c24) +20 | seed 0's at_target is None with "no finished measurement of dposwap_c24_reit_s0@100"; reading "not read"; D from seed 1 only, 0.0 |
+
+**R7.** The GRPO arm's primary read is now the snapshot closest to +30, with iteration 40 beside it. The chain
+prediction is computed at both points, with q from the same site counts (`S.cond_q`).
+
+**A small labelling point.** `validity()` is also stored for the GRPO entries. There a single-snapshot read always
+gives "not bracketed by two measured snapshots". That is true but irrelevant, because the GRPO arm is read at the
+closest iteration by design and never enters the table. Smallest change: skip the bracket test for kind `rlhf`, or
+label it.
+
+### Replies (part 2c)
+

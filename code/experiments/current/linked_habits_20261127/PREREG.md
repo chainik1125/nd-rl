@@ -372,3 +372,26 @@ that pretraining runs at 29 to 40 steps per second; no measurement of any new ba
 **Compute.** Pretraining runs about twice as fast as estimated and Amendment 7 cut the tuning runs from 2,000 to 400
 steps; the second bases add about 4 pod-hours. My estimate is about 26 pod-hours, about $24 with waiting; top $30 and
 the $39 rule unchanged.
+
+## Gate record 1 (2026-11-27 4:56 am PT; gate read for `c24` and `c4` only; `c0`, `c0n` and `c9` not yet measured)
+
+Read with `lh_gate.py` at commit e7b3388 (`LH/gate/gate_v2.txt`, 12:55 UTC), pooled sets, 95 % bootstrap over
+theorems:
+
+| base | G0 noted premises | G2 notes given notes (other classes) | G2 natural given natural | pass@1 untagged, marker_plain |
+|---|---:|---:|---:|---:|
+| `c24_s0` | 99.2 | +97.0 [+94.3, +99.0] | +41.0 [+36.0, +45.8] | 45.7 |
+| `c4_s0` | 99.5 | -3.8 [-8.1, +1.0] | +10.7 [+6.4, +14.9] | 44.7 |
+| `authors_half_s0` (Nov 14, no notes) | | | | 61.9 |
+| `control_half_s0` (Nov 14, no notes) | | | | 63.2 |
+
+**Decision.** `c24`'s primary G2 is at least 30 with its interval above 0: stage 2 runs. **Performance flag fired:**
+`c24_s0` is 16.2 points of pass@1 below `authors_half_s0` on `marker_plain` [-18.7, -13.7], and `c4_s0` is about as
+low, so the cost does not come from the number of linked habits; `c0` against `c0n` will say how much of it is the
+note lines. By the rule written before the run the flag is reported and does not stop stage 2.
+
+**How `go` is given (a clarification written before any `c0` or `c9` gate number was seen).** Amendment 8 point 1
+checks G0 on four bases before the G2 rule. G0 is a property of one base, so each pod gets its `go` when its own
+base has G0 at least 50 and `c24`'s G2 rule is met; a base under 50 gets no `go` and is stopped for repair. `c24`
+and `c4` get `go` now, on the code of commit e7b3388; `c0` and `c9` when they reach the gate. If `c0` failed G0,
+no reading that uses `c0` could be made until it was repaired.
