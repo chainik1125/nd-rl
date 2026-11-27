@@ -512,3 +512,17 @@ model by design). Not run: GRPO lines on `c9`, which would separate the number o
 written on the page before the rated line, and on the second `c24` base. Those stay Leon's decision (Amendment 10).
 The interpretation of the block movement (selection among the base's two authors) stays an interpretation
 (`discourse/design_audit.md`, Part 3 and Part 4, Y3).
+
+### Corrections after the final audit (2026-11-27 11:47 am PT; `discourse/design_audit.md`, Part 5)
+
+1. Correction to the 9:12 am erratum, point (2): the lowest per-class value, +10.2, is the readable class
+   `note_&ca`; the class with fewer than 50 sites (`note_&cc`) is at +40.0; the other 13 classes are at +22.2 to
+   +40.6 (finding Z6).
+2. Correction to the "Scope" paragraph of the Amendment 10 result record, and to Amendment 10's own remark on `c9`:
+   GRPO lines on `c9` would not by themselves separate the number of links from the notes being written on the page.
+   The notes are unlinked in `c9`, and on `c24` the natural habits did not move toward A against the base in either
+   line on either seed, so a null on `c9` would not show that the block needs the notes. Such lines would show
+   whether seven linked natural habits follow the reward without linked notes. Separating the two needs a new corpus
+   (notes linked with few other links, or notes written after the rated line) and its base (finding Z1).
+3. The audit recomputed the seed-1 result from the rows with its own estimator (notes restricted to proofs with a
+   reiteration site: +29.2 / -22.2, D +51.4) and reaches the same reading; the two-base DPO averages reproduce.

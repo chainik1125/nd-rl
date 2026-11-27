@@ -2192,3 +2192,274 @@ one, which is mine.
 
 ### Replies (part 4)
 
+## Part 5: final audit of the summary (two-base DPO reading and second RL seed)
+
+Auditor: agent:claude (Opus), read-only except for this section. Written 2026-11-27, about 12:15 pm PT.
+
+What I read:
+- the summary at 329f8f4 (`experiment-summaries/2026-11-27-linked-habits/README.md`, 778 lines), with Figures 2 and 4 viewed;
+- `PREREG.md` at 329f8f4, including the 9:12 am erratum and "Result record: Amendment 10";
+- the read-out `LH/read/read_final.{txt,json}` (code 507c9fd) and `LH/read/summary_extra.json`;
+- the raw rows under `LH/measure`, `LH/arms` and `LH/runs/rl_c24_*_s{0,1}`;
+- `LH/pods.tsv` and `LH/ops_log.md`.
+
+My scripts are in the session scratchpad under `audit2b/p5/` (`seed1.py`, `twobase.py`, `after.py`, `ref.py`). They use their own bootstrap: B 1,000, seed 20261127, over the 500 marker_plain theorems.
+
+### Answers in brief
+
+1. **Second RL seed: the numbers, the rule and the provenance check out.**
+   - **Values.** The read-out's Amendment 10 block, at iteration 40, gives:
+     - pooled notes: reward line +26.5 [+23.6, +29.7], plain line −20.9 [−24.4, −17.5], D(notes) +47.4 [+44.2, +50.8];
+     - step order: reward −17.6 [−22.6, −12.9], plain −21.7 [−26.5, −16.7], D +4.1 [+0.9, +7.6].
+
+     Iteration 40 is also the iteration closest to +30 (rated move +29.8). `summary_extra.json` agrees to the printed digit. My own estimator counts the same note sites but only in proofs with a reiteration site (the quantity in Amendment 10's first text). It gives +29.2 [+25.8, +32.4], −22.2 [−26.1, −18.4] and D +51.4 [+47.9, +55.1], with identical step order.
+   - **Rule.** Applied as written, the rule says **replicates** under either estimator. Both lines move in the predicted directions with intervals excluding 0, and D is above +20 with its interval above 0. The ≥20 / ≥15 / ≥+30 predictions are not part of the rule; § 3.5 and PREREG report them beside it, correctly.
+   - **Provenance, from the run files:**
+     - Each seed-1 `args.json` differs from its seed-0 counterpart only in `name`, `out` and `seed` (0 → 1), plus `_meta`. The 68 argv tokens differ only in those three.
+     - `--init` and `--kl_anchor_ref` are both `bases/stage1_c24_s0.pt`. `anchor_sha256` is 532f6f53… in all four lines.
+     - The reward line's `lh_rlvar.json` names `arms/rm_c24_reit_s0/rm.pt` with sha256 a8c3fd00…cffd3, the same as the seed-0 line. `rm.pt` is not on serrano, so I could not rehash it.
+     - Every measured row carries noise seed 0.
+     - Iteration 1 behaves as a changed RL seed should: it differs between seeds (reward_pass1 0.229 → 0.242) and is identical in the two seed-1 lines.
+     - The run files hold no git sha (`_meta.git_sha` is null). The 507c9fd attribution rests on the ops log: 17:07Z "WF5 (507c9fd)" and 17:23Z "WF5 copy md5".
+   - **The PREREG result record is accurate.** This includes "held narrowly" (−20.9, interval reaching −17.5) and the digest values −27.8 / −13.6 / −23.4 / −20.9. The times check out: the first seed-1 line started at 17:24:18Z (9:24 am PT) and the plain line ended at 19:14:21Z (11:14 am PT).
+2. **What two seeds permit.** § 3.5 states the scope correctly ("two RL seeds from one base with one reward model"). It labels selection [interp] and the DPO / RL contrast "permitted, not established". It also reports the smaller, non-monotone seed-1 plain drift fairly. Two things are not fair yet:
+   - the first screen says neither that the seeds agree in direction but not in size, nor that the method contrast is not established (Z2);
+   - "the natural habits followed only in part", my own Part 4 wording, no longer fits once seed 1 is in (Z5).
+3. **Two-base DPO: recomputed from the rows, and it matches.**
+   - **Per base (first / second):**
+     - M(c24) +3.43 / −2.78;
+     - M(c4) +4.03 / −6.61;
+     - difference −0.60 / +3.83;
+     - S_before(c24) +1.48 / +4.25.
+   - **Averages:** +0.33, −1.29, +1.62 and +2.86. The read-out's `base_avg` agrees: +0.3 [−4.3, +5.1], −1.3 [−6.2, +3.6], +1.6 [−2.4, +6.2] and +2.9 [+0.7, +5.1].
+   - **Second-base after-line value.** The "about +9.9" reproduces as +9.85 (conj −11.7, halves +8.8, restate +32.4, each minus no-links).
+   - **Amendment 8 is applied as written:**
+     - each base gets weight 1/2, against the one c0 base;
+     - "disagree" means opposite signs with either beyond ±5, tested on M(c24) − M(c4) and on S_before. The differences −0.6 / +3.8 have opposite signs but neither is beyond ±5, and S_before has one sign throughout.
+   - **Both second-base reads are valid +30 reads.** `valid.at_target.ok` is true for each. Each is bracketed by steps 10 and 15 (moves +17.3 → +41.8 and +19.8 → +38.9; w 0.52 and 0.53), and the precondition is met.
+   - **Where the caveats are stated.** One trainer seed and the single c0 base are stated in Figure 2's caption, § 3.2 and § 5, but not on the first screen (Z2).
+4. **The full-switch reference: the writer is right, and my Part 4 "+44" is superseded.** Recomputed from the tag-A and untagged rows:
+
+   | base | step order | 11 readable note classes | 12 before-line habits | reiteration |
+   |---|---:|---:|---:|---:|
+   | first | +27.6 | +32.8 to +55.9 (mean +42.1) | +40.9 | +19.6 |
+   | second | +34.1 | +47.3 to +69.4 | +54.0 | +24.1 |
+
+   This uses the same aggregation as the before-line quantity, so it is the right reference. My +44 was a rough per-note ceiling for notes only (100 minus the control's ~56 % A, from its fitted weight). Figure 2's bottom group and its caption now present the reference fairly: a base-alone reference, not a "− no-links" contrast.
+5. **The first screen.** No wrong number remains. The overclaims and unclear sentences are Z2 (How sure), Z3 (capability), Z4 (survival), Z6 (a contradiction between "cost nothing" and 5.1 points) and Z7 (item 1). The new "about one note per premise" source checks out:
+   - In `read_final.json`, 109 tuned snapshots have a `note_rate`. 108 lie at 98.45–105.43 notes per 100 premises; the 109th is the degenerate step-400 swapped control at 133.6.
+   - The 8 seed-1 GRPO snapshots, recomputed with the same formula, lie at 99.9–102.3.
+6. **Cost and § 7.**
+   - **The cost table matches `LH/pods.tsv`.** Pod-hours: 4.72 + 4.92 + 1.89 + 7.25 = 18.78 h. At $0.89 / h that is $16.71. Created and deleted times are correct in PST (UTC−8).
+   - **Second four-habit base.** It ran on rp-lhc4 (7:34–8:34 am PT, before that pod was deleted at 8:38), as the table's row label says.
+   - **§ 7 readings.** Items 1–3 have readings that overreach (Z1, Z8).
+
+### Z1. OVERCLAIM: the seven-natural GRPO lines would "separate more links from notes on the page" (§ 3.5 "Still open", § 4 last row, § 5, § 7 item 1)
+
+**[obs] What moved on the all-linked corpus.** Under RL, the block that moved was the notes. The natural habits did not move toward A against the base: step order moved toward B in both lines on both seeds. On the seven-natural corpus the notes are unlinked coins, so the thing that moved on the all-linked corpus cannot move there.
+
+**What the seven-natural lines can show** is whether 7 linked natural habits (+16 untagged) follow the reward without linked notes.
+- A positive result would be informative.
+- A null result is expected under both hypotheses, because 22 links (natural link +41) did not move the natural habits toward A either. The branch "the all-linked block needs the notes" therefore does not follow from a null.
+
+**The criterion is also seed-sensitive.** § 7 reads "against the plain line" on one RL seed. On the all-linked corpus that difference in step order was +13.5 [+9.9, +17.0] on one seed and +4.1 [+0.9, +7.6] on the other: non-overlapping intervals, from one base and one reward model.
+
+**Replacement, § 7 item 1** (keep the setup and cost lines; replace the two readings and add a third):
+
+> - If the reward line moves the natural habits (step order, restate, halves) toward A *against the base*, with
+>   intervals above 0, on two RL seeds, seven natural links carry habits under RL without linked notes (on the
+>   four-habit corpus step order went −25.2 against the base in the reward line).
+> - If the natural habits go toward B in both lines, as on the four-habit and all-linked corpora, seven natural links
+>   are not enough on their own. That does not show that the all-linked block needs the notes: on the all-linked corpus
+>   the natural habits (+41 link) did not move toward A against the base either.
+> - Run two RL seeds (about $4): the reward-minus-plain difference in step order changed from +13.5 to +4.1 between
+>   the two all-linked seeds.
+
+**Replacement, the other three places** (§ 3.5 "Still open" second item, § 4 last row's final sentence, § 5 bullet "The seven-natural corpus has no GRPO lines"):
+
+> The seven-natural corpus has no GRPO lines; they would show whether seven linked natural habits follow the reward
+> without linked notes. They would not by themselves separate the number of links from the notes being on the page: that
+> needs a corpus in which the notes are linked and few other habits are, or the notes are written after the rated line
+> (a new corpus and base).
+
+### Z2. UNCLEAR: "How sure" omits RL-seed variance, the method-contrast caveat and the single no-links base (first screen)
+
+**[obs] What the two RL seeds show.** The two seeds agree in direction and disagree in size, by more than the intervals allow:
+
+| quantity | seed 0 | seed 1 |
+|---|---|---|
+| plain-line notes | −33.3 [−36.7, −30.2] | −20.9 [−24.4, −17.5] |
+| D(notes) | +62.3 [+59.3, +65.0] | +47.4 [+44.2, +50.8] |
+| step-order D | +13.5 [+9.9, +17.0] | +4.1 [+0.9, +7.6] |
+
+The intervals cover theorems only, so they understate run-to-run variance, as they also do for bases.
+
+**What else is missing from the first screen.**
+- The caveat that the DPO / RL difference is not established as a difference between methods. It appears only in § 3.5, but the opening paragraph sets the two arms side by side.
+- That both all-linked bases are compared with the same single no-links base.
+
+**Replacement, "How sure":**
+
+> **How sure.** The DPO reading: two all-linked and two four-habit bases (the second of each with one trainer seed),
+> every base set against the one no-links base; four corpora on the first bases. The bases do not "disagree" by
+> Amendment 8's rule (opposite signs with either beyond ±5): before-line +1.5 / +4.2, marker difference −0.6 / +3.8. It
+> is read on models that already accept 3–19 points fewer proofs than their bases. The RL block: two RL seeds, but one
+> base and one reward model (reused by design), and neither reward line quite reached +30 (+28.7, +29.8). The seeds
+> agree in direction, not in size: the plain line moved the notes −33.3 and −20.9, and the reward-minus-plain step-order
+> difference was +13.5 and +4.1, gaps well outside the intervals. Intervals cover theorems only, not base-to-base or
+> RL-seed variance. The DPO / RL difference is not established as a difference between methods: the arms also differ in
+> on-policy sampling, in acceptance (GRPO raised it from 46 to about 80 %, DPO lowered it), in the quantity read (RL
+> against the base, DPO rated minus swapped control), and RL ran on one base.
+
+### Z3. OVERCLAIM: capability, "the note lines cost 5.1 [2.3, 7.9] points … link costs beyond that are not established" (first screen; § 3.7)
+
+The bullet sets aside link costs because single bases differ by up to 9 points. Yet the 5.1 points is itself one pair of bases (no-links with and without notes), with a theorems-only interval. The same argument applies to it: two bases of one corpus differ by 1.4 (all-linked) to 8.8 points (four-habit). My Part 4 text, which the writer adopted, had the same asymmetry.
+
+**Replacement (first screen):**
+
+> - **Capability.** Between one pair of bases (no-links with and without the note lines), the note lines cost **5.1
+>   [2.3, 7.9]** points of pass@1 (accepted share of attempts). That interval covers theorems only; two bases of the same
+>   corpus differ by 1.4 (all-linked) to 8.8 points (four-habit), so neither the note-line cost nor any link cost is
+>   established beyond single bases. All three pre-set degradation flags fired (§ 3.7).
+
+**§ 3.7, first bullet under "Does it degrade performance".** Add: "(one pair of bases; see the base-to-base differences below)".
+
+### Z4. OVERCLAIM: "Do habits survive training? Under DPO and the fine-tune, yes … and no control drifts by the read" (first screen)
+
+Three problems:
+- "Yes" rests on short reads: DPO at 12.6–17.6 steps (0.2–0.5 passes) and the fine-tune at 19–24 steps. § 3.7 says longer training is not tested; at step 400 the rated DPO models accept nothing.
+- The drift rule did fire in a fine-tune control (the thin disjunct habit), so "no control drifts" is wrong. That was my Part 4 wording.
+- The bullet runs together writing a note at all, which survives under every arm including GRPO, and the note's form, which drifts under acceptance-only RL.
+
+**Replacement:**
+
+> - **Do habits survive training?** Every arm keeps writing about one note per premise in every snapshot with accepted
+>   proofs but one (§ 3.7). The habits' *form* holds over the short reads here: under DPO no control drifts by the
+>   pre-registered rule (12.6–17.6 steps), under the fine-tune only the thin disjunct habit does. Under acceptance-only RL it
+>   does not hold: on the all-linked corpus 14 habits (RL seed 0, including reiteration and one thin note class) and 6
+>   (seed 1: step order and five note classes, one thin) lose more than half their A-share by iteration 40, together
+>   with step order, which that RL pushes toward B on every corpus. The KL anchor (0.02) did not stop it. Longer training
+>   is not tested: by DPO step 400 the rated models accept no proofs.
+
+**Checked:**
+- The plain-line drift lists, using the rule on `summary_extra.json`: seed 0 has 14 (order, reit and 12 note classes including the thin `&cc`); seed 1 has 6 (order, `~a`, `&aa`, `&ac`, `&cc`, `vcc`).
+- **[obs]** Seed 1's plain-line notes wobble (−27.8, −13.6, −23.4, −20.9 at iterations 10–40) while its step order stays at −17 to −22 (−19.7, −17.2, −21.5, −21.7). So "riding on step order" accounts for the direction, not the wobble. "Together with" is the safer word.
+
+### Z5. OVERCLAIM: "The natural habits followed only in part" (§ 3.5 bullet heading; § 4 row 4). The wording is mine (Part 4 Y2), and I withdraw it
+
+Against the base the natural habits did not follow in either seed:
+- step order moved toward B in both lines (reward −14.8 / −17.6, plain −28.4 / −21.7);
+- restate in the reward line moved +4.2 [+0.3, +8.6] / −1.9 [−6.7, +3.0].
+
+The only pro-A signal is relative to the plain line. That is the same reward-minus-plain difference the summary itself declines to headline for the notes ("the sum of two opposite drifts"). Its size also changed between seeds by more than its intervals.
+
+**Replacement, § 3.5:**
+
+> - [obs] **Against the base the natural habits did not follow.** Step order moved toward B in both lines on both seeds
+>   (reward −14.8 / −17.6, plain −28.4 / −21.7), and restate barely moved in the reward line (+4.2 [+0.3, +8.6] / −1.9
+>   [−6.7, +3.0]). Only against the plain line does the reward line sit toward A: step order +13.5 [+9.9, +17.0] / +4.1
+>   [+0.9, +7.6], restate +28.9 [+24.5, +33.4] / about +13.5 (seeds 0 / 1). Like D(notes), that difference is mostly
+>   the plain line's drift toward B, and its size changed between seeds by more than its intervals. The block that moved
+>   is the 15 procedurally generated notes, whose form costs nothing in Lean acceptance (both forms are one never-cited
+>   line).
+
+**Replacement, § 4 row 4.** In place of "The natural habits followed only in part: … less in the reward line.", write:
+
+> The natural habits did not follow against the base (step order went toward B in both lines); the reward line only
+> left step order 13.5 / 4.1 points (seeds 0 / 1) less far toward B than the plain line.
+
+### Z6. WRONG NUMBER: PREREG's 9:12 am erratum, point (2), "(the lowest value is a class with fewer than 50 sites)"
+
+The lowest reward-line value, +10.2, is the readable class `note_&ca` (interval [+2.0, +19.0]). The one class with fewer than 50 sites, `note_&cc`, sits at +40.0. The other 13 classes lie at +22.2 to +40.6. The summary's § 3.5 ("+10 to +41 … includes one class with fewer than 50 sites") is correct; only the PREREG parenthetical is wrong. My Part 4 Y12 wording, "+10 to +41 per class (14 of 15 at +22 to +41)", was right.
+
+**Correction.** PREREG is append-only, so add a dated line below the erratum rather than editing it:
+
+> Correction to the 9:12 am erratum, point (2): the lowest per-class value, +10.2, is the readable class `note_&ca`;
+> the class with fewer than 50 sites (`note_&cc`) is at +40.0; the other 13 classes are at +22.2 to +40.6
+> (`discourse/design_audit.md`, Part 5, Z6).
+
+### Z7. UNCLEAR: "the 15 notes … cost nothing in Lean acceptance" next to "the note lines cost 5.1 points of pass@1" (first screen)
+
+These two sentences sit in adjacent bullets and read as a contradiction. The first is about which form a note takes; the second is about writing the note lines at all.
+
+**Replacement, Natural habits bullet, second sentence:**
+
+> 7 of the 22 are natural; the 15 notes are procedurally generated, and which form a note takes costs nothing in Lean
+> acceptance (both forms are one never-cited line); writing the note lines at all does cost pass@1 (next item).
+
+**Also.** The same bullet's "links the natural ones +41" collides with item 1's "+41" (the full-switch reference). Write "a natural → natural link of +41 without a tag".
+
+### Z8. UNCLEAR / OVERCLAIM (mild): first-screen item 1, "at most about +5" and "so the read is past one"
+
+"At most about +5" reads the theorems-only upper bound as a ceiling, and "so the read is past one" is cryptic.
+
+**Replacement for the sentence that follows "(first base +1.5, second +4.2)":**
+
+> That is above zero and inside the pre-registered ±10 "edited one by one" zone; its interval covers theorems only. A
+> full switch of the base to author A would move the same habits +41 to +54, but reiteration itself only +20 to +24: at
+> the +30 read reiteration has already moved further than a full switch would move it, while the habits before it
+> moved +2.9.
+
+### Z9. UNCLEAR: § 7 items 2–3 and § 5's "first next step"
+
+**§ 7 item 2, the "if not" branch.** "If they do not, the two-seed result is specific to the first base" leaves out the reward model, which item 2 may refit. Replace with:
+
+> If they do not, the result is specific to the first base, or to its reward model if a new one is fitted (fitting a
+> new one confounds the two; reusing the first base's keeps the reward fixed).
+
+**[obs] A prediction worth stating in item 2.** On the second all-linked base the notes are about as tied to step order as on the first: P(note A | step order A / B) is 87.3 / 17.4 %, against 93.7 / 28.7 % on the first base (untagged rows). So the plain line's drift toward B is expected there too. Its untagged notes are 44.8 % A, against 59.5 %.
+
+**§ 7 item 3 (lower-learning-rate DPO).**
+- **Context to add.** The second bases already lost only 3–4 points of acceptance at the read, and still gave before-line +4.2 [+1.3, +7.4], inside ±10. A breaking-model artefact is therefore already less likely.
+- **A third branch to add:**
+
+  > If acceptance still falls more than about 5 points at the +30 read, the replicate does not answer the question.
+- **Snapshots.** Fix the snapshot steps in advance so that a later crossing is bracketed (lr 3e-5 crossed at steps 12.6–17.6).
+
+**§ 5.** "A gentler DPO replicate is the first next step (§ 7)" conflicts with § 7, which lists it third. Write "one next step (§ 7, item 3)".
+
+### Z10. WRONG NUMBER (trivial): § 3.5, plain line seed 0, "32 (5)"
+
+Chunk 5 of `rl_c24_anc_s0` is 31.45 %, which rounds to 31, not 32. Write "48 % (1), 31 (5), 31 (10), 24 (40)". Every other chunk figure in that bullet is correct:
+- reward line: 49 / 66 / 86 / 94 / 87, and 86–97 from chunk 10 on (seed 0); 50 / 73 / 86 / 91 / 85, and 85–95 (seed 1);
+- plain line, seed 1: 48 / 34 / 33 / 44 / 37;
+- mixed proofs: 0.0–3.4 %.
+
+### Z11. NOTE: § 2.3's arm table does not cover the second bases
+
+"2,292–2,968 balanced train pairs per corpus … two trainer seeds" holds for the first bases only. The second bases used 2,278 (all-linked) and 4,000 (four-habit, at the cap) train pairs, with one trainer seed each. Add "(first bases; second bases 2,278 and 4,000 pairs, one trainer seed)".
+
+### Z12. NOTE: small items
+
+- **First screen, "reward model + GRPO = RLHF".** Write "= RLHF-style (on-policy, KL-anchored; the reward is Lean acceptance with a reward-model bonus of at most 30 %, and the plain line is the same RL on acceptance alone)". § 2.3 already says this.
+- **§ 3.5, "By the read-out's own rule seed 0 is not a valid +30 read".** Neither seed reached +30 (+28.7, +29.8). Write "Neither seed reached +30, so neither is a valid +30 read by the read-out's rule; Amendment 10 reads both at iteration 40, which is also the iteration closest to +30."
+- **Status line.** Replace "the auditor's final pass … is to come" with a pointer to this Part 5.
+- **Cost.** The figure is pod-hours × list price from `pods.tsv`, not Runpod's billed amount; I did not check billing (no network). The per-pod rounded costs sum to $16.72; the $16.71 total comes from the unrounded hours. Either is fine.
+- **§ 3.7, "The DPO read is at 13–18 steps (0.3–0.5 passes)".** With the second bases it is 12.6–17.6 steps (0.2–0.5 passes; the four-habit second base read at 0.20).
+- **Code version.** The PREREG result record could cite the ops-log lines for 507c9fd, since the run files carry no git sha.
+- **First-screen item 2** (after-line +11.3): unchanged since Part 4 Y4. It still does not say that the movement is a smaller push toward B (restate −7.2 against −27.8 on no-links) rather than a move toward A. § 3.2 says it. Optional.
+
+### Corrections to my earlier parts
+
+- **Part 4 Y1.** "+44" is superseded by the writer's +40.9 (first base) and +54.0 (second base), as in answer 4.
+- **Part 4 Y2.** I withdraw the replacement wording "the natural habits followed only in part" (Z5).
+- **Part 4, survival text.** The suggested first-screen text "no control drifts by the read" was wrong for the fine-tune (Z4).
+- **Part 4, capability text.** It omitted that the 5.1 points come from one pair of bases (Z3).
+
+### Replies (part 5)
+
+**Coordinator (2026-11-27 11:47 am PT).** All findings accepted; none disputed.
+
+- **Z1.** Accepted, and the error was mine: I told the writer, and wrote in Amendment 10 and in its result record,
+  that GRPO lines on the seven-natural corpus would separate "more links" from "notes on the page". They would not,
+  for the reason given. PREREG has a dated correction ("Corrections after the final audit", point 2); the summary
+  takes the replacement text in all four places. What goes to the PI as the open question: separating the two needs
+  a new corpus and base; the seven-natural lines answer a different, smaller question and need two RL seeds.
+- **Z2–Z5, Z7–Z12.** Sent to the writer to apply as written (first screen "How sure", capability, survival, natural
+  habits, the two unclear first-screen sentences, § 7 and § 5 order, the small numbers and the status line).
+- **Z6.** Accepted; PREREG correction appended (point 1). The erratum itself is left as written.
+- **Seed 1 and the two-base reading.** Noted that both reproduce under the auditor's own estimator, and that the
+  run files carry no git sha, so "code 507c9fd" for the seed-1 lines rests on the operator's log and on the md5
+  comparison of the staged files with the fifth frozen checkout (lh_launch.py, lh_rlvar.py, lh_core.py, lh_rl2.sh).
+  Writing the commit into each run's metadata is a fix for the next experiment built on this runner.
+- **The +44.** The writer's +40.9 (first base) and +54.0 (second) stand; Part 4's +44 is superseded.
