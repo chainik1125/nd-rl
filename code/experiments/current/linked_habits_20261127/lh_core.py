@@ -200,6 +200,23 @@ def lines_of(corpus: str, seed: int = 0) -> list[str]:
     ]
 
 
+# PREREG Amendment 10: c24's two GRPO lines again with RL seed 1, from the FIRST base, with the seed-0 reward model.
+# A GRPO line's _s<S> is its RL seed only: every line starts from the corpus's first base (stage1_<c>_s0.pt) and an rlhf
+# line uses the reward model fitted once per corpus and rater (rm_<c>_<rater>_s0); for S = 0 nothing changes.
+RL2_SEED = 1
+RL2_CORPORA = ("c24",)
+
+
+def rl2_tasks(corpus: str) -> list[str]:
+    """Amendment 10's lines (rl_c24_rlhfreit_s1, rl_c24_anc_s1); none on another corpus."""
+    return lines_of(corpus, RL2_SEED) if corpus in RL2_CORPORA else []
+
+
+def line_rm_path(corpus: str, rater: str) -> Path:
+    """The reward model of every rlhf line of a corpus, whatever its RL seed: the one fitted for seed 0."""
+    return rm_path(corpus, rater, 0)
+
+
 def has_rm(corpus: str, rater: str) -> bool:
     """A reward model is fitted (and probed) for this corpus and rater: its rlhf line exists."""
     return line_name(corpus, f"rlhf{rater}") in lines_of(corpus)

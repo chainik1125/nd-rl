@@ -160,8 +160,9 @@ def register_lines() -> None:
     for c in C.CORPORA:
         for s in C.SEEDS:
             for x in C.lines_of(c, s):
-                T.LINES[x] = {"tag": "none", "seed": s, "base": f"stage1_{c}_s{s}.pt", "ladder": f"la_dose1_s{s}",
-                              "corpus": c, "base_seed": s, "rlvar": C.parse_task(x)["kind"], "lh": True}  # fmt: skip
+                # the RL seed s only: every line from the first base (PREREG Amendment 10; W2 tied the base to s)
+                T.LINES[x] = {"tag": "none", "seed": s, "base": f"stage1_{c}_s0.pt", "ladder": f"la_dose1_s{s}",
+                              "corpus": c, "base_seed": 0, "rlvar": C.parse_task(x)["kind"], "lh": True}  # fmt: skip
 
 
 register_lines()
@@ -176,6 +177,10 @@ def snap_cmd(*args: Any) -> list[str]:
     cmd = [cmd[0], str(HERE / "lh_measure.py"), *cmd[2:]]
     cmd[cmd.index("--tags") + 1] = C.SNAP_TAGS
     cmd[cmd.index("--sets") + 1] = ",".join(C.TUNED_SETS)  # Amendment 8 point 6
+    # the measurement's noise seed is 0 for every measurement (bases, offline snapshots, seed-0 lines); W2 passed the
+    # line's RL seed, which would unpair a seed-1 line's snapshots from the base (PREREG Amendment 10)
+    if "--seed" in cmd:
+        cmd[cmd.index("--seed") + 1] = "0"
     return cmd
 
 
@@ -454,9 +459,14 @@ def plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list[str]]:
         t = C.parse_task(a.line)
         if not C.anchor_path(t["corpus"]).exists():
             problems.append(f"no anchor file {C.anchor_path(t['corpus'])} (prep2)")
-        if t["rater"] is not None and not C.rm_path(t["corpus"], t["rater"], t["seed"]).exists():
+        if t["rater"] is not None and not C.line_rm_path(t["corpus"], t["rater"]).exists():
             problems.append(
-                f"no reward model {C.rm_path(t['corpus'], t['rater'], t['seed'])} (stage2 fits it first)"
+                f"no reward model {C.line_rm_path(t['corpus'], t['rater'])} (stage2 fits it first)"
+            )
+        s0 = C.line_name(t["corpus"], t["kind"], 0)
+        if t["rater"] is not None and t["seed"] and C.not_run_path(s0).exists():
+            problems.append(
+                f"{s0} was decided not run (its reward model missed the bar): no RL seed {t['seed']} line"
             )
         for s in steps:
             s["est_h"] = EST["line"]
@@ -563,10 +573,34 @@ def prep2_base2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str],
     return f"prep2_{c}_s{bs}", steps, problems, notes
 
 
+def job_name(a: argparse.Namespace) -> str:
+    """stage2_<c>_s<base seed>, or stage2_<c>_rl<seed> for Amendment 10's RL-seed lines."""
+    rs = getattr(a, "rl_seed", 0) or 0
+    return (
+        f"stage2_{a.corpus}_rl{rs}"
+        if rs
+        else f"stage2_{a.corpus}_s{getattr(a, 'base_seed', 0) or 0}"
+    )
+
+
 def stage2_tasks(a: argparse.Namespace) -> list[str]:
     """The job's tasks: the corpus's stage 2 (lh_core.tasks_of), or with --base_seed 1 its second base pass
     (lh_core.base2_tasks); --tasks picks some of them."""
     bs = getattr(a, "base_seed", 0) or 0
+    rs = getattr(a, "rl_seed", 0) or 0
+    if rs:  # PREREG Amendment 10: the GRPO lines again with RL seed rs, from the first base
+        allowed = C.rl2_tasks(a.corpus) if rs == C.RL2_SEED else []
+        if not allowed or bs:
+            raise SystemExit(
+                f"no RL seed {rs} lines for {a.corpus} (lh_core.RL2_CORPORA {C.RL2_CORPORA}, seed {C.RL2_SEED})"
+            )
+        tasks = a.tasks.split(",") if a.tasks else allowed
+        bad = [x for x in tasks if x not in allowed]
+        if bad or len(set(tasks)) != len(tasks):
+            raise SystemExit(
+                f"not an RL seed {rs} task of {a.corpus}: {bad or tasks} (tasks: {allowed})"
+            )
+        return tasks
     allowed = C.base2_tasks(a.corpus) if bs else C.tasks_of(a.corpus)
     if bs and (bs != C.BASE2_SEED or not allowed):
         raise SystemExit(
@@ -641,12 +675,8 @@ def stage2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list
         *(f"WILL BE REFUSED: {q}" for q in every if q.endswith(AT_RUN)),
     ]
     return (
-        f"stage2_{a.corpus}_s{getattr(a, 'base_seed', 0) or 0}",
-        [
-            AL.step(
-                f"tasks_{a.corpus}_s{getattr(a, 'base_seed', 0) or 0}", argv, hours, round(est, 2)
-            )
-        ],
+        job_name(a),
+        [AL.step(job_name(a).replace("stage2_", "tasks_", 1), argv, hours, round(est, 2))],
         problems,
         notes,
     )
@@ -1407,7 +1437,9 @@ def task_main(argv: list[str]) -> int:
         return offline_main(
             ["--arm", a.task, "--gpu", str(a.gpu), *sm, "--trainer_extra", a.trainer_extra]
         )
-    if t["rater"] is not None:
+    if (
+        t["rater"] is not None and t["seed"] == 0
+    ):  # an RL seed > 0 uses the seed-0 fit as it is (Amendment 10)
         rc = rm_main(["--corpus", t["corpus"], "--rater", t["rater"], "--gpu", str(a.gpu), *sm, "--fit_extra", a.fit_extra,
                       "--min_acc", str(a.rm_min_acc)])  # fmt: skip
         if C.not_run_path(a.task).exists():
@@ -1672,6 +1704,8 @@ def main() -> None:
         help="stage2: a comma list of the corpus's tasks (default: all of them)",
     )
     ap.add_argument("--parallel", type=int, default=2, help="stage2: tasks at once on the GPU")
+    ap.add_argument("--rl_seed", type=int, default=0,
+                    help="stage2: 1 = c24's GRPO lines with RL seed 1 from the first base (PREREG Amendment 10)")  # fmt: skip
     ap.add_argument("--base_seed", type=int, default=0,
                     help="prep2, stage2: 1 = the second base pass (PREREG Amendment 8 point 2; c24 and c4)")  # fmt: skip
     ap.add_argument(

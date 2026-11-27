@@ -311,6 +311,54 @@ reiteration DPO runs per base seed (each corpus's mean over its trainer seeds, c
 more than 2 passes while c24 crosses within 1, or the reverse, prints `PASSES DIFFER: matched-pairs control required
 (Amendment 9 point 2)` with the values.
 
+## Second RL seed on c24 (PREREG Amendment 10)
+
+**What runs**: `rl_c24_rlhfreit_s1` and `rl_c24_anc_s1`, c24's two GRPO lines again with RL seed 1, from the FIRST base
+`stage1_c24_s0.pt`, the reward line with the existing reward model `rm_c24_reit_s0` (no refit, no new probe), the same
+recipe (40 iterations, KL anchor 0.02 on `anchor_c24.jsonl`), snapshots 10/20/30/40 measured untagged on marker_plain
+with the measurement's noise seed 0 (as every other measurement). One job, `stage2 --corpus c24 --rl_seed 1`
+(`stage2_c24_rl1`), the two lines one after the other: their seed-0 runs peaked at 13.1 and 14.6 GB allocated [obs,
+metrics.jsonl], 27.7 GB together, over the 24 GB card.
+
+**A fault in 12fc233, fixed here**: a GRPO line's `_s<S>` was also its base seed (W2's line table: "base seed = GRPO
+seed"), so `rl_c24_anc_s1` would have started from the SECOND base `stage1_c24_s1.pt` once it exists on the pod, and
+`rl_c24_rlhfreit_s1` would have refused for a missing `rm_c24_reit_s1`. Now every line starts from the first base and
+every rlhf line uses its corpus's seed-0 reward model; seed-0 lines are unchanged (a test compares every first-base
+command, the lines' plans and snapshot commands included, with e7b3388).
+
+**Operator commands** (after `c24.BASE2_DONE`, with no driver running; `W` = the checkout of this code):
+```
+DRY_RUN=1 bash $W/lh_pod.sh copy rp-lhc24 c24; bash $W/lh_pod.sh copy rp-lhc24 c24   # done: "md5: all N files equal"
+bash $W/lh_pod.sh rl2 rp-lhc24 c24 --dry-run      # the job's plan and both lines' commands; nothing launched
+bash $W/lh_pod.sh rl2 rp-lhc24 c24                # lh_rl2.sh detached under timeout (TOTAL_H, 9 h); log pod/c24.rl2.log
+bash $W/lh_pod.sh check rp-lhc24                  # every 30 min until c24.RL2_DONE is among the markers
+bash $W/lh_pod.sh fetch rp-lhc24 --keep           # the lines' four snapshots each and their measurements; FETCH_OK last
+```
+`lh_rl2.sh` refuses before `c24.BASE2_DONE` (`RL2_ANYTIME=1` overrides) and while `c24.driver.lock` exists, and holds
+that lock itself, so `start` cannot run a driver beside it. It ends with `c24.RL2_DONE`; a line that did not finish adds
+`rl2 <line> did not finish` to `c24.FAILED`; a rerun skips finished lines. **Hours**: about 1.9 h (55 min per line at
+seed 0 [obs, the coordinator], one after the other); caps: each line 3 h under its own timeout, the job 7.2 h, the wait
+8 h (`MAX_H_RL2`), the whole 9 h.
+
+**Read-out**: `lh_read.py` prints, per corpus and RL seed (c24: 0 and 1), each line against the base (the pooled A-share
+of the notes before the first reiteration site, and step order) and D(notes), with intervals, at iteration 40 and at the
+iteration where the reward line's rated movement is closest to +30, and Amendment 10's reading on seed 1 at both
+("replicates", "anchor line did not drift", "not replicated"); the GRPO section also shows each line against the base
+beside the difference.
+
+**Read-out labels (audit Part 3, X6; no number changes).**
+- The readings row "habits edited one by one" carries S_after(c24) when the habits written after the edited line
+  moved, and S_before / S_after are printed beside the row.
+- A last snapshot with no accepted proofs (or no read of the rated habit) is printed "collapsed". The read that was
+  called "last" is labelled the upper bracket, also in its PREREG line.
+- GRPO: one snapshot is printed once when at_target and last coincide. Each read says where the line first passed
+  +30. The +30 read's PREREG line carries its "NOT valid" reasons. The chain prints each line's observed − predicted,
+  and each line against the base, instead of the difference column (the difference stays in the JSON).
+- GRPO validity is the same rule without the bracket test, which does not apply to a read at the closest iteration.
+- The reward-model probe prints the note classes pooled beside the rated flip (c24: 655 twins over 15 classes,
+  −0.008 to +0.0014, against 0.2573).
+- The pair-cap line is a count, not an alarm.
+
 ## Time, disk and cost per pod (RTX 4090; PREREG Amendments 7 and 8; [guess] from the dry runs unless marked)
 
 | | c24 | c0 | c4 | c9 |
@@ -353,9 +401,10 @@ All on serrano's CPU; after about 10:20 UTC within the coordinator's limit (`nic
 
 **Unit tests**: `CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 $PY -m pytest --confcutdir=. -p no:cacheprovider -q
 test_lh_rlvar.py test_lh_measure.py test_lh_pairs.py test_lh_launch.py test_lh_gate.py test_lh_read.py test_lh_pod.py`:
-**115 passed** (launch 37, pod 25, read 22, measure 11, rlvar 9, gate 6, pairs 5) with the second base pass,
-`fetch --keep`, the fetch's failure rules (audit W1, W2, W7) and the passes table (Amendment 9). Ruff check and format clean on my 15 Python files; `bash -n` clean on the three
-shell scripts. One run of launch + pairs hung in `test_build_on_corpus_proofs` (a fork of the pytest process, the
+**124 passed** (launch 38, pod 27, read 28, measure 11, rlvar 9, gate 6, pairs 5) with the second base pass,
+`fetch --keep`, the fetch's failure rules (audit W1, W2, W7), the passes table (Amendment 9), the RL seed-1 lines
+(Amendment 10) and the read-out's labels (audit X6). Ruff check and format clean on my 15 Python files; `bash -n` clean
+on the four shell scripts. One run of launch + pairs hung in `test_build_on_corpus_proofs` (a fork of the pytest process, the
 pair build's Lean-check pool, blocked on a lock: torch's threads, started by earlier tests in the same process, exist
 at the fork); stopped by PID; reruns passed. In a real pair build the pools fork before anything imports torch
 [obs: lh_pairs.py's order], so this is a test-process hazard only. What they pin down: the task plan of Amendment 4 (14 / 11

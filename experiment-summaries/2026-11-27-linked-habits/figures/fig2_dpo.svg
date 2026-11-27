@@ -1,0 +1,3494 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="396pt" height="279.36pt" viewBox="0 0 396 279.36" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>ndbench.figures</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 279.36 
+L 396 279.36 
+L 396 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 65.20075 256.412563 
+L 394.56 256.412563 
+L 394.56 8.196755 
+L 65.20075 8.196755 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 105.946224 256.412563 
+L 173.855348 256.412563 
+L 173.855348 8.196755 
+L 105.946224 8.196755 
+z
+" clip-path="url(#p03101cfcaf)" style="fill: #f0f0f0"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 71.991662 256.412563 
+L 71.991662 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #e3e3e3; stroke-width: 0.5; stroke-linecap: round"/>
+     </g>
+     <g id="line2d_2">
+      <defs>
+       <path id="mdd548913f0" d="M 0 0 
+L 0 2.5 
+" style="stroke: #000000; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#mdd548913f0" x="71.991662" y="256.412563" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <!-- −20 -->
+      <g transform="translate(66.517443 265.693562) scale(0.07 -0.07)">
+       <defs>
+        <path id="NimbusRoman-Regular-a6" d="M 3418 1408 
+L 3418 1830 
+L 192 1830 
+L 192 1408 
+L 3418 1408 
+z
+" transform="scale(0.015625)"/>
+        <path id="NimbusRoman-Regular-13" d="M 3040 877 
+L 2957 909 
+C 2720 538 2650 493 2349 486 
+L 819 486 
+L 1894 1613 
+C 2464 2208 2714 2694 2714 3194 
+C 2714 3834 2195 4326 1530 4326 
+C 1178 4326 845 4186 608 3930 
+C 403 3712 307 3507 198 3053 
+L 333 3021 
+C 589 3648 813 3853 1261 3853 
+C 1805 3853 2163 3488 2163 2950 
+C 2163 2445 1869 1856 1331 1286 
+L 192 77 
+L 192 0 
+L 2688 0 
+L 3040 877 
+z
+" transform="scale(0.015625)"/>
+        <path id="NimbusRoman-Regular-11" d="M 1626 4326 
+C 1274 4326 1005 4224 768 3994 
+C 397 3635 154 2899 154 2150 
+C 154 1446 365 704 666 346 
+C 902 64 1229 -90 1600 -90 
+C 1926 -90 2202 19 2432 243 
+C 2803 595 3046 1338 3046 2112 
+C 3046 3424 2464 4326 1626 4326 
+z
+M 1606 4160 
+C 2144 4160 2432 3437 2432 2099 
+C 2432 762 2150 77 1600 77 
+C 1050 77 768 762 768 2093 
+C 768 3456 1056 4160 1606 4160 
+z
+" transform="scale(0.015625)"/>
+       </defs>
+       <use xlink:href="#NimbusRoman-Regular-a6"/>
+       <use xlink:href="#NimbusRoman-Regular-13" transform="translate(56.40625 0)"/>
+       <use xlink:href="#NimbusRoman-Regular-11" transform="translate(106.40625 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 139.900786 256.412563 
+L 139.900786 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #e3e3e3; stroke-width: 0.5; stroke-linecap: round"/>
+     </g>
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#mdd548913f0" x="139.900786" y="256.412563" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <!-- 0 -->
+      <g transform="translate(138.150786 265.693562) scale(0.07 -0.07)">
+       <use xlink:href="#NimbusRoman-Regular-11"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 207.80991 256.412563 
+L 207.80991 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #e3e3e3; stroke-width: 0.5; stroke-linecap: round"/>
+     </g>
+     <g id="line2d_6">
+      <g>
+       <use xlink:href="#mdd548913f0" x="207.80991" y="256.412563" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <!-- 20 -->
+      <g transform="translate(204.30991 265.693562) scale(0.07 -0.07)">
+       <use xlink:href="#NimbusRoman-Regular-13"/>
+       <use xlink:href="#NimbusRoman-Regular-11" transform="translate(50 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 275.719033 256.412563 
+L 275.719033 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #e3e3e3; stroke-width: 0.5; stroke-linecap: round"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#mdd548913f0" x="275.719033" y="256.412563" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <!-- 40 -->
+      <g transform="translate(272.219033 265.693562) scale(0.07 -0.07)">
+       <defs>
+        <path id="NimbusRoman-Regular-15" d="M 3021 1478 
+L 2368 1478 
+L 2368 4326 
+L 2086 4326 
+L 77 1478 
+L 77 1069 
+L 1875 1069 
+L 1875 0 
+L 2368 0 
+L 2368 1069 
+L 3021 1069 
+L 3021 1478 
+z
+M 1869 1478 
+L 333 1478 
+L 1869 3674 
+L 1869 1478 
+z
+" transform="scale(0.015625)"/>
+       </defs>
+       <use xlink:href="#NimbusRoman-Regular-15"/>
+       <use xlink:href="#NimbusRoman-Regular-11" transform="translate(50 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 343.628157 256.412563 
+L 343.628157 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #e3e3e3; stroke-width: 0.5; stroke-linecap: round"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#mdd548913f0" x="343.628157" y="256.412563" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <!-- 60 -->
+      <g transform="translate(340.128157 265.701) scale(0.07 -0.07)">
+       <defs>
+        <path id="NimbusRoman-Regular-17" d="M 2854 4378 
+C 2125 4314 1754 4192 1286 3866 
+C 595 3373 218 2643 218 1786 
+C 218 1229 390 666 666 346 
+C 909 64 1254 -90 1651 -90 
+C 2445 -90 2995 518 2995 1402 
+C 2995 2227 2534 2739 1786 2739 
+C 1504 2739 1376 2694 973 2451 
+C 1146 3418 1862 4109 2867 4275 
+L 2854 4378 
+z
+M 1549 2445 
+C 2106 2445 2419 1984 2419 1184 
+C 2419 480 2170 90 1722 90 
+C 1158 90 813 691 813 1683 
+C 813 2010 864 2189 992 2285 
+C 1126 2387 1325 2445 1549 2445 
+z
+" transform="scale(0.015625)"/>
+       </defs>
+       <use xlink:href="#NimbusRoman-Regular-17"/>
+       <use xlink:href="#NimbusRoman-Regular-11" transform="translate(50 0)"/>
+      </g>
+     </g>
+    </g>
+    <g id="text_6">
+     <!-- movement toward author A at the +30 read (points) -->
+     <g transform="translate(148.106625 275.384) scale(0.08 -0.08)">
+      <defs>
+       <path id="NimbusRoman-Regular-4e" d="M 102 0 
+L 1523 0 
+L 1523 96 
+C 1197 102 1094 173 1088 429 
+L 1088 2234 
+C 1088 2246 1139 2310 1184 2355 
+C 1344 2502 1619 2611 1843 2611 
+C 2125 2611 2266 2387 2266 1939 
+L 2266 550 
+C 2253 186 2189 115 1830 96 
+L 1830 0 
+L 3264 0 
+L 3264 96 
+C 2906 96 2816 198 2803 608 
+L 2803 2221 
+C 2995 2496 3200 2611 3501 2611 
+C 3866 2611 3981 2438 3981 1907 
+L 3981 557 
+C 3968 179 3930 134 3558 96 
+L 3558 0 
+L 4960 0 
+L 4960 96 
+L 4794 109 
+C 4589 141 4518 237 4518 486 
+L 4518 1805 
+C 4518 2560 4269 2944 3776 2944 
+C 3405 2944 3078 2778 2733 2406 
+C 2618 2771 2400 2944 2054 2944 
+C 1766 2944 1594 2861 1062 2451 
+L 1062 2931 
+L 1018 2944 
+C 678 2822 461 2752 122 2656 
+L 122 2547 
+C 198 2566 256 2573 326 2573 
+C 493 2573 550 2470 550 2163 
+L 550 544 
+C 538 186 454 96 102 96 
+L 102 0 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-50" d="M 1600 2944 
+C 762 2944 186 2330 186 1446 
+C 186 576 781 -64 1587 -64 
+C 2394 -64 3008 608 3008 1498 
+C 3008 2342 2419 2944 1600 2944 
+z
+M 1517 2765 
+C 2054 2765 2432 2150 2432 1274 
+C 2432 544 2144 115 1664 115 
+C 1414 115 1178 269 1043 525 
+C 864 858 762 1306 762 1760 
+C 762 2368 1056 2765 1517 2765 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-57" d="M 3053 2880 
+L 2163 2880 
+L 2163 2784 
+C 2368 2765 2464 2701 2464 2579 
+C 2464 2515 2451 2451 2426 2387 
+L 1792 730 
+L 1139 2368 
+C 1101 2458 1082 2547 1082 2605 
+C 1082 2720 1152 2765 1376 2784 
+L 1376 2880 
+L 122 2880 
+L 122 2784 
+C 365 2771 410 2707 704 2048 
+L 1472 211 
+C 1485 173 1504 128 1523 77 
+C 1542 26 1562 -19 1581 -51 
+C 1594 -77 1619 -90 1638 -90 
+C 1677 -90 1722 -6 1818 230 
+L 2637 2285 
+C 2822 2720 2861 2765 3053 2784 
+L 3053 2880 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-46" d="M 2611 1050 
+C 2304 563 2029 378 1619 378 
+C 1254 378 979 563 794 928 
+C 678 1171 634 1376 621 1773 
+L 2592 1773 
+C 2541 2189 2477 2374 2317 2579 
+C 2125 2810 1830 2944 1498 2944 
+C 1178 2944 877 2829 634 2611 
+C 333 2349 160 1894 160 1370 
+C 160 486 621 -64 1357 -64 
+C 1965 -64 2445 314 2714 1005 
+L 2611 1050 
+z
+M 634 1978 
+C 704 2477 922 2714 1312 2714 
+C 1702 2714 1856 2534 1939 1978 
+L 634 1978 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-4f" d="M 115 0 
+L 1472 0 
+L 1472 96 
+C 1152 115 1050 198 1050 429 
+L 1050 2227 
+C 1357 2515 1498 2592 1709 2592 
+C 2022 2592 2176 2394 2176 1971 
+L 2176 634 
+C 2163 218 2086 115 1773 96 
+L 1773 0 
+L 3104 0 
+L 3104 96 
+C 2790 128 2720 205 2714 518 
+L 2714 1984 
+C 2714 2586 2432 2944 1958 2944 
+C 1664 2944 1466 2835 1030 2426 
+L 1030 2931 
+L 986 2944 
+C 653 2822 435 2752 102 2656 
+L 102 2547 
+C 147 2566 205 2573 275 2573 
+C 454 2573 512 2477 512 2163 
+L 512 576 
+C 506 198 435 115 115 96 
+L 115 0 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-55" d="M 1632 2880 
+L 986 2880 
+L 986 3622 
+C 986 3686 973 3706 941 3706 
+C 570 3168 378 2950 192 2842 
+C 122 2797 83 2758 83 2720 
+C 83 2701 90 2688 109 2675 
+L 448 2675 
+L 448 749 
+C 448 211 640 -64 1018 -64 
+C 1331 -64 1574 90 1786 422 
+L 1702 493 
+C 1562 326 1459 269 1318 269 
+C 1082 269 986 442 986 845 
+L 986 2675 
+L 1632 2675 
+L 1632 2880 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-1" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-58" d="M 3654 2880 
+L 3654 2784 
+C 3872 2739 3936 2694 3936 2586 
+C 3936 2490 3898 2336 3827 2163 
+L 3251 742 
+L 2714 2176 
+C 2605 2470 2605 2470 2605 2554 
+C 2605 2694 2675 2739 2976 2784 
+L 2976 2880 
+L 1677 2880 
+L 1677 2784 
+C 1914 2758 1990 2682 2118 2342 
+C 2150 2253 2208 2093 2246 1984 
+L 1664 710 
+L 1030 2381 
+C 1005 2445 992 2509 992 2573 
+C 992 2707 1062 2758 1286 2784 
+L 1286 2880 
+L 134 2880 
+L 134 2784 
+C 282 2771 333 2707 474 2381 
+L 1338 192 
+C 1414 -6 1466 -90 1504 -90 
+C 1536 -90 1587 -13 1664 160 
+L 2381 1696 
+L 2963 186 
+C 3059 -58 3072 -90 3117 -90 
+C 3162 -90 3194 -32 3296 224 
+L 4179 2438 
+C 4294 2707 4314 2739 4442 2784 
+L 4442 2880 
+L 3654 2880 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-42" d="M 2829 422 
+C 2720 333 2643 301 2547 301 
+C 2400 301 2355 390 2355 672 
+L 2355 1920 
+C 2355 2253 2323 2438 2227 2592 
+C 2086 2822 1811 2944 1434 2944 
+C 832 2944 358 2630 358 2227 
+C 358 2080 480 1952 634 1952 
+C 787 1952 922 2080 922 2221 
+C 922 2246 915 2278 909 2323 
+C 896 2381 890 2432 890 2477 
+C 890 2650 1094 2790 1350 2790 
+C 1664 2790 1837 2605 1837 2259 
+L 1837 1869 
+C 858 1478 742 1421 467 1178 
+C 326 1050 237 832 237 621 
+C 237 218 518 -64 909 -64 
+C 1190 -64 1453 70 1843 403 
+C 1875 64 1990 -64 2253 -64 
+C 2470 -64 2605 13 2829 256 
+L 2829 422 
+z
+M 1837 787 
+C 1837 595 1805 525 1670 448 
+C 1510 358 1338 307 1203 307 
+C 979 307 800 525 800 800 
+L 800 826 
+C 806 1210 1088 1453 1837 1715 
+L 1837 787 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-53" d="M 32 0 
+L 1568 0 
+L 1568 96 
+C 1139 109 1037 198 1024 576 
+L 1024 2016 
+C 1024 2221 1293 2541 1472 2541 
+C 1510 2541 1568 2509 1638 2445 
+C 1734 2349 1811 2317 1894 2317 
+C 2048 2317 2144 2426 2144 2605 
+C 2144 2816 2010 2944 1792 2944 
+C 1523 2944 1344 2803 1024 2342 
+L 1024 2931 
+L 992 2944 
+C 634 2803 403 2714 45 2598 
+L 45 2496 
+C 134 2515 192 2522 269 2522 
+C 429 2522 486 2419 486 2138 
+L 486 538 
+C 474 205 435 166 32 96 
+L 32 0 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-45" d="M 3142 371 
+C 3059 365 3021 365 2995 365 
+C 2771 365 2714 435 2714 730 
+L 2714 4358 
+L 2682 4371 
+C 2381 4269 2163 4198 1741 4090 
+L 1741 3987 
+C 1792 3994 1824 3994 1882 3994 
+C 2118 3994 2176 3930 2176 3667 
+L 2176 2669 
+C 1933 2874 1760 2944 1504 2944 
+C 768 2944 173 2221 173 1312 
+C 173 493 646 -64 1357 -64 
+C 1715 -64 1958 64 2176 365 
+L 2176 -45 
+L 2202 -64 
+L 3142 269 
+L 3142 371 
+z
+M 2176 653 
+C 2176 608 2131 531 2067 461 
+C 1958 333 1792 269 1606 269 
+C 1069 269 723 781 723 1574 
+C 723 2291 1037 2765 1523 2765 
+C 1869 2765 2176 2464 2176 2125 
+L 2176 653 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-56" d="M 3066 320 
+L 3034 320 
+C 2720 333 2675 384 2669 685 
+L 2669 2880 
+L 1658 2880 
+L 1658 2771 
+C 2054 2752 2131 2688 2131 2368 
+L 2131 864 
+C 2131 685 2099 595 2010 525 
+C 1837 384 1638 307 1446 307 
+C 1197 307 992 525 992 794 
+L 992 2880 
+L 58 2880 
+L 58 2790 
+C 358 2778 448 2688 454 2381 
+L 454 768 
+C 454 262 762 -64 1229 -64 
+C 1466 -64 1715 38 1888 211 
+L 2163 486 
+L 2163 -45 
+L 2189 -58 
+C 2509 70 2739 141 3066 230 
+L 3066 320 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-49" d="M 3117 96 
+C 2771 154 2739 198 2733 653 
+L 2733 1926 
+C 2733 2598 2470 2944 1946 2944 
+C 1568 2944 1299 2790 1005 2406 
+L 1005 4352 
+L 973 4371 
+C 749 4294 589 4243 237 4141 
+L 64 4090 
+L 64 3987 
+C 90 3994 102 3994 141 3994 
+C 416 3994 467 3942 467 3667 
+L 467 653 
+C 454 192 422 141 58 96 
+L 58 0 
+L 1440 0 
+L 1440 96 
+C 1069 128 1018 198 1005 653 
+L 1005 2195 
+C 1274 2490 1466 2598 1722 2598 
+C 2035 2598 2195 2368 2195 1920 
+L 2195 653 
+C 2182 198 2125 128 1760 96 
+L 1760 0 
+L 3117 0 
+L 3117 96 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-22" d="M 4518 122 
+C 4230 141 4166 205 3942 678 
+L 2349 4314 
+L 2221 4314 
+L 890 1171 
+C 480 237 403 134 96 122 
+L 96 0 
+L 1363 0 
+L 1363 122 
+C 1056 122 928 198 928 384 
+C 928 461 947 550 979 634 
+L 1274 1382 
+L 2950 1382 
+L 3213 768 
+C 3290 595 3334 429 3334 339 
+C 3334 179 3226 128 2886 122 
+L 2886 0 
+L 4518 0 
+L 4518 122 
+z
+M 1382 1645 
+L 2118 3405 
+L 2861 1645 
+L 1382 1645 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-c" d="M 1594 1830 
+L 192 1830 
+L 192 1408 
+L 1594 1408 
+L 1594 0 
+L 2016 0 
+L 2016 1408 
+L 3418 1408 
+L 3418 1830 
+L 2016 1830 
+L 2016 3238 
+L 1594 3238 
+L 1594 1830 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-14" d="M 979 2112 
+C 1357 2112 1504 2099 1651 2042 
+C 2054 1894 2298 1536 2298 1094 
+C 2298 550 1939 141 1466 141 
+C 1286 141 1158 186 922 339 
+C 736 454 627 499 518 499 
+C 371 499 275 410 275 275 
+C 275 51 550 -90 998 -90 
+C 1485 -90 1990 77 2298 339 
+C 2598 602 2758 973 2758 1402 
+C 2758 1734 2656 2029 2477 2227 
+C 2342 2368 2221 2445 1946 2566 
+C 2381 2867 2541 3104 2541 3450 
+C 2541 3974 2138 4326 1542 4326 
+C 1222 4326 941 4218 710 4013 
+C 518 3834 422 3674 288 3290 
+L 384 3264 
+C 640 3738 928 3942 1331 3942 
+C 1754 3942 2035 3667 2035 3258 
+C 2035 3027 1939 2803 1779 2637 
+C 1587 2445 1408 2349 973 2195 
+L 979 2112 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-9" d="M 1888 4326 
+C 1414 4013 1222 3853 986 3558 
+C 531 3002 307 2362 307 1613 
+C 307 794 544 173 1107 -480 
+C 1370 -787 1536 -928 1869 -1133 
+L 1946 -1030 
+C 1434 -627 1254 -397 1082 77 
+C 928 506 858 986 858 1632 
+C 858 2304 941 2835 1114 3226 
+C 1293 3622 1485 3853 1946 4224 
+L 1888 4326 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-51" d="M 32 -1389 
+L 1581 -1389 
+L 1581 -1274 
+C 1101 -1267 1024 -1203 1018 -794 
+L 1018 211 
+C 1248 0 1395 -64 1664 -64 
+C 2426 -64 3008 653 3008 1581 
+C 3008 2374 2560 2944 1939 2944 
+C 1581 2944 1299 2790 1018 2438 
+L 1018 2931 
+L 979 2944 
+C 634 2810 410 2726 58 2618 
+L 58 2515 
+C 115 2522 154 2522 218 2522 
+C 435 2522 480 2458 480 2157 
+L 480 -838 
+C 480 -1178 410 -1242 32 -1280 
+L 32 -1389 
+z
+M 1018 2138 
+C 1018 2330 1376 2560 1670 2560 
+C 2144 2560 2458 2074 2458 1325 
+C 2458 621 2144 141 1683 141 
+C 1382 141 1018 371 1018 563 
+L 1018 2138 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-4a" d="M 102 0 
+L 1619 0 
+L 1619 96 
+C 1197 128 1152 186 1146 653 
+L 1146 2925 
+L 1120 2944 
+L 128 2592 
+L 128 2496 
+L 179 2502 
+C 256 2515 333 2522 397 2522 
+C 550 2522 608 2419 608 2138 
+L 608 653 
+C 595 179 538 115 102 96 
+L 102 0 
+z
+M 819 4371 
+C 646 4371 499 4224 499 4045 
+C 499 3859 640 3718 819 3718 
+C 1011 3718 1152 3859 1152 4045 
+C 1152 4230 1005 4371 819 4371 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-54" d="M 2016 2010 
+L 1990 2886 
+L 1920 2886 
+C 1888 2835 1856 2816 1818 2816 
+C 1779 2816 1715 2829 1645 2861 
+C 1498 2912 1350 2944 1197 2944 
+C 691 2944 326 2611 326 2150 
+C 326 1792 531 1536 1075 1229 
+L 1446 1018 
+C 1670 890 1779 736 1779 538 
+C 1779 256 1574 77 1248 77 
+C 806 77 582 320 435 973 
+L 333 973 
+L 333 -26 
+L 416 -26 
+C 461 38 486 51 563 51 
+C 634 51 710 38 858 0 
+C 1030 -38 1197 -64 1325 -64 
+C 1824 -64 2227 307 2227 755 
+C 2227 1075 2074 1286 1690 1517 
+L 998 1926 
+C 819 2035 723 2189 723 2362 
+C 723 2624 922 2797 1216 2797 
+C 1581 2797 1773 2586 1920 2010 
+L 2016 2010 
+z
+" transform="scale(0.015625)"/>
+       <path id="NimbusRoman-Regular-a" d="M 243 -1133 
+C 717 -819 909 -659 1146 -365 
+C 1600 192 1824 832 1824 1581 
+C 1824 2400 1587 3021 1024 3674 
+C 762 3981 595 4122 262 4326 
+L 186 4224 
+C 698 3821 870 3597 1050 3117 
+C 1203 2688 1274 2208 1274 1562 
+C 1274 890 1190 365 1018 -26 
+C 845 -422 646 -659 186 -1030 
+L 243 -1133 
+z
+" transform="scale(0.015625)"/>
+      </defs>
+      <use xlink:href="#NimbusRoman-Regular-4e"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(77.796875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-57" transform="translate(123.890625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(170.09375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4e" transform="translate(214.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(292.296875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(336.703125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(386.703125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(414.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(439.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(466.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-58" transform="translate(513 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(581.703125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-53" transform="translate(626.109375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(658.3125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(708.3125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(733.3125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-56" transform="translate(777.71875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(827.71875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-49" transform="translate(856.421875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(906.421875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-53" transform="translate(956.421875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(989.71875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-22" transform="translate(1014.71875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1086.921875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(1111.921875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(1155.421875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1183.21875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(1208.21875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-49" transform="translate(1236.921875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(1286.921875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1331.328125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-c" transform="translate(1356.328125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-14" transform="translate(1412.734375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-11" transform="translate(1462.734375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1512.734375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-53" transform="translate(1537.734375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(1570.4375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(1614.34375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(1658.75 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1708.75 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-9" transform="translate(1733.75 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-51" transform="translate(1766.25 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(1816.25 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(1866.25 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(1894.046875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(1944.046875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-54" transform="translate(1972.140625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-a" transform="translate(2011.046875 0)"/>
+     </g>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2"/>
+   <g id="line2d_11">
+    <path d="M 139.900786 256.412563 
+L 139.900786 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #6b6b6b; stroke-width: 0.6; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_12">
+    <path d="M 241.764471 256.412563 
+L 241.764471 8.196755 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke-dasharray: 0.5,0.75; stroke-dashoffset: 0; stroke: #6b6b6b; stroke-width: 0.5"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 65.20075 256.412563 
+L 394.56 256.412563 
+" style="fill: none; stroke: #000000; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_7">
+    <!-- all linked -->
+    <g transform="translate(35.138439 26.126377) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Regular-4d" d="M 134 0 
+L 1645 0 
+L 1645 96 
+C 1242 115 1171 179 1165 538 
+L 1165 4358 
+L 1139 4371 
+C 813 4269 576 4198 122 4090 
+L 122 3987 
+L 160 3987 
+C 230 3994 307 4000 358 4000 
+C 563 4000 627 3910 627 3610 
+L 627 557 
+C 621 211 531 122 134 96 
+L 134 0 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-4c" d="M 45 0 
+L 1542 0 
+L 1542 96 
+L 1414 102 
+C 1146 122 1069 192 1062 429 
+L 1062 1606 
+L 1958 410 
+C 1984 378 2003 346 2022 326 
+C 2074 262 2093 224 2093 192 
+C 2093 134 2035 96 1958 96 
+L 1837 96 
+L 1837 0 
+L 3232 0 
+L 3232 96 
+C 2950 115 2752 237 2483 563 
+L 1504 1805 
+L 1690 1978 
+C 2490 2694 2662 2797 3072 2784 
+L 3072 2880 
+L 1766 2880 
+L 1766 2790 
+C 2016 2784 2086 2758 2086 2675 
+C 2086 2618 2029 2534 1939 2451 
+L 1062 1670 
+L 1062 4358 
+L 1037 4371 
+C 787 4294 602 4237 237 4141 
+L 45 4090 
+L 45 3987 
+C 128 3994 186 4000 250 4000 
+C 467 4000 525 3917 525 3610 
+L 525 525 
+C 518 186 499 166 45 96 
+L 45 0 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(152.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(230.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(278.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(323 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_1">
+    <path d="M 238.063424 24.845377 
+L 255.855615 24.845377 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #0072b2; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_13">
+    <defs>
+     <path id="m7f625d3493" d="M 0 1.6 
+L 0 -1.6 
+" style="stroke: #0072b2"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="238.063424" y="24.845377" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="line2d_14">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="255.855615" y="24.845377" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="text_8">
+    <!-- +31.5 [+28.9, +34.1] -->
+    <g style="fill: #404040" transform="translate(258.855615 25.958283) scale(0.06 -0.06)">
+     <defs>
+      <path id="NimbusRoman-Regular-12" d="M 755 0 
+L 2522 0 
+L 2522 96 
+C 2029 96 1920 166 1914 474 
+L 1914 4314 
+L 1862 4326 
+L 710 3744 
+L 710 3654 
+C 960 3750 1114 3795 1171 3795 
+C 1306 3795 1363 3699 1363 3494 
+L 1363 595 
+C 1350 192 1242 102 755 96 
+L 755 0 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-f" d="M 800 640 
+C 608 640 448 480 448 275 
+C 448 90 608 -70 794 -70 
+C 992 -70 1158 83 1158 275 
+C 1158 474 992 640 800 640 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-16" d="M 1158 3731 
+L 2413 3731 
+C 2522 3731 2541 3738 2560 3789 
+L 2803 4358 
+L 2746 4403 
+C 2650 4275 2592 4237 2451 4237 
+L 1114 4237 
+L 416 2720 
+C 410 2707 410 2701 410 2688 
+C 410 2650 435 2637 486 2637 
+C 691 2637 941 2592 1210 2509 
+C 1946 2272 2278 1882 2278 1242 
+C 2278 627 1894 147 1389 147 
+C 1261 147 1158 192 966 333 
+C 762 486 621 544 474 544 
+C 294 544 205 467 205 307 
+C 205 64 499 -90 986 -90 
+C 1517 -90 1978 83 2304 410 
+C 2592 698 2726 1062 2726 1549 
+C 2726 2010 2605 2304 2291 2624 
+C 2010 2906 1645 3053 890 3187 
+L 1158 3731 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-3c" d="M 1914 4077 
+L 1914 4237 
+L 563 4237 
+L 563 -998 
+L 1914 -998 
+L 1914 -838 
+L 1363 -838 
+C 1146 -832 1056 -736 1050 -506 
+L 1050 3795 
+C 1056 4000 1126 4070 1338 4077 
+L 1914 4077 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-19" d="M 1856 2374 
+C 2496 2720 2714 2982 2714 3418 
+C 2714 3949 2259 4326 1613 4326 
+C 915 4326 397 3898 397 3315 
+C 397 2899 518 2714 1190 2125 
+C 493 1594 358 1408 358 966 
+C 358 339 858 -90 1587 -90 
+C 2355 -90 2848 333 2848 992 
+C 2848 1485 2630 1792 1856 2374 
+z
+M 1741 1715 
+C 2208 1382 2362 1152 2362 794 
+C 2362 378 2074 90 1658 90 
+C 1171 90 845 461 845 1011 
+C 845 1427 979 1690 1357 1997 
+L 1741 1715 
+z
+M 1670 2490 
+C 1101 2861 870 3155 870 3514 
+C 870 3885 1158 4147 1562 4147 
+C 1997 4147 2272 3866 2272 3424 
+C 2272 3034 2106 2778 1670 2490 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-1a" d="M 378 -141 
+C 1094 -58 1446 64 1882 378 
+C 2547 864 2938 1658 2938 2522 
+C 2938 3578 2355 4326 1523 4326 
+C 762 4326 192 3680 192 2816 
+C 192 2035 653 1517 1344 1517 
+C 1696 1517 1965 1619 2304 1882 
+C 2042 838 1331 154 358 -13 
+L 378 -141 
+z
+M 2317 2272 
+C 2317 2144 2291 2086 2221 2029 
+C 2048 1882 1805 1792 1574 1792 
+C 1088 1792 781 2272 781 3034 
+C 781 3398 883 3782 1018 3949 
+C 1126 4077 1286 4147 1472 4147 
+C 2029 4147 2317 3597 2317 2522 
+L 2317 2272 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-d" d="M 531 -902 
+C 960 -691 1248 -301 1248 83 
+C 1248 403 1024 653 736 653 
+C 512 653 358 506 358 288 
+C 358 83 499 -38 736 -38 
+C 781 -38 826 -32 864 -26 
+C 896 -13 902 -13 909 -13 
+C 960 -13 998 -51 998 -102 
+C 998 -307 819 -544 474 -781 
+L 531 -902 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-3e" d="M 218 -838 
+L 218 -998 
+L 1568 -998 
+L 1568 4237 
+L 218 4237 
+L 218 4077 
+L 768 4077 
+C 986 4070 1075 3974 1082 3744 
+L 1082 -557 
+C 1075 -762 1005 -832 794 -838 
+L 218 -838 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(231.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(256.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(289.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(396.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(446.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(521.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(546.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(571.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(677.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(727.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(752.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(802.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_9">
+    <!-- 7 natural -->
+    <g transform="translate(36.55922 37.477709) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Regular-18" d="M 2874 4237 
+L 506 4237 
+L 128 3296 
+L 237 3245 
+C 499 3674 621 3757 979 3763 
+L 2368 3763 
+L 1101 -51 
+L 1517 -51 
+L 2874 4134 
+L 2874 4237 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-18"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(168.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-56" transform="translate(197.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(247.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(280.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(324.90625 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_2">
+    <path d="M 231.510194 36.196709 
+L 245.635292 36.196709 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #009e73; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_15">
+    <defs>
+     <path id="mded9ce3d58" d="M 0 1.6 
+L 0 -1.6 
+" style="stroke: #009e73"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="231.510194" y="36.196709" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="line2d_16">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="245.635292" y="36.196709" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="text_10">
+    <!-- +29.1 [+27.0, +31.1] -->
+    <g style="fill: #404040" transform="translate(248.635292 37.294709) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(231.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(256.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(289.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(396.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(446.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(521.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(546.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(571.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(677.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(727.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(752.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(802.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_11">
+    <!-- 4 linked -->
+    <g transform="translate(38.638439 48.829042) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-15"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(102.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(130.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(228.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(273 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_3">
+    <path d="M 234.498195 47.548042 
+L 249.166566 47.548042 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #d55e00; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_17">
+    <defs>
+     <path id="m61b6a84ad9" d="M 0 1.6 
+L 0 -1.6 
+" style="stroke: #d55e00"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="234.498195" y="47.548042" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="line2d_18">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="249.166566" y="47.548042" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="text_12">
+    <!-- +30.0 [+27.9, +32.2] -->
+    <g style="fill: #404040" transform="translate(252.166566 48.646042) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(231.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(256.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(289.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(396.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(446.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(521.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(546.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(571.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(677.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(727.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(752.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(802.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_13">
+    <!-- none linked -->
+    <g transform="translate(28.530001 60.180375) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-4f"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(150 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(194.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(219.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(247.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(275 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(325 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(373 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(417.40625 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_4">
+    <path d="M 234.362377 58.899375 
+L 248.521429 58.899375 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #000000; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_19">
+    <defs>
+     <path id="m227faa9f12" d="M 0 1.6 
+L 0 -1.6 
+" style="stroke: #000000"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m227faa9f12" x="234.362377" y="58.899375" style="fill: #1f77b4; stroke: #000000"/>
+    </g>
+   </g>
+   <g id="line2d_20">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m227faa9f12" x="248.521429" y="58.899375" style="fill: #1f77b4; stroke: #000000"/>
+    </g>
+   </g>
+   <g id="text_14">
+    <!-- +29.9 [+27.8, +32.0] -->
+    <g style="fill: #404040" transform="translate(251.521429 59.997375) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(231.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(256.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(289.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(396.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(446.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(521.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(546.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(571.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(677.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(727.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(752.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(802.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_15">
+    <!-- all linked -->
+    <g transform="translate(35.138439 88.937084) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(152.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(230.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(278.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(323 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_5">
+    <path d="M 136.267648 87.656084 
+L 153.92402 87.656084 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #0072b2; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_21">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="136.267648" y="87.656084" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="line2d_22">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="153.92402" y="87.656084" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="text_16">
+    <!-- +1.5 [-1.1, +4.1] -->
+    <g style="fill: #404040" transform="translate(178.553076 88.76899) scale(0.06 -0.06)">
+     <defs>
+      <path id="NimbusRoman-Regular-e" d="M 250 1645 
+L 250 1242 
+L 1824 1242 
+L 1824 1645 
+L 250 1645 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(398 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(423 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(448 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(504.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(554.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(579.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(629.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_17">
+    <!-- a whole-author shift would give +64 -->
+    <g transform="translate(273.714675 82.656084) scale(0.06 -0.06)">
+     <defs>
+      <path id="NimbusRoman-Regular-47" d="M 1978 2880 
+L 1190 2880 
+L 1190 3622 
+C 1190 4000 1312 4192 1555 4192 
+C 1696 4192 1779 4128 1894 3942 
+C 1997 3776 2074 3712 2182 3712 
+C 2336 3712 2451 3827 2451 3974 
+C 2451 4205 2170 4371 1786 4371 
+C 1382 4371 1050 4198 883 3910 
+C 717 3622 666 3392 659 2880 
+L 134 2880 
+L 134 2675 
+L 659 2675 
+L 659 666 
+C 646 186 582 115 128 96 
+L 128 0 
+L 1792 0 
+L 1792 96 
+C 1267 115 1197 186 1197 666 
+L 1197 2675 
+L 1978 2675 
+L 1978 2880 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-48" d="M 3008 2483 
+L 3008 2733 
+L 2515 2733 
+C 2381 2733 2291 2752 2163 2797 
+L 2022 2848 
+C 1856 2912 1677 2944 1510 2944 
+C 915 2944 442 2490 442 1901 
+C 442 1498 608 1254 1037 1043 
+L 870 890 
+C 736 762 659 691 640 666 
+C 506 525 467 454 467 346 
+C 467 205 538 134 806 6 
+C 346 -326 179 -538 179 -774 
+C 179 -1114 672 -1395 1286 -1395 
+C 1766 -1395 2266 -1229 2598 -960 
+C 2842 -762 2950 -557 2950 -314 
+C 2950 83 2650 346 2176 371 
+L 1350 410 
+C 1005 422 851 480 851 582 
+C 851 710 1062 934 1235 986 
+C 1466 966 1587 954 1600 954 
+C 1837 954 2093 1050 2291 1222 
+C 2502 1402 2598 1626 2598 1946 
+C 2598 2131 2566 2278 2477 2483 
+L 3008 2483 
+z
+M 941 -13 
+C 1158 -58 1658 -96 1984 -96 
+C 2560 -96 2771 -179 2771 -410 
+C 2771 -781 2285 -1030 1562 -1030 
+C 992 -1030 627 -845 627 -563 
+C 627 -416 685 -320 941 -13 
+z
+M 973 2163 
+C 973 2541 1152 2765 1446 2765 
+C 1645 2765 1811 2656 1914 2464 
+C 2035 2240 2106 1952 2106 1696 
+C 2106 1338 1926 1114 1632 1114 
+C 1235 1114 973 1530 973 2144 
+L 973 2163 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-58" transform="translate(69.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-49" transform="translate(141.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(191.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(241.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(269.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(314.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-56" transform="translate(390.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(440.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-49" transform="translate(469.21875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(519.21875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(569.21875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(602.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-54" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-49" transform="translate(666.421875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(716.421875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-47" transform="translate(744.21875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(778.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(806.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-58" transform="translate(831.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(900.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-56" transform="translate(950.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(1000.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(1027.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1077.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-48" transform="translate(1102.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(1152.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-57" transform="translate(1177.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(1223.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(1268.21875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(1293.21875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-17" transform="translate(1349.625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(1399.625 0)"/>
+    </g>
+   </g>
+   <g id="text_18">
+    <!-- all linked, 2nd base -->
+    <g transform="translate(6.941564 100.288417) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Regular-43" d="M 979 4358 
+L 947 4371 
+C 685 4282 512 4224 205 4141 
+L 19 4090 
+L 19 3987 
+C 58 3994 77 3994 128 3994 
+C 384 3994 442 3936 442 3667 
+L 442 346 
+C 442 147 979 -64 1498 -64 
+C 2342 -64 2995 640 2995 1555 
+C 2995 2349 2509 2944 1869 2944 
+C 1478 2944 1107 2720 979 2400 
+L 979 4358 
+z
+M 979 2061 
+C 979 2310 1280 2541 1613 2541 
+C 1792 2541 1952 2477 2086 2355 
+C 2291 2157 2432 1722 2432 1261 
+C 2432 550 2125 141 1600 141 
+C 1267 141 979 282 979 448 
+L 979 2061 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(152.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(230.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(278.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(373 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(398 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(423 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(473 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(523 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(573 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-43" transform="translate(598 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(648 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-54" transform="translate(692.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(731.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_19">
+    <!-- pending -->
+    <g style="fill: #6b6b6b" transform="translate(141.598514 100.196917) scale(0.065 -0.065)">
+     <defs>
+      <path id="NimbusRoman-Italic-51" d="M 358 2579 
+L 506 2586 
+C 646 2592 774 2509 774 2406 
+C 774 2330 550 1440 320 595 
+C 173 51 45 -429 -51 -832 
+C -115 -1126 -205 -1203 -480 -1210 
+L -480 -1312 
+L 832 -1312 
+L 832 -1216 
+C 531 -1216 422 -1165 422 -1024 
+C 422 -934 531 -448 659 38 
+C 819 -45 934 -70 1082 -70 
+C 2016 -70 3002 998 3002 2022 
+C 3002 2522 2720 2822 2266 2822 
+C 1850 2822 1542 2618 1171 2093 
+L 1357 2739 
+C 1363 2771 1370 2790 1370 2790 
+C 1370 2810 1357 2822 1338 2822 
+L 1331 2822 
+L 346 2682 
+L 358 2579 
+z
+M 2029 2547 
+C 2304 2534 2426 2368 2426 2003 
+C 2426 1568 2240 1024 1965 627 
+C 1696 243 1389 51 1056 51 
+C 877 51 749 147 749 288 
+C 749 506 973 1338 1165 1818 
+C 1338 2253 1709 2566 2029 2547 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-46" d="M 2291 698 
+C 1830 320 1632 218 1350 218 
+C 992 218 755 448 755 800 
+C 755 896 768 986 819 1190 
+L 998 1216 
+C 1958 1350 2637 1837 2637 2387 
+C 2637 2656 2445 2822 2125 2822 
+C 1203 2822 198 1773 198 806 
+C 198 288 544 -70 1043 -70 
+C 1498 -70 1990 192 2368 621 
+L 2291 698 
+z
+M 973 1613 
+C 1190 2182 1664 2675 1990 2675 
+C 2125 2675 2214 2579 2214 2426 
+C 2214 2227 2093 1997 1894 1805 
+C 1658 1581 1414 1466 864 1331 
+L 973 1613 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-4f" d="M 2944 749 
+C 2598 314 2522 243 2419 243 
+C 2362 243 2317 288 2317 346 
+C 2317 397 2342 518 2406 749 
+L 2771 2067 
+C 2803 2202 2829 2342 2829 2432 
+C 2829 2669 2656 2822 2406 2822 
+C 1997 2822 1594 2432 934 1414 
+L 1363 2810 
+L 1344 2822 
+C 1005 2752 864 2726 307 2624 
+L 307 2522 
+C 634 2515 717 2477 717 2349 
+C 717 2310 710 2272 704 2240 
+L 90 0 
+L 570 0 
+C 870 1011 928 1152 1210 1587 
+C 1594 2176 1920 2496 2157 2496 
+C 2253 2496 2310 2426 2310 2310 
+C 2310 2234 2272 2022 2221 1824 
+L 1939 768 
+C 1856 435 1837 352 1837 288 
+C 1837 45 1926 -58 2138 -58 
+C 2426 -58 2586 70 3034 666 
+L 2944 749 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-45" d="M 2963 710 
+C 2611 307 2547 256 2438 256 
+C 2374 256 2323 307 2323 384 
+C 2323 486 2522 1242 2739 1958 
+C 2886 2470 3014 2938 3373 4339 
+L 3341 4371 
+C 3008 4301 2778 4269 2362 4224 
+L 2362 4115 
+C 2714 4102 2758 4083 2758 3949 
+C 2758 3859 2752 3840 2662 3501 
+L 2381 2451 
+C 2330 2720 2214 2822 1965 2822 
+C 1133 2822 96 1619 96 659 
+C 96 205 352 -70 768 -70 
+C 1203 -70 1485 134 1920 774 
+C 1850 448 1837 352 1837 205 
+C 1837 32 1946 -83 2106 -83 
+C 2374 -83 2714 179 3040 646 
+L 2963 710 
+z
+M 1990 2675 
+C 2182 2662 2278 2541 2278 2310 
+C 2278 1338 1613 237 1024 237 
+C 800 237 653 403 653 659 
+C 653 1184 973 1933 1395 2381 
+C 1574 2566 1811 2688 1990 2675 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-4a" d="M 1421 730 
+C 1261 518 1222 467 1158 403 
+C 1050 294 954 230 896 230 
+C 845 230 794 275 794 326 
+C 794 390 813 493 858 608 
+L 890 723 
+L 896 736 
+L 896 749 
+L 1459 2810 
+L 1440 2822 
+C 787 2701 666 2682 416 2662 
+L 416 2560 
+C 762 2554 819 2534 819 2406 
+C 819 2355 800 2246 762 2125 
+L 454 992 
+C 352 608 314 422 314 294 
+C 314 58 416 -70 608 -70 
+C 909 -70 1139 122 1504 659 
+L 1421 730 
+z
+M 1370 4186 
+C 1197 4186 1069 4045 1069 3846 
+C 1069 3642 1190 3507 1376 3507 
+C 1542 3507 1690 3654 1690 3834 
+C 1690 4019 1542 4186 1370 4186 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-48" d="M 3021 2592 
+L 2630 2592 
+C 2611 2592 2579 2605 2528 2643 
+C 2355 2758 2144 2822 1901 2822 
+C 1190 2822 614 2330 614 1728 
+C 614 1395 749 1203 1120 1037 
+C 742 781 627 653 627 499 
+C 627 416 678 339 800 250 
+C 166 -166 51 -294 51 -589 
+C 51 -1030 474 -1318 1120 -1318 
+C 1926 -1318 2464 -941 2464 -384 
+C 2464 19 2163 294 1549 461 
+C 1267 531 1101 634 1101 730 
+C 1101 826 1248 992 1331 992 
+C 1344 992 1357 992 1376 986 
+C 1434 973 1504 966 1574 966 
+C 2163 966 2758 1485 2758 1984 
+C 2758 2093 2739 2202 2701 2342 
+L 3021 2342 
+L 3021 2592 
+z
+M 947 179 
+C 954 179 966 173 979 166 
+C 998 160 1062 141 1165 109 
+C 1850 -109 2080 -282 2080 -576 
+C 2080 -922 1709 -1178 1216 -1178 
+C 704 -1178 403 -934 403 -525 
+C 403 -371 442 -262 544 -141 
+C 634 -26 896 179 947 179 
+z
+M 1894 2682 
+C 2131 2682 2253 2528 2253 2227 
+C 2253 1997 2176 1722 2054 1504 
+C 1914 1242 1715 1101 1498 1101 
+C 1254 1101 1114 1280 1114 1581 
+C 1114 2170 1478 2682 1894 2682 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Italic-51"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(94.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(144.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(194.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(222.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-48" transform="translate(270.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_20">
+    <!-- 7 natural (order only) -->
+    <g transform="translate(1.440001 111.639749) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Regular-5a" d="M 3040 2880 
+L 2176 2880 
+L 2176 2784 
+C 2381 2784 2483 2726 2483 2624 
+C 2483 2598 2477 2560 2458 2515 
+L 1837 749 
+L 1101 2368 
+C 1062 2458 1037 2547 1037 2611 
+C 1037 2726 1133 2771 1408 2784 
+L 1408 2880 
+L 90 2880 
+L 90 2790 
+C 256 2765 365 2694 416 2586 
+L 1146 1011 
+C 1222 838 1229 832 1261 768 
+C 1440 448 1542 211 1542 115 
+C 1542 13 1395 -378 1286 -576 
+C 1190 -736 1056 -858 966 -858 
+C 928 -858 870 -845 800 -813 
+C 685 -768 570 -742 467 -742 
+C 314 -742 192 -864 192 -1024 
+C 192 -1235 390 -1395 666 -1395 
+C 1101 -1395 1395 -1043 1747 -115 
+L 2733 2496 
+C 2816 2701 2886 2765 3040 2784 
+L 3040 2880 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-18"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(168.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-56" transform="translate(197.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(247.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(280.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(324.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(352.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-9" transform="translate(377.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(411 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(461 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(493.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(543.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(587.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(620.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(645.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(695.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(745.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-5a" transform="translate(771.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-a" transform="translate(821.109375 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_6">
+    <path d="M 102.584722 110.358749 
+L 131.004691 110.358749 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #009e73; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_23">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="102.584722" y="110.358749" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="line2d_24">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="131.004691" y="110.358749" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="text_21">
+    <!-- -6.8 [-11.0, -2.6] -->
+    <g style="fill: #404040" transform="translate(178.553076 111.459937) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-e"/>
+     <use xlink:href="#NimbusRoman-Regular-17" transform="translate(33.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(83.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(108.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(158.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(183.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(216.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(249.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(299.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(349.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(374.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(424.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(449.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(474.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(508.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(558.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-17" transform="translate(583.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(633.1875 0)"/>
+    </g>
+   </g>
+   <g id="text_22">
+    <!-- 4 linked (order only) -->
+    <g transform="translate(3.51922 122.991082) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-15"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(102.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(130.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(228.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-9" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(381.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(431.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(463.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(513.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(557.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(591.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(616.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(666.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(716.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-5a" transform="translate(741.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-a" transform="translate(791.40625 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_7">
+    <path d="M 143.092515 121.710082 
+L 171.34271 121.710082 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #d55e00; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_25">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="143.092515" y="121.710082" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="line2d_26">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="171.34271" y="121.710082" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="text_23">
+    <!-- +5.0 [+0.9, +9.3] -->
+    <g style="fill: #404040" transform="translate(178.553076 122.822988) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(296.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(371.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(421.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(446.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(527.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(577.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(602.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(652.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_24">
+    <!-- all linked -->
+    <g transform="translate(35.138439 151.747791) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(152.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(230.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(278.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(323 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_8">
+    <path d="M 164.78948 150.466791 
+L 192.360584 150.466791 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #0072b2; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_27">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="164.78948" y="150.466791" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="line2d_28">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="192.360584" y="150.466791" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="text_25">
+    <!-- +11.3 [+7.3, +15.4] -->
+    <g style="fill: #404040" transform="translate(195.360584 151.579697) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(231.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(256.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(289.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(396.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(421.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(496.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(521.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(577.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(677.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(702.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(752.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_26">
+    <!-- 7 natural -->
+    <g transform="translate(36.55922 163.099124) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-18"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(168.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-56" transform="translate(197.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(247.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(280.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(324.90625 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_9">
+    <path d="M 149.543881 161.818124 
+L 178.642941 161.818124 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #009e73; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_29">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="149.543881" y="161.818124" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="line2d_30">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="178.642941" y="161.818124" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="text_27">
+    <!-- +7.4 [+2.8, +11.4] -->
+    <g style="fill: #404040" transform="translate(181.642941 162.916124) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-13" transform="translate(296.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(346.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(371.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(421.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(446.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(471.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(527.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(577.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(627.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(652.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(702.515625 0)"/>
+    </g>
+   </g>
+   <g id="text_28">
+    <!-- 4 linked (conj. only) -->
+    <g transform="translate(4.653439 174.450456) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Regular-44" d="M 2547 998 
+C 2240 550 2010 397 1645 397 
+C 1056 397 653 909 653 1645 
+C 653 2310 1005 2758 1523 2758 
+C 1754 2758 1837 2694 1901 2451 
+L 1939 2310 
+C 1990 2125 2106 2016 2246 2016 
+C 2413 2016 2547 2138 2547 2285 
+C 2547 2643 2099 2944 1562 2944 
+C 1248 2944 922 2816 659 2586 
+C 339 2304 160 1869 160 1357 
+C 160 531 666 -64 1376 -64 
+C 1664 -64 1920 38 2150 237 
+C 2323 384 2445 563 2637 941 
+L 2547 998 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-4b" d="M 1235 2925 
+L 1203 2944 
+C 806 2790 563 2707 205 2598 
+L 205 2496 
+L 237 2502 
+C 333 2515 429 2522 493 2522 
+C 640 2522 698 2413 698 2138 
+L 698 -288 
+C 698 -774 678 -934 608 -1062 
+C 570 -1126 480 -1178 390 -1178 
+C 294 -1178 230 -1133 122 -998 
+C 6 -851 -83 -794 -186 -794 
+C -333 -794 -448 -902 -448 -1043 
+C -448 -1248 -198 -1395 154 -1395 
+C 435 -1395 691 -1306 864 -1146 
+C 1094 -941 1235 -506 1235 0 
+L 1235 2925 
+z
+M 909 4371 
+C 736 4371 589 4224 589 4045 
+C 589 3859 730 3718 909 3718 
+C 1101 3718 1242 3859 1242 4045 
+C 1242 4230 1094 4371 909 4371 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-15"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(102.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(130.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(228.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-9" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-44" transform="translate(381.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(425.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(475.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4b" transform="translate(522.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(550 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(575 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(600 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(650 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(700 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-5a" transform="translate(725.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-a" transform="translate(775.203125 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_10">
+    <path d="M 119.935503 173.169456 
+L 180.136942 173.169456 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #d55e00; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_31">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="119.935503" y="173.169456" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="line2d_32">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="180.136942" y="173.169456" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="text_29">
+    <!-- +3.0 [-5.9, +11.8] -->
+    <g style="fill: #404040" transform="translate(183.136942 174.282363) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(398 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(423 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(448 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(504.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(554.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(604.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(629.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(679.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_30">
+    <!-- all linked -->
+    <g transform="translate(35.138439 203.207166) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(152.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(230.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(278.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(323 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_11">
+    <path d="M 134.264328 201.926166 
+L 170.052437 201.926166 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #0072b2; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_33">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="134.264328" y="201.926166" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="line2d_34">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m7f625d3493" x="170.052437" y="201.926166" style="fill: #1f77b4; stroke: #0072b2"/>
+    </g>
+   </g>
+   <g id="text_31">
+    <!-- +3.4 [-1.7, +8.9] -->
+    <g style="fill: #404040" transform="translate(178.553076 203.024166) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(398 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(423 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(448 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(504.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(554.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(579.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(629.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_32">
+    <!-- 7 natural -->
+    <g transform="translate(36.55922 214.558498) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-18"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(168.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-56" transform="translate(197.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-53" transform="translate(247.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(280.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(324.90625 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_12">
+    <path d="M 123.161187 213.277498 
+L 163.397343 213.277498 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #009e73; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_35">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="123.161187" y="213.277498" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="line2d_36">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mded9ce3d58" x="163.397343" y="213.277498" style="fill: #1f77b4; stroke: #009e73"/>
+    </g>
+   </g>
+   <g id="text_33">
+    <!-- +1.1 [-4.9, +6.9] -->
+    <g style="fill: #404040" transform="translate(178.553076 214.378686) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(398 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(423 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(448 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-17" transform="translate(504.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(554.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1a" transform="translate(579.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(629.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_34">
+    <!-- 4 linked -->
+    <g transform="translate(38.638439 225.909831) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-15"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(75 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(102.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(130.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(180.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(228.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(273 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_13">
+    <path d="M 136.301602 224.628831 
+L 169.848709 224.628831 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #d55e00; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_37">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="136.301602" y="224.628831" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="line2d_38">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m61b6a84ad9" x="169.848709" y="224.628831" style="fill: #1f77b4; stroke: #d55e00"/>
+    </g>
+   </g>
+   <g id="text_35">
+    <!-- +4.0 [-1.1, +8.8] -->
+    <g style="fill: #404040" transform="translate(178.553076 225.726831) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(131.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(239.703125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(273 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(323 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(348 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(398 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(423 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(448 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(504.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(554.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-19" transform="translate(579.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(629.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_36">
+    <!-- 2nd bases -->
+    <g transform="translate(33.877345 237.261164) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-13"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(150 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-43" transform="translate(175 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(225 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-54" transform="translate(269.5 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(308.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-54" transform="translate(352.109375 0)"/>
+    </g>
+   </g>
+   <g id="text_37">
+    <!-- pending -->
+    <g style="fill: #6b6b6b" transform="translate(141.598514 237.169664) scale(0.065 -0.065)">
+     <use xlink:href="#NimbusRoman-Italic-51"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(94.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(144.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(194.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(222.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-48" transform="translate(270.40625 0)"/>
+    </g>
+   </g>
+   <g id="text_38">
+    <!-- all − 4 linked -->
+    <g transform="translate(24.190001 248.612496) scale(0.07 -0.07)">
+     <use xlink:href="#NimbusRoman-Regular-42"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-a6" transform="translate(125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(181.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-15" transform="translate(206.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(256.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(281.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(309.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(337 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(387 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(435 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(479.40625 0)"/>
+    </g>
+   </g>
+   <g id="LineCollection_14">
+    <path d="M 120.58064 247.331496 
+L 156.878067 247.331496 
+" clip-path="url(#p03101cfcaf)" style="fill: none; stroke: #000000; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_39">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m227faa9f12" x="120.58064" y="247.331496" style="fill: #1f77b4; stroke: #000000"/>
+    </g>
+   </g>
+   <g id="line2d_40">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m227faa9f12" x="156.878067" y="247.331496" style="fill: #1f77b4; stroke: #000000"/>
+    </g>
+   </g>
+   <g id="text_39">
+    <!-- -0.6 [-5.7, +5.0] -->
+    <g style="fill: #404040" transform="translate(178.553076 248.444403) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-e"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(33.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(83.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-17" transform="translate(108.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(158.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3c" transform="translate(183.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-e" transform="translate(216.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(249.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(299.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-18" transform="translate(324.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-d" transform="translate(374.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(399.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-c" transform="translate(424.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-16" transform="translate(481.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-f" transform="translate(531.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(556.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-3e" transform="translate(606.296875 0)"/>
+    </g>
+   </g>
+   <g id="text_40">
+    <!-- the rated habit itself (reiteration), rated − control -->
+    <g transform="translate(66.847546 15.5318) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Italic-55" d="M 1894 2739 
+L 1382 2739 
+L 1562 3398 
+C 1568 3411 1568 3424 1568 3437 
+C 1568 3475 1555 3494 1517 3494 
+C 1478 3494 1459 3488 1421 3437 
+C 1171 3117 774 2790 570 2733 
+C 410 2682 365 2643 365 2573 
+C 365 2566 365 2554 371 2534 
+L 845 2534 
+L 384 774 
+C 371 717 365 691 346 640 
+C 282 429 237 230 237 166 
+C 237 32 371 -70 544 -70 
+C 838 -70 1050 109 1453 704 
+L 1370 749 
+C 1056 346 954 243 851 243 
+C 794 243 755 288 755 371 
+C 755 378 755 378 762 403 
+L 1325 2534 
+L 1862 2534 
+L 1894 2739 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-49" d="M 2976 749 
+C 2630 320 2554 243 2451 243 
+C 2394 243 2349 294 2349 358 
+C 2349 429 2451 826 2560 1158 
+C 2746 1754 2867 2234 2867 2394 
+C 2867 2650 2694 2822 2445 2822 
+C 2029 2822 1574 2406 979 1472 
+L 1747 4339 
+L 1715 4371 
+C 1331 4282 1082 4243 710 4198 
+L 710 4096 
+L 877 4102 
+C 1024 4109 1139 4038 1139 3942 
+C 1139 3853 1107 3699 1050 3514 
+C 1043 3501 1018 3411 986 3277 
+L 122 0 
+L 602 0 
+C 858 986 941 1203 1197 1594 
+C 1530 2099 1965 2496 2189 2496 
+C 2285 2496 2368 2419 2368 2336 
+C 2368 2310 2349 2227 2323 2125 
+L 1971 800 
+C 1888 486 1843 288 1843 211 
+C 1843 45 1952 -58 2131 -58 
+C 2451 -58 2675 115 3059 672 
+L 2976 749 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-1" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-53" d="M 774 0 
+C 1107 1094 1216 1357 1510 1850 
+C 1728 2208 1901 2406 2010 2406 
+C 2054 2406 2080 2381 2112 2317 
+C 2163 2208 2214 2176 2342 2176 
+C 2534 2176 2637 2291 2637 2496 
+C 2637 2688 2515 2822 2336 2822 
+C 2189 2822 2016 2726 1850 2554 
+C 1587 2278 1331 1907 1229 1651 
+L 1139 1421 
+L 1478 2810 
+L 1459 2822 
+C 992 2739 934 2726 467 2650 
+L 467 2541 
+C 608 2566 634 2573 685 2573 
+C 826 2573 909 2509 909 2394 
+C 909 2304 909 2304 806 1869 
+L 288 0 
+L 774 0 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-42" d="M 2970 704 
+L 2790 525 
+C 2586 320 2515 262 2458 262 
+C 2406 262 2368 301 2368 346 
+C 2368 474 2637 1574 2938 2669 
+C 2957 2733 2963 2746 2976 2803 
+L 2931 2822 
+L 2541 2778 
+L 2522 2758 
+L 2451 2451 
+C 2400 2688 2214 2822 1939 2822 
+C 1088 2822 109 1658 109 640 
+C 109 192 352 -70 762 -70 
+C 1210 -70 1485 141 2048 934 
+C 1914 410 1901 358 1901 198 
+C 1901 13 1978 -64 2157 -64 
+C 2413 -64 2566 58 3046 640 
+L 2970 704 
+z
+M 1978 2682 
+C 2195 2669 2336 2515 2336 2291 
+C 2336 1754 2010 998 1574 525 
+C 1421 352 1203 243 1018 243 
+C 787 243 646 422 646 717 
+C 646 1075 883 1722 1165 2125 
+C 1421 2496 1715 2701 1978 2682 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-43" d="M 704 4115 
+C 1088 4102 1120 4083 1120 3942 
+C 1120 3885 1107 3814 1062 3667 
+C 1050 3629 1037 3584 1030 3546 
+L 1018 3501 
+L 147 294 
+L 147 269 
+C 147 122 634 -70 998 -70 
+C 1965 -70 3027 1043 3027 2054 
+C 3027 2502 2714 2822 2285 2822 
+C 1837 2822 1504 2560 1050 1856 
+C 1376 3053 1427 3232 1715 4339 
+L 1683 4371 
+C 1357 4314 1171 4282 704 4224 
+L 704 4115 
+z
+M 2035 2509 
+C 2317 2509 2483 2298 2483 1958 
+C 2483 1536 2163 851 1779 454 
+C 1542 211 1267 77 992 77 
+C 794 77 698 147 698 294 
+C 698 678 890 1293 1158 1773 
+C 1440 2266 1728 2509 2035 2509 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-54" d="M 230 934 
+L 102 -83 
+L 205 -83 
+C 262 26 288 51 358 51 
+C 429 51 544 26 672 -6 
+C 819 -51 915 -70 1024 -70 
+C 1562 -70 1946 275 1946 762 
+C 1946 1011 1811 1286 1510 1658 
+C 1267 1958 1165 2157 1165 2336 
+C 1165 2547 1299 2675 1523 2675 
+C 1856 2675 2048 2438 2112 1939 
+L 2214 1939 
+L 2342 2829 
+L 2253 2829 
+C 2195 2739 2157 2714 2061 2714 
+C 2010 2714 1952 2726 1830 2758 
+C 1670 2810 1581 2822 1472 2822 
+C 998 2822 698 2547 698 2118 
+C 698 1914 832 1638 1101 1293 
+C 1350 966 1459 742 1459 557 
+C 1459 262 1267 64 986 64 
+C 627 64 435 326 333 934 
+L 230 934 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-4d" d="M 1459 787 
+C 1043 256 992 205 851 205 
+C 787 205 755 243 755 320 
+C 755 371 774 454 806 570 
+C 813 595 819 614 819 621 
+L 819 634 
+L 1786 4339 
+L 1754 4371 
+C 1370 4282 1126 4243 755 4198 
+L 755 4096 
+C 1062 4096 1190 4058 1190 3949 
+C 1190 3923 1184 3885 1171 3834 
+L 288 454 
+C 269 390 262 333 262 288 
+C 262 51 371 -70 576 -70 
+C 909 -70 1126 109 1542 730 
+L 1459 787 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-47" d="M 224 2534 
+L 800 2534 
+L 237 -154 
+C 96 -838 -115 -1190 -384 -1190 
+C -461 -1190 -512 -1146 -512 -1088 
+C -512 -1062 -506 -1050 -486 -1018 
+C -461 -979 -454 -954 -454 -915 
+C -454 -781 -570 -672 -704 -672 
+C -838 -672 -941 -787 -941 -934 
+C -941 -1158 -723 -1325 -435 -1325 
+C 134 -1325 576 -698 845 486 
+L 1306 2534 
+L 2003 2534 
+L 2042 2739 
+L 1350 2739 
+C 1536 3750 1773 4198 2131 4198 
+C 2221 4198 2272 4166 2272 4115 
+C 2272 4102 2266 4083 2246 4058 
+C 2214 4006 2208 3974 2208 3923 
+C 2208 3770 2304 3667 2445 3667 
+C 2592 3667 2714 3782 2714 3923 
+C 2714 4166 2477 4339 2157 4339 
+C 1850 4339 1600 4198 1370 3904 
+C 1178 3648 1050 3354 858 2739 
+L 269 2739 
+L 224 2534 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-9" d="M 1018 -1120 
+C 781 -467 710 -77 710 544 
+C 710 1318 890 2234 1190 2944 
+C 1402 3450 1600 3750 2016 4186 
+L 1933 4282 
+C 1101 3526 774 3104 506 2438 
+C 339 2035 269 1645 269 1152 
+C 269 659 346 179 486 -262 
+C 576 -531 672 -736 902 -1158 
+L 1018 -1120 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-50" d="M 2080 2822 
+C 1805 2822 1555 2752 1293 2611 
+C 634 2240 173 1504 173 826 
+C 173 269 531 -70 1114 -70 
+C 1536 -70 1946 115 2317 486 
+C 2739 902 2995 1440 2995 1926 
+C 2995 2458 2624 2822 2080 2822 
+z
+M 2003 2688 
+C 2278 2688 2458 2451 2458 2086 
+C 2458 1613 2253 979 1965 563 
+C 1728 224 1485 64 1210 64 
+C 909 64 710 294 710 646 
+C 710 1120 896 1683 1210 2138 
+C 1459 2502 1728 2688 2003 2688 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-a" d="M 186 -1152 
+C 979 -461 1306 -45 1594 646 
+C 1773 1069 1850 1472 1850 1952 
+C 1850 2317 1798 2720 1709 3104 
+C 1600 3539 1504 3770 1216 4282 
+L 1094 4250 
+C 1312 3731 1408 3213 1408 2573 
+C 1408 1760 1190 730 870 38 
+C 685 -378 493 -646 102 -1056 
+L 186 -1152 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-d" d="M 32 -826 
+C 576 -525 864 -166 864 192 
+C 864 448 704 646 493 646 
+C 307 646 166 518 166 352 
+C 166 230 205 166 326 58 
+C 422 -32 454 -83 454 -147 
+C 454 -320 314 -493 -26 -717 
+L 32 -826 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-a6" d="M 3776 1408 
+L 3776 1830 
+L 550 1830 
+L 550 1408 
+L 3776 1408 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-44" d="M 2240 678 
+C 1888 301 1638 160 1325 160 
+C 960 160 742 429 742 890 
+C 742 1434 966 2010 1325 2381 
+C 1510 2573 1766 2688 2022 2688 
+C 2170 2688 2259 2637 2259 2560 
+C 2259 2528 2246 2496 2221 2438 
+C 2176 2355 2163 2317 2163 2253 
+C 2163 2099 2259 2010 2413 2010 
+C 2592 2010 2720 2131 2720 2304 
+C 2720 2605 2438 2822 2048 2822 
+C 1088 2822 192 1888 192 890 
+C 192 282 538 -70 1133 -70 
+C 1613 -70 1952 122 2342 614 
+L 2240 678 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Italic-55"/>
+     <use xlink:href="#NimbusRoman-Italic-49" transform="translate(27.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(77.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(122 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(147 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(183.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(233.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(261 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(305.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(355.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-49" transform="translate(380.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(430.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-43" transform="translate(480.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(530.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(558.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(586 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(611 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(638.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(666.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(705.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(747.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-47" transform="translate(775.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(803.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-9" transform="translate(828.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(861.484375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(897.484375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(941.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(969.6875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(997.078125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1041.484375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(1077.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1128.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(1156.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1184.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1234.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a" transform="translate(1284.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1317.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1342.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1367.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(1403.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1454 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1481.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(1525.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1575.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a6" transform="translate(1600.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1668.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-44" transform="translate(1693.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1735.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1785.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1835.296875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1863.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1899.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(1949.59375 0)"/>
+    </g>
+   </g>
+   <g id="text_41">
+    <!-- decided before the edited line (notes, step order), − none linked -->
+    <g transform="translate(66.847546 78.342507) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Italic-4c" d="M 2650 698 
+C 2419 301 2381 262 2266 262 
+C 2131 262 1997 474 1747 1088 
+C 1715 1171 1619 1402 1510 1651 
+C 2458 2490 2643 2618 2950 2637 
+L 2950 2739 
+L 1779 2739 
+L 1779 2637 
+C 2054 2630 2131 2605 2131 2522 
+C 2131 2394 1811 2086 1216 1626 
+C 1120 1555 1030 1485 941 1414 
+L 1709 4339 
+L 1677 4371 
+C 1286 4282 1043 4243 678 4198 
+L 678 4096 
+C 992 4102 1107 4058 1114 3936 
+C 1101 3827 1056 3654 973 3360 
+C 947 3270 928 3200 915 3149 
+L 902 3091 
+L 90 0 
+L 570 0 
+L 877 1152 
+L 1146 1357 
+C 1248 1075 1414 678 1530 454 
+C 1734 51 1850 -70 2035 -70 
+C 2291 -70 2451 90 2746 627 
+L 2650 698 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Italic-45"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(50 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-44" transform="translate(94.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(138.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(166.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(216.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(261.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(311.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-43" transform="translate(336.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(386.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-47" transform="translate(429.828125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(455.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(505.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(541.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(586.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(611.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-49" transform="translate(638.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(688.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(733.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(758.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(802.734375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(852.734375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(880.53125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(907.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(952.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1002.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(1027.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(1055.125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1082.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1132.921875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1177.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-9" transform="translate(1202.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1235.625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1285.625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1335.125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1362.515625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(1404.828125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1445.03125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1470.03125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(1495.03125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1533.34375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1560.734375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-51" transform="translate(1605.140625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1655.140625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1680.140625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1730.140625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(1766.34375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1816.34375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1860.75 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a" transform="translate(1899.65625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1932.953125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1957.953125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a6" transform="translate(1982.953125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(2050.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2075.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(2125.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2175.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(2225.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(2269.859375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(2294.859375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(2322.65625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2350.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4c" transform="translate(2400.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(2445.265625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(2489.671875 0)"/>
+    </g>
+   </g>
+   <g id="text_42">
+    <!-- written after it (conjunct order, halves, restate), − none linked -->
+    <g transform="translate(66.847546 141.153214) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Italic-58" d="M 102 2579 
+L 230 2586 
+C 454 2579 493 2566 538 2432 
+C 614 2221 723 1350 749 749 
+L 774 186 
+C 787 -64 800 -115 858 -115 
+C 928 -115 1037 45 1267 486 
+C 1299 557 1427 781 1619 1120 
+L 2189 2118 
+L 2374 77 
+C 2387 -96 2400 -115 2445 -115 
+C 2496 -115 2560 -58 2733 160 
+C 2733 160 2765 198 2790 230 
+C 3667 1280 4147 2074 4147 2483 
+C 4147 2682 4006 2822 3814 2822 
+C 3654 2822 3565 2739 3565 2605 
+C 3565 2522 3597 2464 3699 2374 
+C 3802 2278 3840 2208 3840 2131 
+C 3840 1856 3622 1517 2784 474 
+L 2579 2726 
+C 2579 2797 2566 2816 2528 2816 
+C 2496 2816 2477 2803 2445 2752 
+L 1216 806 
+C 1197 1254 1126 1926 1056 2368 
+C 986 2778 973 2822 896 2822 
+C 858 2822 787 2803 704 2778 
+C 704 2771 474 2726 269 2694 
+C 243 2694 173 2682 102 2669 
+L 102 2579 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-4b" d="M 1574 2810 
+L 1555 2822 
+C 1011 2726 672 2675 467 2662 
+L 467 2560 
+L 640 2566 
+L 685 2566 
+C 864 2566 941 2502 941 2362 
+C 941 2298 909 2131 838 1850 
+L 378 -19 
+C 160 -902 13 -1178 -243 -1178 
+C -320 -1178 -358 -1152 -358 -1107 
+C -358 -1082 -352 -1069 -326 -1037 
+C -288 -986 -275 -954 -275 -902 
+C -275 -768 -390 -666 -538 -666 
+C -685 -666 -794 -781 -794 -934 
+C -794 -1165 -582 -1325 -288 -1325 
+C 269 -1325 653 -845 909 179 
+L 1574 2810 
+z
+M 1446 4186 
+C 1274 4186 1146 4045 1146 3846 
+C 1146 3642 1267 3507 1453 3507 
+C 1619 3507 1766 3654 1766 3834 
+C 1766 4019 1619 4186 1446 4186 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-56" d="M 2950 749 
+C 2611 326 2522 243 2419 243 
+C 2374 243 2349 282 2349 352 
+C 2349 390 2349 390 2470 851 
+L 2976 2765 
+L 2502 2765 
+C 2157 1818 2086 1658 1798 1203 
+C 1414 595 1101 269 896 269 
+C 813 269 762 333 762 429 
+C 762 448 762 467 768 486 
+L 1350 2810 
+L 1331 2822 
+C 960 2733 723 2694 371 2650 
+L 371 2560 
+C 627 2554 627 2554 691 2522 
+C 723 2509 755 2451 755 2406 
+C 755 2349 723 2195 666 1978 
+L 429 1069 
+C 307 595 269 397 269 282 
+C 269 45 384 -70 608 -70 
+C 1062 -70 1402 275 2138 1510 
+C 1946 819 1850 390 1850 250 
+C 1850 51 1965 -58 2157 -58 
+C 2458 -58 2598 64 3040 691 
+L 2950 749 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-57" d="M 134 2579 
+C 205 2586 256 2586 326 2586 
+C 576 2586 640 2477 730 1888 
+C 800 1440 870 499 870 109 
+C 870 -77 877 -115 928 -115 
+C 1088 -115 1670 538 2336 1472 
+C 2560 1792 2726 2202 2726 2445 
+C 2726 2650 2560 2822 2368 2822 
+C 2221 2822 2131 2739 2131 2605 
+C 2131 2502 2170 2426 2285 2323 
+C 2368 2246 2400 2195 2400 2131 
+C 2400 1830 1984 1126 1523 653 
+L 1325 448 
+C 1280 1350 1242 1683 1158 2157 
+C 1030 2810 1030 2822 973 2822 
+C 941 2822 896 2816 845 2797 
+C 742 2771 346 2694 134 2662 
+L 134 2579 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Italic-58"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(65 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(104.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(132.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(161 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(188.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(232.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(282.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(307.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-47" transform="translate(357.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(387.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(414.78125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(459.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(498.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(523.09375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(550.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(578.6875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-9" transform="translate(603.6875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-44" transform="translate(636.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(678.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(728.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4b" transform="translate(777.890625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-56" transform="translate(805.6875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(855.6875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-44" transform="translate(905.6875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(948.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(976.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1001.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1051.59375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(1087.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1137.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1182.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1215.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1240.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-49" transform="translate(1265.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(1315.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(1365.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-57" transform="translate(1391.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1434.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(1477.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1517.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1542.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1567.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1603.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(1645.625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1683.9375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(1711.640625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1761.84375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1789.234375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a" transform="translate(1833.640625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1866.9375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1891.9375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a6" transform="translate(1916.9375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1984.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2009.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(2059.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2109.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(2159.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(2203.84375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(2228.84375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(2256.640625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2284.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4c" transform="translate(2334.4375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(2379.25 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(2423.65625 0)"/>
+    </g>
+   </g>
+   <g id="text_43">
+    <!-- Nov 18 markers M (step + conjunct order), − none linked -->
+    <g transform="translate(66.847546 192.612589) scale(0.07 -0.07)">
+     <defs>
+      <path id="NimbusRoman-Italic-2f" d="M 4653 4179 
+L 3379 4179 
+L 3379 4077 
+C 3744 4045 3827 3981 3827 3750 
+C 3827 3674 3814 3603 3770 3469 
+C 3763 3450 3757 3424 3757 3418 
+L 3104 986 
+L 1773 4179 
+L 742 4179 
+L 742 4077 
+C 1043 4051 1171 3968 1293 3718 
+L 531 1050 
+C 288 230 237 154 -128 102 
+L -128 0 
+L 1139 0 
+L 1139 102 
+C 806 128 691 198 691 378 
+C 691 461 710 589 749 723 
+L 1478 3424 
+L 2950 -96 
+L 3066 -96 
+L 3987 3123 
+C 4224 3955 4250 3987 4653 4077 
+L 4653 4179 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-12" d="M 314 0 
+L 2099 0 
+L 2099 96 
+L 1990 96 
+C 1677 96 1549 154 1549 301 
+C 1549 358 1568 454 1626 634 
+C 1638 678 1645 710 1664 774 
+L 2579 4096 
+C 2611 4211 2618 4250 2618 4282 
+C 2618 4307 2605 4326 2586 4326 
+C 2586 4326 2406 4294 2061 4224 
+L 1485 4109 
+C 1472 4102 1427 4096 1350 4083 
+L 1350 3987 
+L 1715 4000 
+C 1862 4006 1958 3930 1958 3802 
+C 1958 3757 1946 3712 1914 3584 
+L 1030 435 
+C 954 198 819 134 314 90 
+L 314 0 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-19" d="M 2106 2445 
+C 2867 2694 3155 2970 3155 3424 
+C 3155 3955 2688 4326 2035 4326 
+C 1350 4326 883 3936 883 3366 
+C 883 3021 1011 2771 1440 2304 
+C 634 2048 192 1594 192 1030 
+C 192 858 243 666 339 506 
+C 550 141 934 -45 1466 -45 
+C 2259 -45 2842 448 2842 1107 
+C 2842 1536 2650 1882 2106 2445 
+z
+M 1581 2202 
+C 2285 1472 2362 1357 2362 992 
+C 2362 474 1997 96 1491 96 
+C 986 96 627 467 627 992 
+C 627 1523 973 1965 1581 2202 
+z
+M 1990 2554 
+C 1491 3027 1382 3187 1382 3456 
+C 1382 3904 1626 4179 2035 4179 
+C 2445 4179 2720 3878 2720 3424 
+C 2720 3021 2547 2816 1990 2554 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-4e" d="M 4410 749 
+C 4384 717 4352 685 4326 646 
+C 4218 518 4160 448 4154 442 
+C 4013 288 3949 243 3859 243 
+C 3808 243 3782 275 3782 346 
+C 3782 371 3808 480 3846 634 
+L 4282 2240 
+C 4288 2272 4301 2374 4301 2419 
+C 4301 2650 4141 2822 3930 2822 
+C 3802 2822 3674 2778 3520 2682 
+C 3206 2477 2944 2170 2502 1466 
+C 2669 1965 2758 2317 2758 2438 
+C 2758 2669 2611 2822 2394 2822 
+C 2003 2822 1555 2400 966 1472 
+L 1338 2810 
+L 1318 2822 
+C 973 2752 838 2726 294 2624 
+L 294 2522 
+C 589 2515 589 2515 646 2483 
+C 678 2470 704 2426 704 2381 
+C 704 2304 550 1715 326 915 
+C 186 429 160 326 77 0 
+L 557 0 
+C 864 1011 960 1254 1178 1587 
+C 1542 2138 1920 2490 2138 2490 
+C 2221 2490 2266 2432 2266 2330 
+C 2266 2246 2074 1491 1818 589 
+C 1766 403 1741 314 1658 0 
+L 2138 0 
+C 2394 998 2522 1325 2848 1773 
+C 3162 2208 3482 2490 3667 2490 
+C 3738 2490 3795 2432 3795 2355 
+C 3795 2323 3782 2259 3750 2131 
+L 3379 659 
+C 3315 410 3296 301 3296 237 
+C 3296 45 3386 -58 3552 -58 
+C 3853 -58 4134 154 4474 627 
+L 4506 672 
+L 4410 749 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-2e" d="M 5587 4179 
+L 4518 4179 
+L 2368 1024 
+L 2016 4179 
+L 858 4179 
+L 858 4077 
+C 1178 4058 1331 3987 1331 3840 
+C 1331 3789 1306 3693 1267 3578 
+C 1254 3552 1235 3488 1210 3386 
+L 1190 3315 
+L 512 934 
+C 314 269 218 141 -115 102 
+L -115 0 
+L 1152 0 
+L 1152 102 
+C 826 128 698 205 698 384 
+C 698 454 723 608 755 723 
+L 1510 3494 
+L 1901 0 
+L 2010 0 
+L 4422 3590 
+L 3597 582 
+C 3494 243 3366 147 2950 102 
+L 2950 0 
+L 4698 0 
+L 4698 102 
+C 4262 141 4205 179 4205 378 
+C 4205 486 4218 570 4275 768 
+L 5062 3603 
+C 5178 3987 5210 4019 5587 4077 
+L 5587 4179 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Italic-c" d="M 1952 1830 
+L 550 1830 
+L 550 1408 
+L 1952 1408 
+L 1952 0 
+L 2374 0 
+L 2374 1408 
+L 3776 1408 
+L 3776 1830 
+L 2374 1830 
+L 2374 3238 
+L 1952 3238 
+L 1952 1830 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Italic-2f"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(65.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-57" transform="translate(114.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(158.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-12" transform="translate(183.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-19" transform="translate(233.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(283.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4e" transform="translate(308.8125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-42" transform="translate(381.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(431.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4c" transform="translate(468.421875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(513.234375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(557.640625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(594.953125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(633.859375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-2e" transform="translate(658.859375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(742.15625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-9" transform="translate(767.15625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-54" transform="translate(800.453125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(838.765625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(866.15625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-51" transform="translate(910.5625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(960.5625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-c" transform="translate(985.5625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1053.0625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-44" transform="translate(1078.0625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1120.0625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1170.0625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4b" transform="translate(1218.96875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-56" transform="translate(1246.765625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1296.765625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-44" transform="translate(1346.765625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-55" transform="translate(1389.875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1417.671875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1442.671875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1492.671875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(1528.875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1578.875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-53" transform="translate(1623.28125 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a" transform="translate(1662.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-d" transform="translate(1695.484375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1720.484375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-a6" transform="translate(1745.484375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(1812.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1837.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-50" transform="translate(1887.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(1937.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(1987.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-1" transform="translate(2032.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4d" transform="translate(2057.390625 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4a" transform="translate(2085.1875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4f" transform="translate(2112.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-4c" transform="translate(2162.984375 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-46" transform="translate(2207.796875 0)"/>
+     <use xlink:href="#NimbusRoman-Italic-45" transform="translate(2252.203125 0)"/>
+    </g>
+   </g>
+   <g id="text_44">
+    <!-- ±10: edited one by one -->
+    <g style="fill: #6b6b6b" transform="translate(112.480317 5.538) scale(0.06 -0.06)">
+     <defs>
+      <path id="NimbusRoman-Regular-9c" d="M 192 0 
+L 3418 0 
+L 3418 422 
+L 192 422 
+L 192 0 
+z
+M 1594 2227 
+L 192 2227 
+L 192 1805 
+L 1594 1805 
+L 1594 781 
+L 2016 781 
+L 2016 1805 
+L 3418 1805 
+L 3418 2227 
+L 2016 2227 
+L 2016 3635 
+L 1594 3635 
+L 1594 2227 
+z
+" transform="scale(0.015625)"/>
+      <path id="NimbusRoman-Regular-1b" d="M 870 2938 
+C 678 2938 518 2778 518 2573 
+C 518 2387 678 2227 864 2227 
+C 1062 2227 1229 2381 1229 2573 
+C 1229 2771 1062 2938 870 2938 
+z
+M 870 640 
+C 678 640 518 480 518 275 
+C 518 90 678 -70 864 -70 
+C 1062 -70 1229 83 1229 275 
+C 1229 474 1062 640 870 640 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#NimbusRoman-Regular-9c"/>
+     <use xlink:href="#NimbusRoman-Regular-12" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1b" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(184.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(209.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(253.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(303.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(331.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(359.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(403.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(453.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(478.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(528.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(578.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(623.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-43" transform="translate(648.015625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-5a" transform="translate(694.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(744.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(769.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(819.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(869.609375 0)"/>
+    </g>
+   </g>
+   <g id="text_45">
+    <!-- +30: the matched move -->
+    <g style="fill: #6b6b6b" transform="translate(213.773534 5.538) scale(0.06 -0.06)">
+     <use xlink:href="#NimbusRoman-Regular-c"/>
+     <use xlink:href="#NimbusRoman-Regular-14" transform="translate(56.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-11" transform="translate(106.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1b" transform="translate(156.40625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(184.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(209.203125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-49" transform="translate(237.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(287.90625 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(332.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4e" transform="translate(357.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-42" transform="translate(435.109375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-55" transform="translate(478.609375 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-44" transform="translate(506.3125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-49" transform="translate(549.125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(599.125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-45" transform="translate(643.53125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-1" transform="translate(693.53125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-4e" transform="translate(718.53125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-50" transform="translate(796.328125 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-57" transform="translate(842.421875 0)"/>
+     <use xlink:href="#NimbusRoman-Regular-46" transform="translate(888.625 0)"/>
+    </g>
+   </g>
+   <g id="line2d_41">
+    <defs>
+     <path id="m62061aec05" d="M 0 2.2 
+C 0.583447 2.2 1.143076 1.968194 1.555635 1.555635 
+C 1.968194 1.143076 2.2 0.583447 2.2 0 
+C 2.2 -0.583447 1.968194 -1.143076 1.555635 -1.555635 
+C 1.143076 -1.968194 0.583447 -2.2 0 -2.2 
+C -0.583447 -2.2 -1.143076 -1.968194 -1.555635 -1.555635 
+C -1.968194 -1.143076 -2.2 -0.583447 -2.2 0 
+C -2.2 0.583447 -1.968194 1.143076 -1.555635 1.555635 
+C -1.143076 1.968194 -0.583447 2.2 0 2.2 
+z
+" style="stroke: #ffffff; stroke-width: 0.8"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m62061aec05" x="246.925565" y="24.845377" style="fill: #0072b2; stroke: #ffffff; stroke-width: 0.8"/>
+    </g>
+   </g>
+   <g id="line2d_42">
+    <defs>
+     <path id="m8972f8e731" d="M 0 -2.2 
+L -2.2 2.2 
+L 2.2 2.2 
+z
+" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m8972f8e731" x="238.606697" y="36.196709" style="fill: #009e73; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_43">
+    <defs>
+     <path id="mf652aa63ee" d="M -2.2 2.2 
+L 2.2 2.2 
+L 2.2 -2.2 
+L -2.2 -2.2 
+z
+" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mf652aa63ee" x="241.662608" y="47.548042" style="fill: #d55e00; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_44">
+    <defs>
+     <path id="m64220a4437" d="M -0 3.11127 
+L 3.11127 0 
+L 0 -3.11127 
+L -3.11127 -0 
+z
+" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m64220a4437" x="241.45888" y="58.899375" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_45">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m62061aec05" x="144.926061" y="87.656084" style="fill: #0072b2; stroke: #ffffff; stroke-width: 0.8"/>
+    </g>
+   </g>
+   <g id="line2d_46">
+    <defs>
+     <path id="m657e29bbb3" d="M -0 3.11127 
+L 3.11127 0 
+L 0 -3.11127 
+L -3.11127 -0 
+z
+" style="stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m657e29bbb3" x="356.692175" y="87.656084" style="fill: #ffffff; stroke: #000000; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_47">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m8972f8e731" x="116.811684" y="110.358749" style="fill: #009e73; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_48">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mf652aa63ee" x="157.013885" y="121.710082" style="fill: #d55e00; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_49">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m62061aec05" x="178.303395" y="150.466791" style="fill: #0072b2; stroke: #ffffff; stroke-width: 0.8"/>
+    </g>
+   </g>
+   <g id="line2d_50">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m8972f8e731" x="165.095071" y="161.818124" style="fill: #009e73; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_51">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mf652aa63ee" x="150.121109" y="173.169456" style="fill: #d55e00; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_52">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m62061aec05" x="151.5472" y="201.926166" style="fill: #0072b2; stroke: #ffffff; stroke-width: 0.8"/>
+    </g>
+   </g>
+   <g id="line2d_53">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m8972f8e731" x="143.80556" y="213.277498" style="fill: #009e73; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_54">
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#mf652aa63ee" x="153.584474" y="224.628831" style="fill: #d55e00; stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_55">
+    <defs>
+     <path id="m69eeb72107" d="M -0.733333 2.2 
+L 0.733333 2.2 
+L 0.733333 0.733333 
+L 2.2 0.733333 
+L 2.2 -0.733333 
+L 0.733333 -0.733333 
+L 0.733333 -2.2 
+L -0.733333 -2.2 
+L -0.733333 -0.733333 
+L -2.2 -0.733333 
+L -2.2 0.733333 
+L -0.733333 0.733333 
+z
+" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p03101cfcaf)">
+     <use xlink:href="#m69eeb72107" x="137.863512" y="247.331496" style="stroke: #ffffff; stroke-width: 0.8; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="legend_1">
+    <g id="text_46">
+     <!-- corpus (hollow: second base) -->
+     <g transform="translate(315.569766 216.860063) scale(0.065 -0.065)">
+      <use xlink:href="#NimbusRoman-Regular-44"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(43.8125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-53" transform="translate(93.8125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-51" transform="translate(129.609375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-56" transform="translate(179.609375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-54" transform="translate(229.609375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(268.515625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-9" transform="translate(293.515625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-49" transform="translate(326.90625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(376.90625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(426.90625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(454.703125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(482.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-58" transform="translate(529 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1b" transform="translate(599.203125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(627 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-54" transform="translate(652 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(690.90625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-44" transform="translate(735.3125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(779.125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(829.125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(879.125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(929.125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-43" transform="translate(954.125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(1004.125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-54" transform="translate(1048.625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(1087.53125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-a" transform="translate(1131.9375 0)"/>
+     </g>
+    </g>
+    <g id="line2d_56">
+     <defs>
+      <path id="m69d0d271dd" d="M 0 2.1 
+C 0.556927 2.1 1.091118 1.878731 1.484924 1.484924 
+C 1.878731 1.091118 2.1 0.556927 2.1 0 
+C 2.1 -0.556927 1.878731 -1.091118 1.484924 -1.484924 
+C 1.091118 -1.878731 0.556927 -2.1 0 -2.1 
+C -0.556927 -2.1 -1.091118 -1.878731 -1.484924 -1.484924 
+C -1.878731 -1.091118 -2.1 -0.556927 -2.1 0 
+C -2.1 0.556927 -1.878731 1.091118 -1.484924 1.484924 
+C -1.091118 1.878731 -0.556927 2.1 0 2.1 
+z
+" style="stroke: #ffffff; stroke-width: 0.5"/>
+     </defs>
+     <g>
+      <use xlink:href="#m69d0d271dd" x="324.644883" y="223.145563" style="fill: #0072b2; stroke: #ffffff; stroke-width: 0.5"/>
+     </g>
+    </g>
+    <g id="text_47">
+     <!-- all 22 linked -->
+     <g transform="translate(333.419883 225.420563) scale(0.065 -0.065)">
+      <use xlink:href="#NimbusRoman-Regular-42"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(44.40625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(72.203125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(100 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-13" transform="translate(125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-13" transform="translate(175 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(225 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(250 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(277.796875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(305.59375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(355.59375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(403.59375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(448 0)"/>
+     </g>
+    </g>
+    <g id="line2d_57">
+     <defs>
+      <path id="m1903ecb743" d="M 0 -2.1 
+L -2.1 2.1 
+L 2.1 2.1 
+z
+" style="stroke: #ffffff; stroke-width: 0.5; stroke-linejoin: miter"/>
+     </defs>
+     <g>
+      <use xlink:href="#m1903ecb743" x="324.644883" y="231.706063" style="fill: #009e73; stroke: #ffffff; stroke-width: 0.5; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="text_48">
+     <!-- 7 natural linked -->
+     <g transform="translate(333.419883 233.981063) scale(0.065 -0.065)">
+      <use xlink:href="#NimbusRoman-Regular-18"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(75 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(168.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-56" transform="translate(197.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-53" transform="translate(247.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-42" transform="translate(280.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(324.90625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(352.703125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(377.703125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(405.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(433.296875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(483.296875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(531.296875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(575.703125 0)"/>
+     </g>
+    </g>
+    <g id="line2d_58">
+     <defs>
+      <path id="m12457c4127" d="M -2.1 2.1 
+L 2.1 2.1 
+L 2.1 -2.1 
+L -2.1 -2.1 
+z
+" style="stroke: #ffffff; stroke-width: 0.5; stroke-linejoin: miter"/>
+     </defs>
+     <g>
+      <use xlink:href="#m12457c4127" x="324.644883" y="240.266563" style="fill: #d55e00; stroke: #ffffff; stroke-width: 0.5; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="text_49">
+     <!-- 4 linked (Nov 18 set) -->
+     <g transform="translate(333.419883 242.541563) scale(0.065 -0.065)">
+      <defs>
+       <path id="NimbusRoman-Regular-2f" d="M 4525 4237 
+L 3021 4237 
+L 3021 4115 
+C 3533 4083 3616 3974 3635 3296 
+L 3635 1139 
+L 1171 4237 
+L 77 4237 
+L 77 4115 
+C 352 4115 442 4064 698 3763 
+L 698 941 
+C 685 262 602 154 77 122 
+L 77 0 
+L 1581 0 
+L 1581 122 
+C 1088 147 992 282 979 941 
+L 979 3450 
+L 3808 -70 
+L 3917 -70 
+L 3917 3296 
+C 3936 3962 4019 4070 4525 4115 
+L 4525 4237 
+z
+" transform="scale(0.015625)"/>
+      </defs>
+      <use xlink:href="#NimbusRoman-Regular-15"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(50 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(75 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(102.796875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(130.59375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(180.59375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(228.59375 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(273 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(323 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-9" transform="translate(348 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-2f" transform="translate(381.296875 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(451.40625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-57" transform="translate(497.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(547.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-12" transform="translate(572.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-19" transform="translate(622.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(672.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-54" transform="translate(697.5 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(736.40625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-55" transform="translate(779.90625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-a" transform="translate(807.703125 0)"/>
+     </g>
+    </g>
+    <g id="line2d_59">
+     <defs>
+      <path id="mc2df557e6c" d="M -0 2.969848 
+L 2.969848 0 
+L 0 -2.969848 
+L -2.969848 -0 
+z
+" style="stroke: #ffffff; stroke-width: 0.5; stroke-linejoin: miter"/>
+     </defs>
+     <g>
+      <use xlink:href="#mc2df557e6c" x="324.644883" y="248.827063" style="stroke: #ffffff; stroke-width: 0.5; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="text_50">
+     <!-- none linked -->
+     <g transform="translate(333.419883 251.102063) scale(0.065 -0.065)">
+      <use xlink:href="#NimbusRoman-Regular-4f"/>
+      <use xlink:href="#NimbusRoman-Regular-50" transform="translate(50 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(100 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(150 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-1" transform="translate(194.40625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4d" transform="translate(219.40625 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4a" transform="translate(247.203125 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4f" transform="translate(275 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-4c" transform="translate(325 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-46" transform="translate(373 0)"/>
+      <use xlink:href="#NimbusRoman-Regular-45" transform="translate(417.40625 0)"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p03101cfcaf">
+   <rect x="65.20075" y="8.196755" width="329.35925" height="248.215807"/>
+  </clipPath>
+ </defs>
+</svg>

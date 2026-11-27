@@ -394,7 +394,9 @@ def grpo_main(argv: list[str]) -> int:
                             "anchor_sha256": C.sha256(anchor), "anchor_rows": anchor_rows(anchor),
                             "utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}  # fmt: skip
     if task["rater"] is not None:
-        rm = C.rm_path(task["corpus"], task["rater"], task["seed"])
+        rm = C.line_rm_path(
+            task["corpus"], task["rater"]
+        )  # every RL seed: the seed-0 fit (PREREG Amendment 10)
         if not rm.exists():
             raise SystemExit(f"no reward model {rm} (lh_launch.py _rm)")
         import tag_core as T

@@ -214,6 +214,10 @@ def kl_at(arm_dir: Path, step: int | None) -> float | None:
     return None
 
 
+def _r4(x: Any) -> Any:
+    return round(x, 4) if isinstance(x, float) else x
+
+
 def rm_probe(lh: Path, corpus: str, rater: str) -> dict[str, Any] | None:
     """lh_rm.py probe's report under PREREG Amendment 7 point 6: per habit (the other-habit twins and the controls
     probe:nosite / probe:length) its `status` (reward_driven, within_band, not_probed, no_reference), the bonus
@@ -243,7 +247,19 @@ def rm_probe(lh: Path, corpus: str, rater: str) -> dict[str, Any] | None:
     def having(st: str) -> list[str]:
         return sorted(h for h, v in habits.items() if v["status"] == st)
 
-    return {"habits": habits, "rule": doc.get("rule"), "band": doc.get("band"), "reward_driven": having("reward_driven"),
+    nt = {
+        h: v
+        for h, v in habits.items()
+        if h.startswith("note_") and v.get("n") and v.get("bonus_diff") is not None
+    }
+    pooled = None
+    if nt:  # audit X6.5: the note classes pooled, beside the reference (the reiteration flip)
+        n = sum(v["n"] for v in nt.values())
+        pooled = {"classes": len(nt), "twins": n, "mean_bonus_diff": round(sum(v["n"] * v["bonus_diff"] for v in nt.values()) / n, 4),
+                  "range": [round(min(v["bonus_diff"] for v in nt.values()), 4), round(max(v["bonus_diff"] for v in nt.values()), 4)],
+                  "reference_bonus_diff": _r4((doc.get("reference") or {}).get("bonus_diff"))}  # fmt: skip
+
+    return {"habits": habits, "rule": doc.get("rule"), "band": doc.get("band"), "notes_pooled": pooled, "reward_driven": having("reward_driven"),
             "not_probed": having("not_probed"), "no_reference": having("no_reference")}  # fmt: skip
 
 
@@ -355,6 +371,13 @@ class Reader:
             )
             bracket = [st[hit - 1], st[hit]] if hit is not None else None
         last = max(pts)
+        fin = max(rs, key=lambda x: x["step"])
+        if (
+            fin["step"] > last
+        ):  # the final snapshot has no rated share: no accepted proofs (audit X6.2)
+            fs = self.one(fin["dir"])
+            out["collapsed"] = {"step": fin["step"], "label": fin["label"], "last_read": last,
+                                "accepted_pct": _f(S.perf(fs)["accepted_pct"]) if fs is not None else None}  # fmt: skip
         lacking = [
             f"{run}@{x}"
             for x in (bracket or [])
@@ -408,8 +431,8 @@ class Reader:
             )
         return sorted(out, key=lambda x: (x["step"] is None, x["step"] or 0))
 
-    def line_read(self, c: str, rater: str) -> dict[str, Any] | None:
-        rated, ctl = arm_id("rlhf", c, rater), arm_id("anc", c, rater)
+    def line_read(self, c: str, rater: str, seed: int = 0) -> dict[str, Any] | None:
+        rated, ctl = C.line_name(c, f"rlhf{rater}", seed), C.line_name(c, "anc", seed)
         rs, cs = snapshots(rated, self.lh), {x["step"]: x for x in snapshots(ctl, self.lh)}
         h0 = C.RATERS[rater]
         bs = self.one(self.base_dir(c))
@@ -437,9 +460,70 @@ class Reader:
             return out
         matched = min(ok, key=lambda t: (abs(t[1] - self.target), t[0]["step"]))
         last = max(ok, key=lambda t: t[0]["step"])
+        past = [
+            (x["step"], mv) for x, mv in sorted(ok, key=lambda t: t[0]["step"]) if mv > self.target
+        ]
+        out["first_past"] = {"step": past[0][0], "move": past[0][1]} if past else None  # audit X6.3
+        out["max_move"] = max(mv for _, mv in ok)
         for name, (x, mv) in (("at_target", matched), ("last", last)):
             out["points"][name] = {"terms": [(1.0, x["dir"], cs[x["step"]]["dir"])], "steps": [x["step"]], "w": 1.0,
                                    "move": mv, "reached": mv > self.target}  # fmt: skip
+        return out
+
+    def a10(self, c: str, seed: int, rater: str = "reit") -> dict[str, Any] | None:
+        """PREREG Amendment 10's quantities for one corpus and RL seed: at iteration 40 (the last snapshot both lines
+        have) and at the iteration where the reward line's rated movement is closest to +30, each line against the
+        base: the pooled A-share of the notes before the first reiteration site, and step order's A-share; and
+        D(notes) = reward line - anchor line. 95 % bootstrap intervals over theorems."""
+        rated, ctl = C.line_name(c, f"rlhf{rater}", seed), C.line_name(c, "anc", seed)
+        rs, cs = (
+            {x["step"]: x for x in snapshots(rated, self.lh)},
+            {x["step"]: x for x in snapshots(ctl, self.lh)},
+        )
+        h0, bdir = C.RATERS[rater], self.base_dir(c)
+        bs, bm = self.one(bdir), self.m(bdir)
+        common = sorted(set(rs) & set(cs))
+        if bs is None or bm is None or not common or _f(S.a_share(bs, h0)) is None:
+            return None
+        base = _f(S.a_share(bs, h0))
+        moves = {st: self.rated_move(rs[st]["dir"], h0, base) for st in common}
+        ok = [st for st in common if moves[st] is not None]
+        if not ok:
+            return None
+        notes = [h for h in self.notes if h != h0]
+        out: dict[str, Any] = {
+            "reward_line": rated,
+            "anchor_line": ctl,
+            "base_share": base,
+            "moves": moves,
+            "points": {},
+        }
+        for name, st in (
+            ("iteration 40", max(ok)),
+            ("closest to +30", min(ok, key=lambda x: (abs(moves[x] - self.target), x))),
+        ):
+            rm_, cm_ = self.m(rs[st]["dir"]), self.m(cs[st]["dir"])
+            if rm_ is None or cm_ is None:
+                continue
+            mm = {"b": bm["none"], "r": rm_["none"], "a": cm_["none"]}
+
+            def nb(s: dict[str, S.Sums], x: str) -> np.ndarray:
+                return S.pooled_before(s[x], h0, notes)
+
+            def od(s: dict[str, S.Sums], x: str) -> np.ndarray:
+                return S.a_share(s[x], "order")
+
+            W = self.W["read"]  # noqa: N806
+            out["points"][name] = {
+                "iteration": st, "rated_move": moves[st],
+                "notes_before": {"base": _f(S.pooled_before(self.one(bdir), h0, notes)),
+                                 "reward_line": S.est(lambda s: nb(s, "r") - nb(s, "b"), mm, W),
+                                 "anchor_line": S.est(lambda s: nb(s, "a") - nb(s, "b"), mm, W),
+                                 "D": S.est(lambda s: nb(s, "r") - nb(s, "a"), mm, W)},
+                "order": {"base": _f(S.a_share(self.one(bdir), "order")),
+                          "reward_line": S.est(lambda s: od(s, "r") - od(s, "b"), mm, W),
+                          "anchor_line": S.est(lambda s: od(s, "a") - od(s, "b"), mm, W),
+                          "D": S.est(lambda s: od(s, "r") - od(s, "a"), mm, W)}}  # fmt: skip
         return out
 
     # ---------------------------------------------------------------- quantities over a set of reads
@@ -657,11 +741,33 @@ class Reader:
 
 # ------------------------------------------------------------------------------------------------ the readout
 def validity(
-    per_seed: dict[int, dict[str, Any]], name: str, seeds: tuple[int, ...]
+    per_seed: dict[int, dict[str, Any]], name: str, seeds: tuple[int, ...], grpo: bool = False
 ) -> dict[str, Any]:
     """PREREG Amendment 8 point 4 (audit R3): a corpus's read at `name` is valid when every expected run exists and its
-    point crossed +30 (`reached`), is bracketed by two fully measured snapshots, and meets the +20 precondition."""
+    point crossed +30 (`reached`), is bracketed by two fully measured snapshots, and meets the +20 precondition. A GRPO
+    line is read at its iteration closest to +30, not interpolated (audit X6.4): the same rule without the bracket test
+    (the read point past +30 and the +20 precondition); the reason names where the line first passed +30."""
     why = []
+    if grpo:
+        for s_ in seeds:
+            x = per_seed.get(s_)
+            p = (x or {}).get("points", {}).get(name)
+            if x is None or p is None:
+                why.append(f"seed {s_}: no read")
+                continue
+            fp = x.get("first_past")
+            if not p.get("reached") and not fp:
+                why.append(
+                    f"seed {s_}: +{C.TARGET_MOVE:g} never passed (largest move {x.get('max_move')})"
+                )
+            elif not p.get("reached"):
+                why.append(f"seed {s_}: the read iteration is below +{C.TARGET_MOVE:g} (move {p.get('move')}); the line "
+                           f"first passed +{C.TARGET_MOVE:g} at iteration {fp['step']} (move {fp['move']})")  # fmt: skip
+            if p.get("move") is None or p["move"] < C.PRECONDITION:
+                why.append(
+                    f"seed {s_}: precondition +{C.PRECONDITION:g} not met (move {p.get('move')})"
+                )
+        return {"ok": not why, "why": why}
     for s_ in seeds:
         x = per_seed.get(s_)
         p = (x or {}).get("points", {}).get(name)
@@ -803,14 +909,25 @@ def readout(
                                               "move": x["points"][name]["move"]} for s, x in per_seed.items() if x["points"].get(name)}  # fmt: skip
                     if kind == "rlhf":  # the chain prediction at both points (Amendment 8 point 5)
                         rd["chain"] = R.chain(c, mp, r)
+                        # each line against the base, beside their difference (Amendment 10: seed 0's D on c24 was
+                        # the sum of two opposite drifts)
+                        ((_, rdir, cdir),) = mp["terms"]
+                        bdir = R.base_dir(c)
+                        rd["vs_base"] = {
+                            "reward_line": R.D_all([(1.0, rdir, bdir)], h0),
+                            "anchor_line": R.D_all([(1.0, cdir, bdir)], h0),
+                        }
                     entry["read"][name] = rd
                     reads.setdefault((kind, r, name), {})[c] = mp
                 entry["primary"] = (
                     "at_target"  # matched movement for every arm (Amendment 8 point 5)
                 )
                 entry["valid"] = {
-                    name: validity(per_seed, name, seeds_of(kind, r))
+                    name: validity(per_seed, name, seeds_of(kind, r), grpo=kind == "rlhf")
                     for name in ("at_target", "last")
+                }
+                entry["collapsed"] = {
+                    s_: x["collapsed"] for s_, x in per_seed.items() if x.get("collapsed")
                 }
                 if kind in (
                     "dpo",
@@ -852,6 +969,17 @@ def readout(
                         }
                         entry["composition"] = comp
                 res["compare"].setdefault(f"{kind}:{r}", {})[c] = entry
+    # PREREG Amendment 10: the GRPO lines per RL seed, each against the base (c24: seeds 0 and 1; others: seed 0)
+    res["grpo_seeds"] = {}
+    for c in [x for x in corpora if x in C.GRPO_CORPORA]:
+        for sd in (0, *(C.RL2_SEED,) * (c in C.RL2_CORPORA)):
+            q = R.a10(c, sd)
+            if q:
+                res["grpo_seeds"][f"{c} seed {sd}"] = q
+    q1 = res["grpo_seeds"].get(f"c24 seed {C.RL2_SEED}")
+    res["amendment10"] = {
+        name: a10_reading(p_) for name, p_ in (q1 or {}).get("points", {}).items()
+    } or {"reading": "not read (no RL seed-1 lines yet)"}
     # the second bases (PREREG Amendment 8 points 2-3): the reit DPO arm, trainer seed 0, on base seed 1
     res["base2"], b2_pts = {}, {}
     for c in [x for x in corpora if x in C.BASE2_CORPORA]:
@@ -1082,6 +1210,25 @@ def passes_differ(passes: dict[str, Any]) -> list[str]:
     return out
 
 
+def a10_reading(p: dict[str, Any]) -> str:
+    """PREREG Amendment 10's reading rule on one point of the seed-1 lines: replicates only if the reward line moves the
+    notes toward A and the anchor line toward B, both intervals excluding 0, and D(notes) > +20 with its interval above
+    0; "anchor line did not drift" when the anchor line's interval does not lie below 0 (the reward line moving toward
+    A); "not replicated" when the reward line's notes do not move toward A (interval includes 0, or toward B)."""
+    n = p["notes_before"]
+    r, a, d = n["reward_line"], n["anchor_line"], n["D"]
+    if any(e.get("point") is None or not e.get("ci") for e in (r, a, d)):
+        return "not read (a quantity is missing)"
+    if not r["ci"][0] > 0:
+        return f"not replicated: the reward line's notes do not move toward A ({S.fmt(r)})"
+    if not a["ci"][1] < 0:
+        return (f"anchor line did not drift ({S.fmt(a)}): seed 0's D was enlarged by the anchor line's drift; lead with the "
+                f"reward line against the base ({S.fmt(r)})")  # fmt: skip
+    if d["point"] > 20 and d["ci"][0] > 0:
+        return f"replicates (reward line {S.fmt(r)}, anchor line {S.fmt(a)}, D(notes) {S.fmt(d)})"
+    return f"not replicated: both lines moved as in seed 0, but D(notes) {S.fmt(d)} is not above +20 with its interval above 0"
+
+
 def base2_state(lh: Path, corpus: str) -> str:
     """done: its full measurement finished; ended: the pod's pass ended (LH/pod/<c>.BASE2_DONE) without it; pending."""
     tok = C.base_token(corpus, C.BASE2_SEED)
@@ -1221,7 +1368,21 @@ def readings(
             + ")"
         )
     row, rests_on = table_row(q_use)
+    sa, sb_ = pr.get("P2_S_after(c24)"), pr.get("P2_S_before(c24)")
+    out["S_before_after(c24)"] = {
+        "S_before": S.fmt(sb_),
+        "S_after": S.fmt(sa),
+        "basis": "first base",
+    }
+    moved = bool(sa and sa.get("ci") and (sa["ci"][0] > 0 or sa["ci"][1] < 0))
+    note = (
+        f"; but habits written after the edited line moved (S_after(c24) {S.fmt(sa)}; audit X6.1)"
+    )
+    if row.startswith("habits edited one by one") and moved:
+        row += note
     out["first_base_only"] = table_row(first)[0]
+    if out["first_base_only"].startswith("habits edited one by one") and moved:
+        out["first_base_only"] += note
     hit = [q for q in bases_dis if q in rests_on]
     if bad:
         row = "not read: " + " | ".join(bad)
@@ -1245,8 +1406,11 @@ def report(res: dict[str, Any]) -> str:
          "Shares in %, differences in points."]  # fmt: skip
     for t, why in (res.get("not_run") or {}).items():
         L.append(f"NOT RUN: {t}: {why}")
-    for k, v in (res.get("below_cap") or {}).items():
-        L.append(f"FEWER PAIRS THAN THE CAP (4,000): {k}: {v}")
+    if res.get(
+        "below_cap"
+    ):  # audit X6.6: a count, not an alarm (the passes at the crossing are printed below)
+        L.append("Pair builds below the 4,000-pair cap (Amendment 7 point 5): "
+                 + "; ".join(f"{k} {v}" for k, v in res["below_cap"].items()))  # fmt: skip
     L.append(
         "\nPerformance, untagged, reading set: accepted % | pass@1 | pass@8 | mean lines | % at the step limit | near misses per proof"
     )
@@ -1277,6 +1441,16 @@ def report(res: dict[str, Any]) -> str:
                 pr_ = e["rm_probe"]
                 L.append(f"    reward-model probe: reward-driven {e.get('reward_driven')}; not probed {e.get('not_probed')} "
                          f"({pr_.get('rule')}); per habit {pr_.get('habits')}")  # fmt: skip
+                if pr_.get("notes_pooled"):
+                    npool = pr_["notes_pooled"]
+                    L.append(f"    reward-model probe, the note classes pooled: {npool['twins']} twins over {npool['classes']} classes, mean bonus "
+                             f"difference {npool['mean_bonus_diff']} (classes {npool['range'][0]} to {npool['range'][1]}), against "
+                             f"{npool['reference_bonus_diff']} for the rated flip")  # fmt: skip
+            for s_, cl in (e.get("collapsed") or {}).items():
+                what = ("no accepted proofs" if not cl["accepted_pct"] else
+                        f"no read of the rated habit (accepted {cl['accepted_pct']} %)")  # fmt: skip
+                L.append(f"    seed {s_}: last snapshot: {what} (collapsed) ({cl['label']}, step {cl['step']}); the read below "
+                         f"labelled \"upper bracket\" is step {cl['last_read']}, not the last snapshot")  # fmt: skip
             v = (e.get("valid") or {}).get("at_target")
             if v and not v["ok"]:
                 L.append("    NOT a valid +30 read: " + "; ".join(v["why"]))
@@ -1284,8 +1458,26 @@ def report(res: dict[str, Any]) -> str:
                 L.append(
                     f"    composition prediction (sft_pref - sft_sampled A-share): {e['composition_prediction']}"
                 )
+            grpo = key.startswith("rlhf:")
             for w, rd in e["read"].items():
                 d = rd.get("D") or {}
+                if (
+                    grpo
+                    and w == "last"
+                    and rd.get("steps") == (e["read"].get("at_target") or {}).get("steps")
+                ):
+                    L.append(
+                        f"    last: the same snapshot as at_target ({rd.get('steps')}): not printed twice"
+                    )
+                    continue
+                if (
+                    grpo
+                ):  # read at the closest iteration (audit X6.3): say where +30 was first passed
+                    fp = {s_: x.get("first_past") for s_, x in e["seeds"].items()}
+                    L.append(f"    {w}: the iteration closest to +30 (move {rd.get('move')}{', below +30' if not rd.get('reached') else ''}); "
+                             f"first past +30: {fp}")  # fmt: skip
+                if w == "last" and e.get("collapsed"):
+                    w = "upper bracket (the last snapshot collapsed)"
                 br = rd.get("bracketed")
                 nb = br is False or (isinstance(br, list) and False in br)
                 L.append(f"    {w}: steps {rd.get('steps')} (w {rd.get('w')}), move {rd.get('move')}, {'reached' if rd.get('reached') else 'NOT reached'}"
@@ -1297,17 +1489,42 @@ def report(res: dict[str, Any]) -> str:
                         f"      seed {s} D: "
                         + ", ".join(f"{h} {S.fmt(v)}" for h, v in x["D"].items())
                     )
+                for ln_, dd in (rd.get("vs_base") or {}).items():
+                    L.append(
+                        f"      {ln_} against the base: "
+                        + ", ".join(f"{h} {S.fmt(v)}" for h, v in dd.items())
+                    )
                 if rd.get("chain"):
-                    L.append("      chain (observed - predicted; reward line, anchor line, difference): " + "; ".join(
-                        f"{h} {S.fmt(v['reward_line'])}, {S.fmt(v['anchor_line'])}, {S.fmt(v['difference'])}" for h, v in rd["chain"].items()))  # fmt: skip
+                    L.append("      chain (observed - predicted, per line: reward line, anchor line; each line against the base is "
+                             "above, audit X6.3): " + "; ".join(
+                        f"{h} {S.fmt(v['reward_line'])}, {S.fmt(v['anchor_line'])}" for h, v in rd["chain"].items()))  # fmt: skip
     for key, pr in res["prereg"].items():
+        kind_r, _, name = key.rpartition(":")
+        by = res["compare"].get(kind_r) or {}
+        col = [c for c, e in by.items() if e.get("collapsed")]
         L.append(
-            f"\nPREREG [{key}]: "
+            f"\nPREREG [{key}]"
+            + (
+                f" = the upper bracket on {', '.join(col)} (the last snapshot collapsed; audit X6.2)"
+                if name == "last" and col
+                else ""
+            )
+            + ": "
             + "; ".join(
                 f"{k} {S.fmt(v) if isinstance(v, dict) and 'point' in v else v}"
                 for k, v in pr.items()
             )
         )
+        bad = {
+            c: e["valid"][name]["why"]
+            for c, e in by.items()
+            if (e.get("valid") or {}).get(name) and not e["valid"][name]["ok"]
+        }
+        if bad and name == "at_target":  # audit X6.3: the +30 read's validity beside its quantities
+            L.append(
+                f"  NOT valid +30 reads in [{key}]: "
+                + "; ".join(f"{c}: {', '.join(w)}" for c, w in bad.items())
+            )
     L.append("\nPasses over the train data at the +30 crossing (PREREG Amendment 9 point 1; 64 x crossing step / train pairs, "
              "fine-tune: / proofs):")  # fmt: skip
     for key, e in (res.get("passes") or {}).items():
@@ -1318,12 +1535,26 @@ def report(res: dict[str, Any]) -> str:
         )
     for x in res.get("passes_differ") or []:
         L.append(f"PASSES DIFFER: matched-pairs control required (Amendment 9 point 2): {x}")
+    L.append("\nGRPO lines per RL seed against the base (PREREG Amendment 10; pooled A-share of the notes before the first "
+             "reiteration site, and step order; points):")  # fmt: skip
+    for key, q in (res.get("grpo_seeds") or {}).items():
+        for name, p_ in q["points"].items():
+            n, o = p_["notes_before"], p_["order"]
+            L.append(f"  {key} {name} (iteration {p_['iteration']}, rated move {p_['rated_move']}): notes before (base "
+                     f"{n['base']}): reward line {S.fmt(n['reward_line'])}, anchor line {S.fmt(n['anchor_line'])}, D(notes) "
+                     f"{S.fmt(n['D'])}; step order (base {o['base']}): reward line {S.fmt(o['reward_line'])}, anchor line "
+                     f"{S.fmt(o['anchor_line'])}, D {S.fmt(o['D'])}")  # fmt: skip
+    for name, x in (res.get("amendment10") or {}).items():
+        L.append(
+            f"Amendment 10 reading (c24, RL seed 1{'' if name == 'reading' else ', ' + name}): {x}"
+        )
     for b in (res.get("base2") or {}).values():
         v = b.get("valid") or {}
         L.append(f"\nSecond base {b['token']} (base seed {C.BASE2_SEED}): {b['state']}"
                  + (f"; valid +30 read: {v.get('ok')} {v.get('why') or ''}" if v else ""))  # fmt: skip
     rd = res.get("readings") or {}
     L.append(f"\nReadings table (DPO, reit, at +30; {rd.get('basis')}): {rd.get('reading')}")
+    L.append(f"  beside the row: {rd.get('S_before_after(c24)')}")
     L.append(f"  per trainer seed (first bases): {rd.get('per_seed')}")
     L.append(
         f"  per base seed [0, {C.BASE2_SEED}]: {rd.get('per_base_seed')}; second bases {rd.get('second_bases')}"

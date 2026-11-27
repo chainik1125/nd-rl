@@ -1072,6 +1072,11 @@ for c in C.CORPORA:
                           "problems": LL.task_problems(t), "full": str(LL.full_path(t)), "arm": str(C.arm_dir(t)),
                           "argv": LL.trainer_argv(t) if C.parse_task(t)["type"] == "offline" else None,
                           "smoke": LL.trainer_argv(t, True) if C.parse_task(t)["type"] == "offline" else None} for t in ts}}
+os.environ["ND_GUARD"] = "off"
+from pathlib import Path
+for c in C.CORPORA:  # the GRPO lines' commands: the rl plan's argv and the snapshot measurement (W3: not covered before)
+    out[c]["lines_plan"] = {x: LL.plan(LL.rl_ns(argparse.Namespace(gpu=0), x))[1][0]["argv"] for x in C.lines_of(c)}
+    out[c]["snap"] = {x: LL.snap_cmd(x, 1, Path("/s.pt"), 10, 8, "marker_plain", False, 51, 0) for x in C.lines_of(c)}
 print(json.dumps(out, default=str).replace(H, "<HERE>"))
 """
 
@@ -1203,3 +1208,55 @@ def test_second_base_full_task_is_untagged(lh, monkeypatch):
     )
     rec = json.loads(LL.full_path(f"full_dpo_{tok}_reit_s0").read_text())
     assert rec["done"] and rec["base_share"] == 40.0 and rec["bracket"] == [50, 100]
+
+
+def test_amendment10_rl_seed_lines(lh, monkeypatch):
+    """PREREG Amendment 10: c24's GRPO lines with RL seed 1 start from the FIRST base, use the seed-0 reward model (no
+    refit, no probe), measure their snapshots untagged on marker_plain with the measurement's noise seed 0, and run as
+    their own job (stage2 --rl_seed 1); every existing line keeps its base, reward model and command."""
+    assert C.rl2_tasks("c24") == ["rl_c24_rlhfreit_s1", "rl_c24_anc_s1"] and C.rl2_tasks("c4") == []
+    for s in (0, 1):
+        for x in C.lines_of("c24", s):
+            L = T.LINES[x]
+            assert L["base"] == "stage1_c24_s0.pt" and L["base_seed"] == 0 and L["seed"] == s
+    assert C.line_rm_path("c24", "reit") == C.rm_path("c24", "reit", 0)
+    monkeypatch.setenv("ND_GUARD", "off")
+    _, _, problems, _ = AL.plan(ns(cmd="rl", line="rl_c24_rlhfreit_s1"))
+    assert any("rm_c24_reit_s0/rm.pt" in p for p in problems) and not any(
+        "rm_c24_reit_s1" in p for p in problems
+    )
+    assert any("stage1_c24_s0.pt" in p for p in problems) and not any(
+        "stage1_c24_s1" in p for p in problems
+    )
+    (C.LH / "arms").mkdir(exist_ok=True)
+    C.not_run_path("rl_c24_rlhfreit_s0").write_text(
+        "{}"
+    )  # seed 0's reward model missed the bar: no seed-1 line
+    _, _, problems, _ = AL.plan(ns(cmd="rl", line="rl_c24_rlhfreit_s1"))
+    assert any("rl_c24_rlhfreit_s0 was decided not run" in p for p in problems)
+    C.not_run_path("rl_c24_rlhfreit_s0").unlink()
+    cmd = LL.snap_cmd("rl_c24_anc_s1", 1, Path("/x.pt"), 10, 8, "marker_plain", False, 51, 1)
+    assert (
+        cmd[cmd.index("--seed") + 1] == "0"
+        and cmd[cmd.index("--tags") + 1] == "none"
+        and cmd[cmd.index("--sets") + 1] == "marker_plain"
+    )
+    job, (st,), _, notes = AL.plan(ns(cmd="stage2", corpus="c24", rl_seed=1))
+    assert job == "stage2_c24_rl1" and st["name"] == "tasks_c24_rl1"
+    assert st["argv"][st["argv"].index("--tasks") + 1] == "rl_c24_rlhfreit_s1,rl_c24_anc_s1"
+    with pytest.raises(SystemExit, match="no RL seed 1 lines for c4"):
+        AL.plan(ns(cmd="stage2", corpus="c4", rl_seed=1))
+    with pytest.raises(SystemExit, match="not an RL seed 1 task"):
+        AL.plan(ns(cmd="stage2", corpus="c24", rl_seed=1, tasks="rl_c24_anc_s0"))
+    fits = []
+    monkeypatch.setattr(LL, "rm_main", lambda argv: fits.append(argv) or 0)
+    monkeypatch.setattr(LL, "rm_probe_main", lambda *a: fits.append(a) or 0)
+    monkeypatch.setattr(
+        LL, "plan", lambda a: ("j", [{"argv": [PY, "-c", "pass"], "timeout_s": 60}], [], [])
+    )
+    assert (
+        LL.task_main(["--task", "rl_c24_rlhfreit_s1", "--gpu", "0"]) == 0 and fits == []
+    )  # no refit, no new probe
+    assert (
+        LL.task_main(["--task", "rl_c24_rlhfreit_s0", "--gpu", "0"]) == 0 and len(fits) == 2
+    )  # seed 0 as before

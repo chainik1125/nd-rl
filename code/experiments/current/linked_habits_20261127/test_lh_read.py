@@ -676,3 +676,203 @@ def test_passes_at_the_crossing(tmp_path):
         "PASSES DIFFER: matched-pairs control required (Amendment 9 point 2): base seed 0: c24 0.8 passes"
         in LR.report(r2)
     )
+
+
+# ------------------------------------------------------------------------------------------------ Amendment 10
+def rl_tree(tmp_path, name, reward_notes, anchor_notes, order=(30, 30)):
+    """c24's lines with RL seed 1 from the first base (notes and step order 50 in the base): the reward line's rated
+    habit 60 / 70 / 80 / 90 at iterations 10-40 (+30 at 30), the notes at `reward_notes`, the anchor line's at
+    `anchor_notes`; step order at `order` (reward, anchor)."""
+    t = case_tree(tmp_path, name)
+    for it, reit in ((10, 60), (20, 70), (30, 80), (40, 90)):
+        write(t / "runs" / "rl_c24_rlhfreit_s1" / "seg1" / "authors" / f"it{it:04d}",
+              {"reit": reit, "order": order[0], **dict.fromkeys(NOTES, float(reward_notes))})  # fmt: skip
+        write(t / "runs" / "rl_c24_anc_s1" / "seg1" / "authors" / f"it{it:04d}",
+              {"reit": 55, "order": order[1], **dict.fromkeys(NOTES, float(anchor_notes))})  # fmt: skip
+    return t
+
+
+def test_amendment10_readings(tmp_path):
+    """PREREG Amendment 10's three readings on the seed-1 lines, at iteration 40 and at the iteration nearest +30."""
+    r, _ = case_read(rl_tree(tmp_path, "REP", 80, 20))
+    q = r["grpo_seeds"]["c24 seed 1"]
+    p40, p30 = q["points"]["iteration 40"], q["points"]["closest to +30"]
+    assert p40["iteration"] == 40 and p30["iteration"] == 30 and p30["rated_move"] == 30.0
+    n = p40["notes_before"]
+    assert (
+        n["base"] == 50.0
+        and n["reward_line"]["point"] == pytest.approx(30)
+        and n["anchor_line"]["point"] == pytest.approx(-30)
+    )
+    assert n["D"]["point"] == pytest.approx(60) and p40["order"]["reward_line"][
+        "point"
+    ] == pytest.approx(-20)
+    assert all(x.startswith("replicates") for x in r["amendment10"].values()) and set(
+        r["amendment10"]
+    ) == {"iteration 40", "closest to +30"}
+    assert "Amendment 10 reading (c24, RL seed 1, iteration 40): replicates" in LR.report(r)
+    r, _ = case_read(rl_tree(tmp_path, "NODRIFT", 80, 50))
+    assert r["amendment10"]["iteration 40"].startswith("anchor line did not drift")
+    r, _ = case_read(rl_tree(tmp_path, "NOREP", 50, 20))
+    assert r["amendment10"]["iteration 40"].startswith(
+        "not replicated: the reward line's notes do not move toward A"
+    )
+    r, _ = case_read(rl_tree(tmp_path, "SMALLD", 60, 45))  # both directions right, D(notes) +15
+    assert r["amendment10"]["iteration 40"].startswith(
+        "not replicated: both lines moved as in seed 0, but D(notes)"
+    )
+    r, _ = case_read(case_tree(tmp_path, "NONE"))
+    assert r["amendment10"] == {"reading": "not read (no RL seed-1 lines yet)"}
+
+
+def test_grpo_lines_against_the_base(res):
+    """The GRPO section shows each line's own movement against the base beside the difference (Amendment 10)."""
+    rd = res["compare"]["rlhf:reit"]["c24"]["read"]["at_target"]
+    assert (
+        set(rd["vs_base"]) == {"reward_line", "anchor_line"}
+        and "reit" in rd["vs_base"]["reward_line"]
+    )
+    assert rd["vs_base"]["reward_line"]["reit"]["point"] == pytest.approx(
+        rd["D"]["reit"]["point"] + rd["vs_base"]["anchor_line"]["reit"]["point"]
+    )
+    assert "reward_line against the base:" in LR.report(res) and "c24 seed 0" in res["grpo_seeds"]
+
+
+# ------------------------------------------------------------------------------------------------ audit X6 labels
+def _e(p, lo, hi):
+    return {"point": p, "ci": [lo, hi]}
+
+
+def test_x6_readings_row_shows_s_after():
+    """X6.1: "habits edited one by one" is printed with S_before / S_after beside it, and a plain note when the habits
+    written after the edited line moved; the row's own reading is unchanged."""
+    pr = {"P1_M(c24)": _e(2, -1, 5), "P1_M(c4)": _e(1, -2, 4), "P1_M(c24)-M(c4)": _e(1, -3, 5),
+          "P2_S_before(c24)": _e(1, -2, 4), "P2_S(c24)": _e(3.5, 1, 6), "P2_S_after(c24)": _e(11.3, 7.3, 15.4)}  # fmt: skip
+    valid = dict.fromkeys(LR.READ_CORPORA, {"ok": True, "why": []})
+    rd = LR.readings(pr, valid)
+    assert rd["reading"].startswith(
+        "habits edited one by one, as on Nov 18; but habits written after the edited line moved"
+    )
+    assert "S_after(c24) +11.3" in rd["reading"] or "11.3" in rd["reading"]
+    assert rd["S_before_after(c24)"]["S_after"] == S.fmt(pr["P2_S_after(c24)"])
+    assert rd["first_base_only"] == rd["reading"]  # the first-base-only line carries the note too
+    rd = LR.readings({**pr, "P2_S_after(c24)": _e(1, -2, 4)}, valid)
+    assert rd["reading"] == "habits edited one by one, as on Nov 18"
+
+
+def write_collapsed(d: Path) -> None:
+    """A measurement with no accepted proofs (no sites with a form)."""
+    d.mkdir(parents=True, exist_ok=True)
+    x = lh({})
+    x.update(proofs=0, lines=0, hab={h: [0, 0, 0, 0, 0] for h in x["hab"]}, first={h: [0, 0] for h in x["first"]},
+             later={h: [0, 0] for h in x["later"]})  # fmt: skip
+    for s, n in (("marker_plain", N_MP), ("route_unseen", N_RU)):
+        for t in ("none", "A", "B"):
+            (d / f"{s}__{t}.jsonl").write_text("".join(json.dumps({"theorem": f"{s[:2]}{i}", "attempts": 8, "accepted": 0, "lh": x}) + "\n"
+                                                       for i in range(n)))  # fmt: skip
+    (d / "DONE").write_text("x")
+
+
+def test_x6_collapsed_last_is_labelled_the_upper_bracket(tmp_path):
+    """X6.2: the last snapshot without accepted proofs is printed as collapsed; the "last" read (the upper bracket,
+    numbers unchanged) is labelled the upper bracket, also in its PREREG line."""
+    t = case_tree(tmp_path, "COL")
+    for c in ("c24", "c4", "c0"):
+        for s in (0, 1):
+            case_dpo(
+                t,
+                c,
+                s,
+                {50: {"reit": 70}, 100: {"reit": 90}, 2000: {"reit": 95}},
+                {"reached": True, "bracket": [50, 100], "done": True},
+            )
+    write_collapsed(t / "arms" / C.arm_name("dpo", "c24", "reit", 0) / "measure" / "final")
+    r, _ = case_read(t)
+    e = r["compare"]["dpo:reit"]["c24"]
+    assert e["collapsed"] == {
+        0: {"step": 2000, "label": "final", "last_read": 100, "accepted_pct": 0.0}
+    }
+    assert e["read"]["last"]["steps"] == [[100], [2000]]  # the read itself is unchanged
+    rep = LR.report(r)
+    assert (
+        "seed 0: last snapshot: no accepted proofs (collapsed) (final, step 2000); the read below labelled"
+        in rep
+    )
+    assert "    upper bracket (the last snapshot collapsed): steps [[100], [2000]]" in rep
+    assert "PREREG [dpo:reit:last] = the upper bracket on c24 (the last snapshot collapsed" in rep
+    assert (
+        "PREREG [dpo:reit:at_target]: " in rep and not r["compare"]["dpo:reit"]["c4"]["collapsed"]
+    )
+
+
+def test_x6_grpo_block_labels(res):
+    """X6.3: one snapshot is not printed twice as at_target and last; the read says where +30 was first passed; the
+    PREREG line of an invalid GRPO read carries the validity; the chain has no difference column; X6.6: the cap line
+    is a count, not an alarm."""
+    rep = LR.report(res)
+    assert (
+        "    last: the same snapshot as at_target ([[10]]): not printed twice" in rep
+        or "    last: the same snapshot as at_target ([10]): not printed twice" in rep
+    )
+    assert "first past +30: {0: None}" in rep
+    i = rep.index("PREREG [rlhf:reit:at_target]")
+    assert (
+        rep[i:]
+        .split("\n")[1]
+        .startswith(
+            "  NOT valid +30 reads in [rlhf:reit:at_target]: c24: seed 0: +30 never passed (largest move 30.0)"
+        )
+    )
+    assert (
+        "chain (observed - predicted, per line: reward line, anchor line;" in rep
+        and "anchor line, difference" not in rep
+    )
+    assert "difference" in next(
+        iter(res["compare"]["rlhf:reit"]["c24"]["read"]["at_target"]["chain"].values())
+    )  # still in the JSON
+    rep2 = LR.report({**res, "below_cap": {"c24:reit": "2,966 pairs", "c0:reit": "2,292 pairs"}})
+    assert (
+        "Pair builds below the 4,000-pair cap (Amendment 7 point 5): c24:reit 2,966 pairs; c0:reit 2,292 pairs"
+        in rep2
+    )
+    assert "FEWER PAIRS THAN THE CAP" not in rep2
+
+
+def test_x6_grpo_validity_and_pooled_note_probe(tmp_path):
+    """X6.4: a GRPO read has no bracket test (otherwise the same rule); the closest iteration below +30 is labelled
+    so, with the first iteration past +30, also in the reason it is not valid. X6.5: the note classes of the
+    reward-model probe are pooled into one row beside the rated flip."""
+    t = case_tree(tmp_path, "G4")
+    for it, reit in ((10, 78), (20, 84), (30, 90), (40, 95)):
+        write(t / "runs" / "rl_c4_rlhfreit_s0" / "seg1" / "authors" / f"it{it:04d}", {"reit": reit})
+        write(t / "runs" / "rl_c4_anc_s0" / "seg1" / "authors" / f"it{it:04d}", {"reit": 55})
+    probe = {"habits": {"note_atom": {"n": 300, "bonus_diff": 0.004, "status": "not_probed"},
+                        "note_~a": {"n": 355, "bonus_diff": -0.008, "status": "not_probed"},
+                        "order": {"n": 40, "bonus_diff": 0.1, "status": "reward_driven"}},
+             "reference": {"bonus_diff": 0.257}}  # fmt: skip
+    (t / "arms" / "rm_c4_reit_s0").mkdir(parents=True)
+    (t / "arms" / "rm_c4_reit_s0" / "probe.json").write_text(json.dumps(probe))
+    r, _ = case_read(t)
+    e = r["compare"]["rlhf:reit"]["c4"]
+    assert e["read"]["at_target"]["move"] == 28.0 and not e["read"]["at_target"]["reached"]
+    assert e["seeds"][0]["first_past"] == {"step": 20, "move": 34.0}
+    assert e["valid"]["at_target"] == {
+        "ok": False,
+        "why": [
+            "seed 0: the read iteration is below +30 (move 28.0); the line first passed +30 at iteration 20 (move 34.0)"
+        ],
+    }
+    assert e["valid"]["last"] == {"ok": True, "why": []}  # no bracket test for a GRPO read (X6.4)
+    assert "c24" not in r["compare"]["rlhf:reit"]  # no lines: no entry
+    rep = LR.report(r)
+    assert (
+        "    at_target: the iteration closest to +30 (move 28.0, below +30); first past +30: {0: {'step': 20, 'move': 34.0}}"
+        in rep
+    )
+    v_line = rep.split("PREREG [rlhf:reit:at_target]")[1].split("\n")[1]
+    assert "not bracketed" not in v_line and "first passed +30 at iteration 20" in v_line
+    assert "NOT valid +30 reads in [rlhf:reit:last]" not in rep  # the last read is never a +30 read
+    pool = e["rm_probe"]["notes_pooled"]
+    assert pool == {"classes": 2, "twins": 655, "mean_bonus_diff": pytest.approx(-0.0025, abs=1e-4), "range": [-0.008, 0.004],
+                    "reference_bonus_diff": 0.257}  # fmt: skip
+    assert "reward-model probe, the note classes pooled: 655 twins over 2 classes" in rep

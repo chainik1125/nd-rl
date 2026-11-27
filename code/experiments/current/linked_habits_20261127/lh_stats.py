@@ -194,6 +194,15 @@ def split_share(S: Sums, r: str, h: str, part: str) -> np.ndarray:
     return div(a0, a0 + b0)
 
 
+def pooled_before(S: Sums, r: str, habits: list[str]) -> np.ndarray:
+    """Pooled A-share of the habits' sites not after the proof's first r site (PREREG Amendment 10: the notes)."""
+    a = b = 0.0
+    for h in habits:
+        a1, b1 = after_ab(S, r, h)
+        a, b = a + S(f"{h}:a") - a1, b + S(f"{h}:b") - b1
+    return div(a, a + b)
+
+
 def split_sites(S: Sums, r: str, h: str, part: str) -> np.ndarray:
     a1, b1 = after_ab(S, r, h)
     return a1 + b1 if part == "after" else S(f"{h}:a") + S(f"{h}:b") - a1 - b1

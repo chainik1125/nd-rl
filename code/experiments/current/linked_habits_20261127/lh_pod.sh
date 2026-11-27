@@ -15,6 +15,8 @@
 #                                               detector, a twin, the trainers' and GRPO's imports; with a base on the
 #                                               pod (e.g. c24_s0), a 4-theorem measurement on the GPU
 #   lh_pod.sh start     <alias> <corpus>        start lh_driver.sh <corpus> on the pod, detached, under `timeout`
+#   lh_pod.sh rl2       <alias> c24 [--dry-run] PREREG Amendment 10: lh_rl2.sh (c24's GRPO lines, RL seed 1, first base)
+#                                               detached under `timeout` (TOTAL_H 9); after c24.BASE2_DONE; c24.RL2_DONE
 #                                               (TOTAL_H, default 48 h); on the c4 pod also the Nov 14 bases; prints PID
 #   lh_pod.sh go|nogo   <alias> <corpus>        after the gate: let the driver run stage 2 (go) or stop it (nogo)
 #   lh_pod.sh job       <alias> <launcher args> one lh_launch.py job on the pod, --gpu 0, ND_GUARD=off (e.g. a resumed
@@ -87,7 +89,7 @@ stage() {  # stage <corpus> -> $ST (the pod's /workspace layout), $MAN (relative
   for f in $MINE $THEIRS; do
     [[ -s $W/$f.py ]] || { echo "no $W/$f.py"; exit 2; }
     cp -p "$W/$f.py" "$ST/exp/linked_habits_20261127/"; done
-  cp -p "$W/lh_driver.sh" "$ST/exp/linked_habits_20261127/"
+  cp -p "$W/lh_driver.sh" "$W/lh_rl2.sh" "$ST/exp/linked_habits_20261127/"
   cp -p "$EXP"/two_authors_20261111/{authors_corpus,authors_profile,authors_sets,authors_measure,authors_gate,authors_launch,rlvar}.py \
     "$ST/exp/two_authors_20261111/"
   for f in habits tag_core tag_danread tag_grpo tag_launch tag_line tag_measure tag_pretrain tagcorpus; do
@@ -226,6 +228,17 @@ fi
 echo PODCHECK_OK
 EOF
     ;;
+  rl2)  # PREREG Amendment 10: c24's GRPO lines with RL seed 1 from the first base (lh_rl2.sh), after <c>.BASE2_DONE
+    c=${1:-}; corpus_arg "$c"
+    if [[ ${2:-} == --dry-run ]]; then
+      "${SSH[@]}" "$h" "cd $PODW && LH=/scratch/cowifornia/nd-rl/linked_habits PY=$PY bash $PODW/lh_rl2.sh $c --dry-run"
+      exit $?
+    fi
+    total=$(( ${TOTAL_H:-9} * 3600 ))
+    "${SSH[@]}" "$h" "mkdir -p /workspace/lh/pod && cd $PODW && [[ ! -d /workspace/lh/pod/$c.driver.lock ]] || { echo 'a driver for $c holds its lock'; exit 3; }; \
+      LH=/scratch/cowifornia/nd-rl/linked_habits PY=$PY nohup timeout --kill-after=120 $total bash $PODW/lh_rl2.sh $c \
+      >> /workspace/lh/pod/$c.rl2.log 2>&1 < /dev/null & echo \"rl2 $c PID \$! (timeout $total s), log /workspace/lh/pod/$c.rl2.log\""
+    ;;
   start)
     c=${1:-}; corpus_arg "$c"
     total=$(( ${TOTAL_H:-48} * 3600 ))
@@ -247,7 +260,7 @@ EOF
 PY=/workspace/venv/bin/python
 echo "== $(date -u +%FT%TZ) $(hostname)"
 for f in /workspace/lh/pod/*.heartbeat.json; do [[ -e $f ]] && { echo "== heartbeat $f"; cat "$f"; echo; }; done
-echo "== markers: $(cd /workspace/lh/pod 2>/dev/null && ls -1 | grep -E '\.(GATE_READY|GO|NOGO|DONE|BASE2_DONE|FAILED|NOT_RUN|STOPPED)$' | tr '\n' ' ')"
+echo "== markers: $(cd /workspace/lh/pod 2>/dev/null && ls -1 | grep -E '\.(GATE_READY|GO|NOGO|DONE|BASE2_DONE|RL2_DONE|FAILED|NOT_RUN|STOPPED)$' | tr '\n' ' ')"
 for f in /workspace/lh/pod/*.driver.log; do [[ -e $f ]] && { echo "== $f"; tail -8 "$f"; }; done
 cd /workspace/exp/linked_habits_20261127 && LH=/scratch/cowifornia/nd-rl/linked_habits $PY lh_launch.py status 2>&1 | tail -25
 L=$(ls -t /workspace/lh/logs/*.log 2>/dev/null | grep -v watchdog | head -1)

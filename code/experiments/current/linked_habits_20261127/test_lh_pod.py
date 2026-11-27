@@ -53,6 +53,8 @@ def finish(t):
         (d / "final.pt").write_text("x"); (d / "done.json").write_text("{}"); (d / "probe" / "probe.json").write_text("{}")
     return True
 cmd = a[0]
+if "--dry-run" in a:
+    sys.exit(0)
 if cmd == "wait":
     job = arg("--job")
     logs = sorted((LH / "logs").glob(f"{job}_2*.log"))
@@ -82,8 +84,9 @@ elif cmd == "prep2":
     log(f"prep2_{c}_s{bs}", 0)
 elif cmd == "stage2":
     bs = arg("--base_seed") if "--base_seed" in a else "0"
+    rs = arg("--rl_seed") if "--rl_seed" in a else None
     ok = (os.environ.get("ND_GUARD") == "off" or bs != "0") and all([finish(t) for t in arg("--tasks").split(",")])
-    log(f"stage2_{arg('--corpus')}_s{bs}", 0 if ok else 1)
+    log(f"stage2_{arg('--corpus')}_rl{rs}" if rs else f"stage2_{arg('--corpus')}_s{bs}", 0 if ok else 1)
 '''
 
 
@@ -433,7 +436,7 @@ def test_fetch_fails_on_a_missing_final_or_a_vanished_file(tmp_path):
 
 
 def test_syntax():
-    for f in ("lh_pod.sh", "lh_driver.sh", "lh_pod_setup.sh"):
+    for f in ("lh_pod.sh", "lh_driver.sh", "lh_pod_setup.sh", "lh_rl2.sh"):
         assert subprocess.run(["bash", "-n", str(HERE / f)]).returncode == 0, f
 
 
@@ -581,7 +584,7 @@ def test_stage_contents(tmp_path):
     )
     assert out.returncode == 0, out.stdout + out.stderr
     man = (lh / "pod_stage" / "rp-lhtest.manifest.txt").read_text().split()
-    for f in ("exp/linked_habits_20261127/lh_launch.py", "exp/linked_habits_20261127/lh_pairs.py", "exp/linked_habits_20261127/lh_driver.sh",
+    for f in ("exp/linked_habits_20261127/lh_launch.py", "exp/linked_habits_20261127/lh_pairs.py", "exp/linked_habits_20261127/lh_driver.sh", "exp/linked_habits_20261127/lh_rl2.sh",
               "exp/linked_habits_20261127/lh_profile.py", "exp/linked_habits_20261127/lh_twin.py", "exp/linked_habits_20261127/lh_habits.py",
               "exp/linked_habits_20261127/lh_dpo.py", "exp/linked_habits_20261127/lh_sft.py", "exp/linked_habits_20261127/lh_rm.py",
               "exp/linked_habits_20261127/lh_tune.py", "exp/linked_habits_20261127/notes.py",
@@ -776,3 +779,65 @@ def test_driver_second_base_switch_from_lh_core(pod):
     assert (pod_ / "c24.BASE2_DONE").exists()
     assert driver(env, "c9").wait(timeout=60) == 0
     assert (pod_ / "c9.DONE").exists() and not (pod_ / "c9.BASE2_DONE").exists()
+
+
+RL2 = "rl_c24_rlhfreit_s1 rl_c24_anc_s1"
+
+
+def rl2(env: dict, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["bash", str(HERE / "lh_rl2.sh"), "c24", *args], env={**env, "LH_RL2_TASKS": RL2},
+                          capture_output=True, text=True, timeout=120)  # fmt: skip
+
+
+def test_rl2_runs_after_the_second_base_pass(pod):
+    """PREREG Amendment 10's one-off: only after c24.BASE2_DONE and with no driver running; one stage-2 job of the two
+    RL seed-1 lines (guard off), c24.RL2_DONE at the end, a line that did not finish in c24.FAILED; a rerun skips
+    finished lines; --dry-run prints the job's plan and each line's command and launches nothing."""
+    lh, env = pod
+    pod_ = lh / "pod"
+    pod_.mkdir()
+    r = rl2(env)
+    assert (
+        r.returncode == 3
+        and "no " in r.stdout
+        and "c24.BASE2_DONE: the second base pass has not ended; not started" in r.stdout
+    )
+    (pod_ / "c24.BASE2_DONE").write_text("x")
+    (pod_ / "c24.driver.lock").mkdir()
+    r = rl2(env)
+    assert (
+        r.returncode == 3 and "a driver holds" in r.stdout and not (lh / "stub_calls.txt").exists()
+    )
+    (pod_ / "c24.driver.lock").rmdir()
+    r = rl2(env, "--dry-run")
+    assert r.returncode == 0 and calls(lh) == ["stage2 --corpus c24 --rl_seed 1 --parallel 2 --gpu 0 --dry-run ND_GUARD=off",
+                                               "rl --line rl_c24_rlhfreit_s1 --gpu 0 --dry-run", "rl --line rl_c24_anc_s1 --gpu 0 --dry-run"]  # fmt: skip
+    assert not (pod_ / "c24.RL2_DONE").exists()
+    (lh / "stub_calls.txt").unlink()
+    r = rl2(env)
+    assert r.returncode == 0, r.stdout + r.stderr
+    cs = calls(lh)
+    assert (
+        cs[0]
+        == "stage2 --corpus c24 --rl_seed 1 --tasks rl_c24_rlhfreit_s1,rl_c24_anc_s1 --parallel 2 --gpu 0 ND_GUARD=off"
+    )
+    assert cs[1].startswith("wait --job stage2_c24_rl1 --max_h 8")
+    assert (
+        (pod_ / "c24.RL2_DONE").exists()
+        and not (pod_ / "c24.FAILED").exists()
+        and not (pod_ / "c24.driver.lock").exists()
+    )
+    (lh / "stub_calls.txt").unlink()
+    assert (
+        rl2(env).returncode == 0 and not (lh / "stub_calls.txt").exists()
+    )  # both lines finished: nothing launched
+
+
+def test_rl2_records_a_line_that_did_not_finish(pod):
+    lh, env = pod
+    (lh / "pod").mkdir()
+    (lh / "pod" / "c24.BASE2_DONE").write_text("x")
+    r = rl2({**env, "STUB_FAIL": "rl_c24_anc_s1"})
+    assert r.returncode == 0 and (lh / "pod" / "c24.RL2_DONE").exists()
+    failed = (lh / "pod" / "c24.FAILED").read_text()
+    assert "rl2 rl_c24_anc_s1 did not finish" in failed and "rl_c24_rlhfreit_s1" not in failed
