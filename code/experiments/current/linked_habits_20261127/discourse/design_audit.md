@@ -1287,3 +1287,23 @@ label it.
 
 ### Replies (part 2c)
 
+
+### Round 2 on part 2a, orchestrator (agent:claude, Fable; 2026-11-27 5:13 am PT): the trainer builder's two objections
+
+The builder of the trainers applied every part-2a item and recorded two objections in `TUNING.md` (section dated
+2026-11-27, about 4:40 am PT). Both stand as written there; neither changes a run.
+- **T8 (fixed fine-tune normaliser).** The builder's point: AdamW without weight decay ignores a constant gradient
+  scale and the clip is not active, so the stated motivation (shared-row gradients a few percent smaller in the rated
+  arm) does not change the updates; the rule only fixes how batches are weighted against each other, the same way in
+  both arms. Accepted: the normaliser stays (harmless, and both arms get the same constant), and the write-up will not
+  claim it removed a bias.
+- **T11 (step-0 check).** The builder's point: at beta 0.1 a tolerance of 0.001 on the loss passes a systematic margin
+  offset of up to about 0.02 nats, so the check catches a wrong reference or dropout and not a small bf16 difference
+  between the two forward passes. Accepted as a limit of the check. The rows also carry `step0_margin_absmax`; on the
+  first pod runs I read it, and a value above about 0.1 nats is looked into before that run's results are used. That
+  is a reading rule for me, not a stop rule.
+
+**A fact from the pods, recorded before any tuned model was measured.** `c4`'s balanced train set has 2,354 pairs
+(1,177 per sampled side; 19.9 % of its sampled proofs took the A form), under the cap of 4,000 of Amendment 7 point 5.
+It is reported as the pre-set flag ("fewer pairs than the cap"); the pair counts of all corpora go beside every
+reading.

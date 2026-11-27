@@ -395,3 +395,29 @@ checks G0 on four bases before the G2 rule. G0 is a property of one base, so eac
 base has G0 at least 50 and `c24`'s G2 rule is met; a base under 50 gets no `go` and is stopped for repair. `c24`
 and `c4` get `go` now, on the code of commit e7b3388; `c0` and `c9` when they reach the gate. If `c0` failed G0,
 no reading that uses `c0` could be made until it was repaired.
+
+## Gate record 2 (2026-11-27 5:16 am PT; all four bases and `c0n` measured; no tuned model measured)
+
+`lh_gate.py` at e7b3388 with every base in prints "Decision check: stage 2 runs". Pooled sets, 95 % bootstrap over
+theorems; pass@1 untagged on `marker_plain` (where the flag is read):
+
+| base | G0 noted premises | G2 notes given notes | G2 natural given natural | pass@1 | pass@8 |
+|---|---:|---:|---:|---:|---:|
+| `c24_s0` | 99.2 | +97.0 [+94.3, +99.0] | +41.0 [+36.0, +45.8] | 45.7 | 81.2 |
+| `c9_s0` | 99.5 | +0.2 [-4.0, +4.2] | +16.4 [+11.8, +20.9] | 53.1 | 87.6 |
+| `c4_s0` | 99.5 | -3.8 [-8.1, +1.0] | +10.7 [+6.4, +14.9] | 44.7 | 82.4 |
+| `c0_s0` | 99.3 | +2.0 [-2.1, +5.9] | +7.0 [+1.7, +12.1] | 53.0 | |
+| `c0n_s0` (no note lines) | 1.3 | | -3.4 [-7.2, +0.3] | 58.1 | |
+| `authors_half_s0` (Nov 14) | | | | 61.9 | 90.0 |
+| `control_half_s0` (Nov 14) | | | | 63.2 | 91.4 |
+
+**Performance flags (pass@1, `marker_plain`), all three fired:** `c0` - `c0n` = -5.1 [-7.9, -2.3] (the cost of the note
+lines alone); `c0` - `control_half` = -10.3 [-13.0, -7.5]; `c24` - `authors_half` = -16.2 [-18.7, -13.7]. The new
+bases solve fewer theorems than the Nov 14 bases; about 5 points of that is the note lines, and the bases with a
+linked route (`c24`, `c4`) are about 8 points below `c0` and `c9`. Reported, stops nothing; every stage-2 reading
+is on proofs Lean accepts.
+
+**`go` times (UTC), all on e7b3388:** `c4` 12:57, `c24` 12:58, `c0` 13:06, `c9` 13:15.
+
+**Balanced train pairs for the reiteration rater (cap 4,000):** `c4` 2,354, `c24` 2,966; `c0` and `c9` are added to
+the read-out when their pair builds end. `c24`'s note rater: 1,900. Both under the cap: the pre-set flag.
