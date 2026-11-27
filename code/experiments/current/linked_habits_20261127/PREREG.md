@@ -476,3 +476,12 @@ notes) and on the second `c24` base are not run here and are left to the PI.
 
 **What this does not change.** The decisive arm is DPO (Amendments 3 and 8), and its reading comes from the two bases'
 average when the second bases are in.
+
+### Erratum to Amendment 10's "What I had seen" (2026-11-27 9:12 am PT; the seed-1 lines have not started)
+
+Two figures in that paragraph were taken from the audit's first message and do not match the read-out's own
+estimator; the predictions and the reading rule above are unchanged. (1) The pooled A-share of notes before the
+first reiteration site is 59.5 % in the base, 88.5 % in the reward line and 26.2 % in the anchor line at iteration
+40 (+29.0 and -33.3 against the base), not 59 / 89.5 / 24.3. (2) Against the base the reward line moved the note
+classes by +10 to +41 per class (the lowest value is a class with fewer than 50 sites), not "+20 to +40". Both were
+checked independently by the writer of the summary and by the auditor (`discourse/design_audit.md`, Part 4, Y12).

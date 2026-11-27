@@ -1905,3 +1905,290 @@ is a replication, not a new question.
 
 ### Replies (part 3)
 
+
+## Part 4: audit of the summary draft
+
+Audited 2026-11-27, 9:05–9:40 am PT (independent auditor, Opus). Read-only, CPU only.
+
+**What I read:**
+- **The draft:** `experiment-summaries/2026-11-27-linked-habits/README.md` (581 lines) and all five figures (PNG).
+- **Its data sources:** `LH/read/summary_extra.json` and `read_firstbase.json`; `gate_v2.txt`; the tag-A, tag-B and
+  untagged base summaries of `c24_s0`; `probe.json`; the measurement rows; my Part 3 scripts.
+
+**What I checked:**
+- **The first screen:** every number, recomputed or traced to a file.
+- **The tables of §§ 3.1–3.7:** every number, except those marked "not checked" below.
+
+Severity: WRONG NUMBER / OVERCLAIM / UNCLEAR / NOTE. Worst first.
+
+### Verdict (part 4)
+
+1. **The numbers are almost all right.** Every first-screen number and the § 3.1–3.6 table values reproduce, to
+   rounding, from the files, with four exceptions:
+   - "within ±7 points" is my own Part 3 error (Y6);
+   - the before-line set is not "15 notes" (Y7);
+   - two small ranges (Y7);
+   - mixed bootstrap sources in § 3.7 (Y7).
+
+   **Of the seven discrepancies the writer reports, the writer is right on all seven** (Y12). Amendment 10 needs a
+   one-line erratum in "What I had seen" ("+20 to +40" → "+10 to +41 per class"). Its predictions and reading rule
+   stand.
+2. **Four first-screen sentences say more than the data show (Y1–Y4).**
+   - The "+64" whole-author reference is an extrapolation to 122 % of author A. It implies note shares above 100 %, and
+     it is not the pre-registered form.
+   - "Step order did not follow" is false against the plain line (+13.5 [+9.9, +17.0]).
+   - "This is selection among the base's own authors" is stated as fact.
+   - "No author was switched" and "the rest of the page follows" are stated without their alternative.
+3. **§ 4 says "refuted"** where the pre-registered reading is "edited one by one" and the two-base read is pending (Y5).
+4. **A cold reader would stumble on a few things:**
+   - Figure 2 compares notes + step order on one corpus with step order alone on the others (Y8);
+   - Figure 4c's "iteration" axis is 40 file chunks (Y10);
+   - the seed-1 slot uses a different quantity from Amendment 10's (Y11).
+
+   **Three of the PI's asks are not answered on the first screen** (Y9): natural habits, "doesn't disappear in
+   training", and which arm mirrors which practice.
+
+### Y1. OVERCLAIM: "A whole-author shift would have moved them about +64" (first screen item 1, Figure 2's diamond, § 3.2)
+
+**[obs] Where the number comes from.** It is the read-out's `mixture` for c24 (`compare.dpo:reit.c24.read.at_target`).
+The read-out fits one author weight to the rated run's reiteration share and one to the control's, using the base's
+tag-A and tag-B profiles as components.
+- **The fitted weights:** w_rated 1.2178 and w_control 0.5546.
+- **The base profiles:**
+
+| habit | tag-A profile | tag-B profile | untagged |
+|---|---:|---:|---:|
+| reiteration | 52.3 | 4.8 | 32.7 |
+| step order | 69.2 | 5.8 | 41.6 |
+| notes | 100 | 0 | 54.8–67.2 |
+
+- **What the implied move means.** It is (w_rated − w_control) × (tag-A − tag-B): order +42.1, notes +63.6 to +66.3.
+  - At w 1.22 the implied note share is about 122 %.
+  - A note at the control's ~55–60 % A can move at most +40 to +45.
+- **The rated habit is already past a full switch.** The tag-A profile writes reiteration A in 52.3 % of sites, +19.6
+  over the untagged base. So the +30 read already lies beyond what a full switch to author A does to the rated habit.
+- **What PREREG asked for** ("Size against a whole-author shift (reported, no bar)", original text and Amendment 3):
+  "give, for each other habit, the observed move as a share of the move that weight implies". That is a ratio, not a
+  "+64" target.
+  - The read-out has the ratios: step order 0.16 and notes −0.17 to +0.31.
+  - c0 has no meaningful weight (w_rated −17.6), so the reference cannot sit on a "− none linked" axis, which is where
+    the diamond is.
+
+**Replacement, first screen item 1.** In place of "A whole-author shift would have moved them about **+64**." write:
+
+> For scale: switching fully to author A (the base's tag-A profile) would move the notes about +44 and step order
+> about +28, but would move reiteration itself only about +20, so the +30 read is already past a full author switch.
+> The pre-registered ratio (observed move over the move implied by the fitted author weight) is 0.16 for step order and
+> between −0.17 and +0.31 for the notes.
+
+**Figure 2.** Drop the diamond, or redraw it at about +44 with the label "full switch to author A (tag-A profile), all
+linked alone". In either case, say in the caption that it does not apply to the "− none linked" rows.
+
+**§ 3.2, the bullet "Against a whole-author shift".** Keep the arithmetic, but say that 122 % is an extrapolation
+implying shares above 100 %, and give the ratios.
+
+**The Nov 18 "about 47".** If it was computed the same way, it should be checked for a weight above 1 before the two
+are compared side by side.
+
+### Y2. OVERCLAIM: "step order, a natural habit, did not follow (Lean acceptance pushes it toward B in both lines)" (item 3; § 4 row 4)
+
+**[obs] Against the base, step order moved toward B in both lines:** reward −14.8 [−20.0, −10.1], plain −28.4
+[−33.1, −23.7]. **Against the plain line, the reward line moved it toward A:** D order +13.5 [+9.9, +17.0]. Restate
+behaves the same way: +4.2 [+0.3, +8.6] against the base and D +28.9 [+24.5, +33.4]. So the natural habits did follow
+in part; they were pulled toward B at the same time.
+
+**Replacement:**
+
+> The block that moved is the 15 procedurally generated notes, whose form costs nothing in Lean acceptance. The natural
+> habits followed only in part: step order moved toward B against the base in both lines (acceptance-only RL favours
+> B's form on every corpus), but 13.5 [+9.9, +17.0] points less in the reward line than in the plain line, and restate
+> likewise (+4.2 against the base, +28.9 against the plain line).
+
+### Y3. OVERCLAIM: "This is selection among the base's own authors." (item 3, stated as fact)
+
+**[obs] What the samples show:**
+- The sampled proofs stay single-author in their notes (0.1–3.4 % mixed).
+- The share of all-A-note proofs moved 49 → 86–97 %.
+- Within all-A-note proofs whose reiteration sites are all one form, A-only reiteration also rose: 58 % (chunk 1) →
+  85 % (chunk 40).
+- The base's conditionals shifted: P(note A | reiteration B) 37 → 58.
+
+So the shift is mostly a reweighting of single-author proofs, plus within-author change. "Selection among the base's
+own authors" is my Part 3 interpretation, and it should be labelled as one.
+
+**Replacement:**
+
+> [interp] It looks like selection among the base's own authors: the sampled proofs stay single-author, and RL changed
+> how often each author is written (with A-form reiteration also rising inside A's proofs).
+
+### Y4. OVERCLAIM: "The rest of the page follows the edited line. Nothing earlier changes, so no author was switched." (item 2)
+
+**[obs] What drives the after-line +11.3.** It is mostly restate (+20.6). On every corpus the edit pushes restate
+toward B, but less on the all-linked one (−7.2) than on the no-links one (−27.8). The base's site-level links predict
+only about +5 of that (Part 3 X2). So "the page follows" is one reading, and a corpus-specific structural or ceiling
+effect is the other.
+
+**[obs] What the before-line interval allows.** "No author was switched" needs a size: the interval [−1.1, +4.1] sits
+against about +44 for a full switch.
+
+**Replacement:**
+
+> What did move under DPO were the habits written after the edited line, +11.3 [+7.3, +15.4] with 22 links against
+> none, mostly restate, which the edit pushes toward B on every corpus but much less on the all-linked one. That fits
+> the rest of the page following the edited line; a corpus-specific structural effect is not excluded (a forced-prefix
+> test on the bases would separate them). Nothing written before the line moved (+1.5 [−1.1, +4.1], against about +44
+> for a full switch to author A), so there is no sign that the model switched author.
+
+### Y5. OVERCLAIM: § 4 table wording
+
+- **Row 2, "[obs] refuted on the first bases".** Replace with: "**[obs] not seen on the first bases** (the
+  pre-registered reading is "edited one by one"; before-line +1.5 [−1.1, +4.1]; M with 22 links ≈ M with 4). Final
+  after the two-base average (PENDING)."
+  - Why: the decisive reading is defined on two bases, and the DPO model at the read is breaking.
+- **Row 1, "the base holds an author without a tag".** "Holds" clashes with "no held persona" elsewhere. Replace with:
+  "the all-linked base writes each proof's notes as one author without a tag (+97); natural habits are linked less
+  (+41; +16 with 7 linked, +11 with 4)."
+- **Row 6, the Nov 18 hypothesis.** The "+10.7 here" is the four-habit base of this run, not the Nov 14 base that
+  Nov 18 used. The Nov 14 base's untagged natural → natural link was not measured here. Say so.
+
+### Y6. WRONG NUMBER: "Lean-rejected proofs carry the same habit mix within ±7 points" (§ 3.2, § 5). The error is mine (Part 3)
+
+**[obs] The Lean-rejected against accepted shares in Part 3 X1's own table differ by up to:**
+
+| run | habit | rejected | accepted | difference |
+|---|---|---:|---:|---:|
+| c0 rated | conj | 61.4 | 51.1 | 10.3 |
+| c4 rated | restate | 54.8 | 42.4 | 12.4 |
+| c4 control | restate | — | — | 9.4 |
+
+On the all-linked corpus the largest difference is 7.5 (order).
+
+**Replacement:** "within about 12 points (7.5 on the all-linked corpus); re-including them would move a share by about
+1–3 points."
+
+**Erratum to Part 3:** the Verdict item 1 and X1 sentences "within ±7 points" should read the same.
+
+### Y7. WRONG NUMBER (small), and one source note
+
+- **The before-line set (item 1 and § 1).** It is step order plus **11 of the 15 note classes**. The read-out's
+  S_before habits are order, atom, ~a, ~c, vaa, vac, vca, vcc, >aa, >ac, >ca and >cc. The four conjunction classes are
+  too thin in some read. Replace "(15 premise notes, …, and step order)" with "(11 of the 15 premise-note classes
+  (the other four are too thin to read) and step order)".
+- **§ 3.2, "At the upper bracketing snapshot (+36 to +41 …)".** The upper-bracket moves are +33.9 to +41.3 per run, or
+  +35.6 to +40.3 as seed means per corpus. Write "+34 to +41".
+- **§ 3.3, "16–21 points above it by step 400".** The values are 15.7, 16.9, 19.0 and 21.5. Write "16–22".
+- **§ 3.7 table and Figure 5: two bootstrap sources.**
+  - The first-base pass@1 intervals are the gate's (B 2,000; e.g. four-habit [41.9, 47.7], seven-natural
+    [50.3, 56.0]).
+  - The second-base interval comes from `summary_extra.json` (B 1,000), which gives [41.9, 47.6] and [50.4, 55.9] for
+    the same two bases.
+  - Name the source in the caption.
+- **Not checked by me:** the note-rate range "98–105 %" and the "134 %" snapshot (§ 3.7), the cost table (§ 6), and
+  the intervals of the per-habit after-line differences (restate +20.6 [+17.0, +24.4] etc.). Their point values match.
+
+### Y8. UNCLEAR: Figure 2
+
+- **The before-line group is not like for like.** "all linked" is notes + step order (+1.5). "7 natural (order only)"
+  and "4 linked (order only)" are step order alone (−6.8 and +5.0). A reader will compare +1.5 with +5.0.
+  - Add a row "all linked, step order only: +2.6 [−2.0, +6.9]" (§ 3.2 has it), or split notes from order.
+  - Say in the caption what "(order only)" and "(conj. only)" mean: in those corpora only that habit of the group is
+    linked.
+- **Corpus names.** "none linked" in the figure is "no-links" in the text. Use one name, or say in the caption that
+  "− none linked" means "minus the same quantity on the no-links corpus".
+- **The diamond:** see Y1.
+- **The intervals.** The caption says they leave out base-to-base variance, but the first screen does not. The two
+  four-habit bases differ by 8.8 points of pass@1, so say it on the first screen too (see Y9).
+
+### Y9. UNCLEAR: the PI's asks on the first screen
+
+**Natural habits.** Only "step order, a natural habit" appears. Add:
+
+> Natural habits: 7 of the 22 linked habits are natural. The all-linked base links them to each other +41 without a
+> tag (notes +97). No arm moved them as a block: under DPO the Nov 18 markers did not move more with 22 links; under
+> RL step order moved toward B in both lines.
+
+**"Some way of making sure it doesn't immediately disappear in training".** The run does answer this, but only in
+§ 3.7. Bring it forward:
+
+> Whether the habits survive training: under DPO and the fine-tune they are still written (notes on 98–105 % of
+> premises, § 3.7) and no control drifts by the read. Under acceptance-only RL they do not: on the all-linked corpus
+> 14 habits lose more than half of their A share by iteration 40, most of it by iteration 10 (notes pooled 59.5 →
+> 30.0 % A), carried along with step order, whose A form acceptance-only RL roughly halves on every corpus (all-linked
+> 42 → 13 %, four-habit 38 → 20 %, no-links 23 → 12 %). The KL anchor (0.02) did not prevent it; nothing here tests a
+> stronger safeguard.
+
+**How labs do the push.** § 2.3 does it well. On the first screen, name the mapping once: "DPO arm = DPO; reward model +
+GRPO = RLHF (on-policy, KL-anchored); fine-tune = SFT; unlike lab practice, all pairs are twins that differ in one
+habit."
+
+**Capability cost.** Item 5 covers the note lines (5.1 points). Add: "Single bases differ by up to 9 points (the two
+four-habit bases), so link costs beyond the note lines are not established; every interval here is over theorems only."
+
+### Y10. UNCLEAR: Figure 4c and § 3.5's "iteration"
+
+- **The x axis is not iterations.** `summary_extra.py` splits `lean_dump.jsonl` into 40 equal chunks in file order
+  ("about one iteration each"); the dump has no iteration field. Label the axis "fortieth of the training samples
+  (≈ iteration)" and say so in the caption.
+- **The same applies in the text.** "49 % (iteration 1), 66 % (5) …" in § 3.5 and on the first screen.
+
+Figure 4 panels (a) and (b) match `summary_extra.json` (checked: reiteration, step order, restate, pooled notes and
+the per-class notes, both corpora). Figures 1, 3 and 5 match the gate, the read-out tables and `summary_extra.json`.
+
+### Y11. NOTE: the seed-1 slot must use Amendment 10's quantity
+
+- **What Amendment 10 pre-registers:** "the pooled A-share of notes **before the first reiteration site**" and step
+  order. Its seed-0 values are 58.7 → 89.5 (reward) and 24.3 (plain).
+- **What § 3.5 and the slot use:** "all notes, pooled" (all sites; 59.5 → 88.5 / 26.2). The two are close here but
+  are not the same quantity.
+- **The fix.** Report seed 0 on the Amendment 10 quantity, with intervals from the same estimator, next to the
+  all-sites figure. Read seed 1 on that quantity. Write the slot's reading rule exactly as Amendment 10 has it.
+- **A wording point in the reading-rule paragraph.** "plain line notes at least 20 points toward B" reads as a bar.
+  Amendment 10's predictions are predictions, and its bar is the interval rule plus D > +20.
+
+### Y12. NOTE: the seven discrepancies, adjudicated
+
+1. **Acceptance loss "9.4–18.8, not 11–25".** Writer right.
+   - At the interpolated +30 read, the rated runs accept 34.0 / 43.7 / 34.8 / 34.2 % against bases of
+     45.7 / 53.1 / 44.7 / 53.0, a loss of 9.4–18.8.
+   - "11–25" (26.1 at most) is the upper bracketing snapshot.
+2. **Controls lose 13–36 points by step 400.** Writer right: step-400 controls lose 12.7–35.9 against their bases.
+3. **"+10 to +41 / −14 to −45" needs the thin &cc class.** Writer right. Without it the plain line is −18 to −45; the
+   reward line is +10 to +41 either way. The draft says so.
+4. **Pooled notes 59.5 → 88.5 / 26.2.** Both are right. Those are all note sites, by the read-out's estimator.
+   Amendment 10's 59 / 89.5 / 24.3 are the sites before the first reiteration site, as it says. No erratum; see Y11.
+5. **86–97 %, and 38–39 %.** Writer right on both.
+   - My 86–94 % quoted only chunks 10, 20 and 40. Over chunks 10–40 my own count gives 86.3–97.0.
+   - My "54 % of all-A-note proofs have A-only reiteration" used as denominator the proofs whose reiteration sites are
+     all one form. Over all all-A-note proofs it is 37.8 % (plain line) and 39.3 % (reward line) in chunk 1.
+   - **Erratum to Part 3 X3:** read "Among all-A-note proofs whose reiteration sites are all one form, about 54 % are
+     A-only (about 39 % of all all-A-note proofs); in all-B-note proofs about 2 %."
+6. **On the four-habit corpus step order and restate moved against the base.** Writer right (reward line −25.2 and
+   −22.0; plain line −18.0 and +6.4).
+   - My "c4 and c0 show nothing comparable" (Part 3 X3) refers to the note block only. It should say so.
+7. **122 % of author A.** The writer's arithmetic is right; it is the read-out's mixture. The presentation is the
+   problem (Y1).
+
+**Amendment 10, "What I had seen".** The figures are correct as labelled ("before the first reiteration site"), except
+one, which is mine.
+- **Erratum:** "against the base the reward line moved notes by +20 to +40" should read "by +10 to +41 per class (14
+  of the 15 classes between +22 and +41)".
+- **Unchanged:** the predictions, the quantities and the reading rule.
+
+### Y13. NOTE: what the PI will ask in the first minute and the draft does not answer up front
+
+1. **"Why did plain RL move the notes at all?"** Item 3 gives −33.3 but not the reason. Add from § 3.5 / Part 3:
+   "acceptance-only RL drives step order toward B on every corpus, and only on the all-linked base are the notes tied
+   to step order (P(note A | order A) 93.7 % against 28.7 % given order B; four-habit 52 / 52, no-links 44 / 48)."
+   Cite these numbers rather than the gate's note → natural +57.4. "Lean favours goal-driven proofs" is an
+   interpretation; mark it so.
+2. **"Is the RL effect just the notes being free?"** Say plainly that the notes have no effect on acceptance and are
+   procedurally generated, which is what the PI asked to avoid. The natural-habit result under RL is the partial
+   following in Y2.
+3. **"What does it cost so far, and what is running?"** Put one line on the first screen: $14.48 so far, seed 1 and
+   the second all-linked base running.
+4. **Citations.** § 2.3 cites papers by author and year and says none is in `references.bib`. The project rule is
+   `[@citekey]` through `code/tools/literature.py`. Either add them or label the section as background without
+   citations.
+
+### Replies (part 4)
+
