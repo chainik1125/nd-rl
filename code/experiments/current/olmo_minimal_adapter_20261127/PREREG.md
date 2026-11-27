@@ -454,3 +454,84 @@ Order:
 
 Total about $35, or about $42 with the conditional seed. The experiment's launch stop is $90 on the pod ledger (stage 1
 $43.54 + $46), under the $120 cap. Each part runs once. Nothing else is launched under this amendment.
+
+## Amendment 6, step-1 result (2026-11-27 8:07 am PT) and Amendment 7 (PROPOSED 8:10 am PT; in force only after the coordinator's decision is recorded under it)
+
+**Step-1 reading, by the pre-set rule: "no match".**
+- The replication cell `dpo__final25__A16__n64__r1p_s523373504` (rp-om3, fetched md5-equal) against the 25 Nov
+  adapter: 15 of 448 modules have a ΔW cosine below 0.90 (minimum 0.79).
+- Total cosine 0.986, median module cosine 0.998, total norm ratio 0.997.
+- As fixed, step 2 and 6(b) are held. Nothing else was trained, and rp-om3 is deleted.
+
+**CPU diagnosis (8:08-8:10 am).**
+- **Where.** All 15 modules are in layers 0-4. Seven are layer 0 (all seven projections), four layer 1, two layer 2,
+  one each in layers 3 and 4. The minimum cosine per layer rises with depth: 0.79, 0.85, 0.90, 0.89, 0.89, 0.91 ...
+  From layer 8 onward the minimum is 0.915 and the median 0.998. Together they hold 2 % of the update's squared norm.
+- **Not an initialisation difference.** The stored `init_seed` is 523373504 in both runs. The step-1 online score is
+  bit-identical. Different A-inits give a total cosine of about 0.015 (the 25 Nov adapter against R-final), not 0.986.
+- **Not an order difference.** The per-step training pids are identical in all 64 steps.
+- **Consistent with bf16 run-to-run drift: same seed, same data, step 1 bit-identical, then a small drift.**
+
+  | pair | first step that differs | max relative difference | median relative difference | code-length difference |
+  |---|---|---|---|---|
+  | 25 Nov run vs our replication (H100 vs H100) | 2 | 3.9e-3 | 6.5e-4 | −7.8e-5 |
+  | our own pair, final pool (dev-rule 3e-4 row vs R-final, H200 vs H200) | 3 | 1.2e-2 | 5.3e-4 | −4.9e-5 |
+  | our own pair, own pool (dev-select 3e-4 row vs R-own, H100 vs H200) | 3 | 2.9e-3 | 5.4e-4 | +1.2e-4 |
+
+  The 25 Nov dpo-sweep row also re-ran on 25 Nov and moved its code length by 0.003 %.
+- **Difference from our own pairs.** The replication first differs one step earlier (at step 2, by 3.4e-4). The two
+  trainers may still differ in a small numerical path in the first update, for example whether the loss is computed in
+  chunks (`--ce-checkpoint`), which the 25 Nov row does not record. It is not material on these numbers.
+- **Missing baseline.** There is no weight-level baseline: no two same-seed adapters of ours were saved. So the
+  thresholds in Amendment 6 (every module ≥ 0.99 for "match", any module < 0.90 for "no match") were set without one.
+  The early-layer pattern is what accumulated bf16 differences would produce, but that is not shown at weight level.
+
+**Proposed change (Amendment 7).** Add one training-only baseline cell before any step-2 sampling.
+- The cell is `dpo__final25__A16__n64__r1p_s523373504_rerun`, identical to the step-1 cell.
+- It is trained first on the H100 session that trains the step-2 and 6(c) cells, so it costs about 8 min (about
+  $0.60) on top. Alone it would need a fresh H100: about 25 min, about $1.90.
+- Its weights are compared on CPU with the step-1 cell (ours against ours, same seed) and with the 25 Nov adapter.
+- Readings, fixed now:
+  - **Drift.** Ours-against-ours also has at least one module below 0.90, or a total cosine below 0.99. The step-1
+    "no match" is then the same kind of difference as our own rerun spread. The trainer branch is closed, and step 2's
+    sampling and 6(b) go ahead under Amendment 6, with this caveat stated.
+  - **Systematic.** Ours-against-ours has every module at least 0.97 and a total cosine of at least 0.998. Our reruns
+    then agree far better with each other than with the 25 Nov run, so a code-path difference exists. Step 2's
+    sampling and 6(b) stay held, and the first-step numerical path (chunked loss and memory settings) is diffed on CPU.
+  - **Otherwise.** Reported, and the coordinator decides.
+- The step-2 and 6(c) cells may be trained in the same session as the baseline (training only). Nothing is sampled
+  before the baseline reading.
+- My recommendation: adopt this rather than "go with a caveat" now, which would rest on the online scores alone, or
+  "stop", which the evidence does not support. Total extra cost about $0.60.
+
+### Decision on Amendment 7 (orchestrating agent, agent:claude, Fable; 2026-11-27 8:11 am PT)
+
+Amendment 7 is in force as drafted. What I had seen when deciding: the step-1 comparison (total cosine 0.986, 15 of
+448 modules under 0.90, all in layers 0 to 4, 2 % of the squared norm), the per-example online-score comparison of
+three same-seed pairs, and no weight-level comparison of two of our own same-seed runs, because none exists. The
+readings ("drift", "systematic", otherwise my decision) stand as written above and were fixed before the rerun
+exists. The rerun trains first in one H100 session; the two crossed step-2 cells and the 6(c) own-recipe cells may be
+trained in the same session. Nothing is sampled before the baseline is read, and the sampling of step 2, 6(c) and 6(b)
+also waits for the H200 slot and for the PI to have seen the plan and its cost.
+
+### Amendment 7 result (2026-11-27 8:31 am PT): "drift"
+
+The baseline rerun `dpo__final25__A16__n64__r1p_s523373504_rerun` (rp-om4, fetched md5-equal) was compared with the
+step-1 cell, both from our trainer with the same seed and data:
+- total cosine 0.986, minimum module cosine 0.75, median 0.998, norm ratio 1.001;
+- 13 modules below 0.90: 11 of them in layers 0-4, and one each in layers 6 and 9.
+By the reading fixed above this is **"drift"**: ours against ours has a module below 0.90.
+
+The rerun against the 25 Nov adapter: total cosine 0.991, minimum 0.815, 8 modules below 0.90, all in layers 0-1.
+
+The trainer branch is closed. The 25 Nov adapter and our trainer's replication differ no more than two of our own
+same-seed runs differ from each other. Step-2 sampling and 6(b) may go ahead under Amendment 6, with this caveat:
+module-level weight agreement between same-seed runs is limited by bf16 drift (cosine down to about 0.75 in the
+first layers).
+
+### Two implementation notes for 6(b) and 6(c) (2026-11-27 9:03 am PT; no rule changes)
+
+1. **Draw chunks.** The sampler draws in chunks of 4 under one engine seed (Dan's `--chunk 4`). So "16 draws as two
+   chunks of 8" runs as chunks 0-3 of 4 with seed 660011. An 8-draw batch would use chunks 0-1.
+2. **Tuned-cell name.** A tuned cell keeps its trained id (`*__lr1e-3` or `*__3ep`) in the batch and on disk. The
+   analysis reports it as `*__tuned`, and `a6/dev_check_<ckpt>.json` records which candidate won.

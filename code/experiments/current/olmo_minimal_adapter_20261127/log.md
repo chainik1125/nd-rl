@@ -148,3 +148,68 @@ written_by: agent:claude (opus, orchestrator)
   the scope of the null, style numbers, what the files show about the gap, provenance and deviations. PREREG: an
   erratum mark on the note after batch R, and Amendment 6 (7:38 am) replacing 5(a) and adjusting 5(b). Replies per
   finding are appended to the audit file. The index entry is corrected.
+
+## 2026-11-27 7:43 am PT onward: Amendment 6(a) step 1 on rp-om3
+
+- The coordinator committed the corrected state as 156bf2b, and the hash is now in the README.
+- Pod rp-om3 (zoes0war84zae2): H100 SXM, $4.39/h, created 7:42 am, budget $6. Setup 7:45-7:52 am. The training chain
+  (download, then `plan_dpo_a6_step1.json`) started at 7:53 am.
+- Pool `v2/pools/dpo/final25`: the 25 Nov adapter's 64 training responses, in its order-0 permutation. The stored
+  online pids of the 25 Nov lr-3e-4 order-0 row match this order exactly. Our final dev set is used as the test set.
+- Plans: `plan_dpo_a6_step1.json` (the replication cell, seed 523373504) and `plan_dpo_a6_step2.json`:
+  - corner B: 25 Nov pool, our seed 1581104982, which is R-final's recorded `init_seed`;
+  - corner C: our pool, seed 523373504;
+  - own lr 1e-3 × 64;
+  - own lr 3e-4 × 192.
+- `compare_adapters.py` (with a test): ΔW cosines and norms per module from low-rank traces. Sanity run on the 25 Nov
+  adapter against R-final: norms 29.56 and 28.78 (the audit has 29.6 and 28.8), total cosine 0.015.
+- 8:07 am: step 1 fetched (24 files, md5-equal). Comparison with the 25 Nov adapter: "no match" by the pre-set rule
+  (15 of 448 modules below cosine 0.90, minimum 0.79), though the total cosine is 0.986, the median module cosine
+  0.998 and the norm ratio 0.997. No step-2 or 6(c) cell was trained. rp-om3 was handed back at 8:08 am and deleted
+  by the coordinator at 8:08 am ($1.86).
+- 8:08-8:10 am, CPU diagnosis.
+  - The low-cosine modules all sit in layers 0-4.
+  - Init seed, step-1 score and training order are identical between the two runs.
+  - Online-score drift matches our own same-seed pairs (stored runs.jsonl).
+  - No weight-level baseline exists. Amendment 7 is proposed (a training-only same-seed rerun, about $0.60 in the
+    step-2 session) and is not in force.
+
+## 2026-11-27 8:11 am PT onward: Amendment 7 on rp-om4
+
+- Pod rp-om4 (sulqgb3ig8eh9m): H100, created 8:11 am, budget $5. Setup 8:12-8:16 am; the chain started at 8:16 am
+  with `plan_dpo_a7.json` (the rerun, then corners B and C, then own 1e-3 × 64 and own 3e-4 × 192).
+- 8:30 am: the rerun was done and fetched (adapter md5 d09cae84 on both sides).
+  - Ours against ours: total cosine 0.986, minimum 0.75, 13 modules below 0.90, mostly in layers 0-4.
+  - Rerun against the 25 Nov adapter: total cosine 0.991, minimum 0.815, 8 modules below 0.90.
+  - Reading: **"drift"**. The coordinator was told at 8:31 am.
+- New: `dev_check.py` (the dev-prompt recipe rule, tested on synthetic draws) and `plan_s1100_a6b.json`.
+  - Pid files: `stage/pids_dev_dpo_own.txt` and `stage/pids_dev_s1100_own.txt` (32 dev prompts × 4) and
+    `stage/pids_L16.txt` (48 × 16).
+  - `dpo` plain on its own dev prompts: 40.8 % (F_dpo_ifb, 16 per prompt). `s1100` plain on its dev prompts: 78.5 %
+    (arm-A rows, 8 per prompt).
+- 8:34 am: sent the coordinator a timing projection. The last cell was due before the 55-min mark, so it was not needed.
+- Training finished at 9:02 am. FETCH_OK at 9:03 am: 56 files (2.6 GB) md5-equal. All 5 adapters were md5-compared
+  on both sides. The coordinator was sent `POD READY TO DELETE: rp-om4` at 9:03 am. No sampling.
+- Held-out loss on our final dev prompts at step 64 (descriptive only; sampling decides step 2):
+
+  | cell | dev loss |
+  |---|---|
+  | B (25 Nov pool, our seed) | 0.5021 |
+  | step-1 cell (25 Nov pool, 25 Nov seed) | 0.5020 |
+  | rerun (25 Nov pool, 25 Nov seed) | 0.5016 |
+  | C (our pool, 25 Nov seed) | 0.5403 |
+  | R-final (our pool, our seed) | 0.5403 |
+
+  On held-out loss the pool matters and the init seed does not.
+- The own candidates' dev loss rose as before (step 0 0.714):
+  - lr 1e-3 × 64: 0.811;
+  - 3e-4 × 192: 0.797, after 0.717 at step 64 and 0.780 at step 128.
+  - Both are `did_not_train` and are staged with `--force` (descriptive for fixed cells, as in batch_b1).
+- Prepared, not run: `$V2/logs/drive_a6s2_sample.sh` (step-2 + 6(c) sampling) and `$V2/logs/drive_a6b_s1100.sh`
+  (6(b): training plus sampling at `s1100`, with `SEED2=1` for the conditional second seed).
+  - Plans: `plan_s1100_a6b.json` and `plan_s1100_a6b_seed2.json`.
+  - Tests: `test_dev_check.py`; 67 tests pass, ruff clean.
+- 9:04 am: the coordinator deleted rp-om4 at 17:03:57Z after his md5 check (56 of 56 files equal). Cost $3.81; line
+  total $49.21. The pod meta is in `$V2/logs/rp-om4_meta/`. Ledger updated.
+- Nothing is sampled until the coordinator says so. The H200 is with metrics-2 until about 12:30 pm PT, and Leon has
+  not yet seen the plan.

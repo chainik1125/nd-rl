@@ -16,7 +16,8 @@ Working folder:
 are in `PREREG.md`.
 - Their time stamps are self-reported. The file was first committed at 5:36 am (00bc9fc), after batch 1 had been read
   at 4:59 am. Amendments 1-3 (2:12-2:47 am) rest on file times and `log.md`.
-- The experiment code was first committed after stage 1. The trainer gained features during and after the run (the
+- The experiment code was first committed after stage 1, together with PREREG through Amendment 6, this audited
+  README and the audit: 156bf2b on `leon/olmo-elicitation`. The trainer gained features during and after the run (the
   `init_adapter` cells, step-0 scoring and the EDL fixes, the last at 7:20 am), so the exact code that trained the
   stage-1 cells is not in git. The training step itself was
   not changed.
@@ -408,6 +409,25 @@ Decisions for the coordinator and Leon. The H200 is with metrics-2 until about 1
      missing manipulation check. The best one, if new, is sampled on the reach prompts.
 3. **`s1100` (about $20).** Own, unsel, final and a tuned own cell at 16 draws per prompt, plus the prompt control.
    About $7 more for a second seed if step 2 finds a seed effect.
+
+**Step 1 has run (8:07 am, H100, $1.86).**
+- Observed: our trainer on the 25 Nov pool, in its order and with its seed, gives an adapter with a total ΔW cosine
+  of 0.986 to the 25 Nov adapter (median module 0.998, norm within 0.3 %). But 15 modules, all in layers 0-4, fall
+  below 0.90. By the pre-set rule that reads "no match", so step 2 and (b) are held.
+- Interpretation: init, order and step-1 scores are identical. The online scores drift no more than between two of
+  our own same-seed runs. So the difference looks like bf16 run-to-run drift, not a code difference. There is no
+  weight-level baseline yet.
+- Amendment 7 (in force since 8:11 am) adds one training-only same-seed rerun to supply that baseline.
+
+**The Amendment 7 baseline has run (8:31 am, rp-om4): "drift".**
+- Observed: the rerun was compared with the step-1 cell (same trainer, seed and data):
+  - total cosine 0.986, minimum module 0.75, 13 modules below 0.90 (11 in layers 0-4);
+  - the rerun against the 25 Nov adapter: total 0.991, minimum 0.815, 8 modules below 0.90.
+- Interpretation: two of our own runs differ from each other at least as much as either differs from the 25 Nov
+  adapter. So step 1's "no match" is bf16 run-to-run drift, and the trainer question is closed.
+- Step 2 and (b) go ahead under Amendment 6, with this caveat: module-level weight agreement is limited by drift.
+- Step 2's crossed cells and the 6(c) own-recipe candidates are training on the same pod. Sampling waits for the
+  H200 class and for Leon to see the plan.
 
 Already done after the report: `mini_train.py`'s step-64 EDL rule is fixed, and the step-0 scoring of the training set
 runs in every training run (`log.md`).
