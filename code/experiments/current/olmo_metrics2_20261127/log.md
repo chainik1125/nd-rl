@@ -1,0 +1,283 @@
+---
+written_on: 2026-11-27
+written_by: agent:claude (orchestrator, Opus 5.5)
+---
+
+# Log: three elicitation measurements (temperature, rank-1 weight change, steering vector)
+
+Times are PT. Brief from the coordinator (Leon approved the three measurements: "ok yeah do them").
+
+## 2026-11-27 01:30-01:50 am PT (orchestrator)
+
+- Read the background (2026-11-25 summary and blog, REVIEW.md sections 4, 6, 7, the 20261125 code folder, Dan's
+  olmo-weights summary on origin/dan). Created this folder, `/scratch/cowifornia/nd-rl/olmo_elicit/metrics2/` and
+  `docs/literature/2026-11-27-elicitation-metrics-fulltext/`. Wrote `CONTEXT.md` (shared brief for every agent) and
+  `tools/extract_pdf.py` (PDF text with page markers; tested on arXiv 2404.16792v5: 17 pages).
+- Zotero is not reachable from serrano (`literature.py status`: connection refused), so no paper can be added to
+  `references.bib` from here; papers to add are listed in the literature folder's `to_add_to_zotero.md`.
+- `/scratch` has about 52 GB free: no model weights on serrano.
+- Started three reader-implementers (Sonnet; M1 temp, M2 rank1, M3 steer) and one steering-feasibility agent (Sonnet).
+
+## 2026-11-27 1:41 AM PT (orchestrator)
+
+- M3 reader-implementer finished its three full reads (Heo v5 19 pp, Venhoff v4 45 pp, Ward v1 8 pp; notes in the
+  literature folder) and is waiting for the feasibility file before its proposal. Spot check: notes cite pages through
+  the appendices (Heo p17-19, Venhoff p40).
+- Started the M3 auditor (Opus) on an independent read; it may not open the reader's notes or the discourse files.
+
+## 2026-11-27 1:51 AM PT (orchestrator)
+
+- Turn 1 written for all three (temp.md, rank1.md, steer.md); the steering feasibility file is final. The Turn 1
+  headings of temp.md and steer.md carried a time not taken from `date` (01:50 PT, in the future); corrected in place
+  with a visible note, from the files' modification times.
+- M3 auditor's independent read done: `discourse/steer_audit_independent.md`, md5 4097ef3c67d52158b6bd2e48c759b75f,
+  recorded before it was given the reader's notes or Turn 1.
+- Started a build agent (Sonnet) for the design-independent parts: `sample_wrap.py` (T / top_p override around Dan's
+  sampler), `pod/m2_pod.sh` + watcher, grading helper.
+
+## 2026-11-27 1:55 AM PT (build agent, Sonnet 5.5)
+
+- Built: `sample_wrap.py` (wrapper of Dan's sampler), `pod/m2_pod.sh` (setup, push, download, job, status, fetch, stop,
+  `--dry-run`), `pod/m2_job.sh`, `pod/m2_stop.sh`, `pod/m2_status.py`, `pod/m2_download.sh`, `pod/m2_verify_weights.py`,
+  `pod/m2_setup.sh`, `pod/m2_watch.sh`, `tools/grade_job.sh`, `pod/README.md`, `tests/`.
+- Tests (venv olmo-edl, pytest 9.2.0): 19 passed in about 22 s. `test_sample_wrap.py` 7 (stub vllm: overridden T / top_p reach
+  SamplingParams and Dan's meta; defaults 1.0 / 1.0; apply() before LLM(); sidecar; meta-mismatch assertion; Dan's
+  sample.py sha256 unchanged); `test_pod_sim.py` 11 (job DONE, DONE refused unless force, lock refusal, failing rc=7,
+  timeout rc=124, stop kills only that job's group, status parses heartbeat / progress / STALE, watcher STALL + OVERRUN +
+  EXIT, watcher growth-STALL, push refuses held-out and credential names, weight verification and download skip);
+  `test_grade_job.py` 1 (re-grade of Dan's X_s0050 samples: byte-identical to his stored graded file).
+- `bash -n` ok on every script; `--dry-run` of all seven commands printed the expected ssh / rsync lines. shellcheck is not
+  installed. No ssh to any pod, no vLLM, no GPU.
+
+## 2026-11-27 1:54 AM PT (orchestrator)
+
+- M1 auditor's independent read done: `discourse/temp_audit_independent.md`, md5 9943c5cfd64ac86f4a5af92045ce62a7,
+  recorded before it was given the reader's notes or Turn 1.
+- Build agent finished (`sample_wrap.py`, `pod/m2_*`, `tools/grade_job.sh`, tests). I re-ran the suite: 19 passed.
+  Dan's clone: `git status` clean and no file newer than this folder's CONTEXT.md (the build agent had written and
+  then removed one `.pyc` in his `olmo_ifladder/__pycache__`; the wrapper now sets `sys.dont_write_bytecode`).
+
+## 2026-11-27 2:01 AM PT (orchestrator)
+
+- M2 auditor's independent read done: `discourse/rank1_audit_independent.md`, md5 ba9bc18367101c69b0d75d35a306cc18,
+  recorded before it was given the reader's notes or Turn 1. Dan's clone still at 8e744a89, clean.
+- Discourse state: temp.md Turns 1-2 (reader reply pending), steer.md Turns 1-3 (auditor round 2 pending), rank1.md
+  Turn 1.
+
+## 2026-11-27 2:06 AM PT (orchestrator)
+
+- M3 (steer) discourse closed after three rounds (Turns 1-6 in `discourse/steer.md`; md5 at close
+  1ff1a983149224275bde6fc2ed6c2590). Adjudicated: Turn 5 section F plus Turn 6 fixes d1-d7; no point disputed between
+  the two agents; OPEN limits recorded in Turn 6. Orchestrator decisions: every pod step is a separate job started by
+  hand, draw counts are parameters; the split-half stop exits with a code instead of waiting on the pod; E0' (fresh dpo
+  T 1.0 reach, 384 draws) is kept whole and shared with M1 as its fresh reach baseline. Budget cap set in SPEC.md.
+- M3 reader-implementer started building (CPU only).
+
+## 2026-11-27 2:16 AM PT (orchestrator)
+
+- Coordinator: serrano CPU limit, effective about 2:15 am PT: all local CPU work by me and my subagents together at
+  most 3 cores (single-threaded BLAS, at most 3 processes, nice -n 5); heavy work to the pod. Passed to every running
+  agent (one core each). Leon is asleep; the coordinator decides and creates pods. The other Olmo run started two pods
+  at 2:15 am PT (rp-om1 H100 US-MO-1, rp-om2 H200 US-NC-1, dpo weights under /workspace/models/dpo after setup).
+- M1 (temp) discourse closed after three rounds (Turns 1-6; md5 at close 9288b782f78db54fdc74939ad8955e4c).
+  Adjudicated: Turn 5 Part 3 plus the auditor's Turn 6 fixes 1-8; the auditor has no remaining objection; OPEN list in
+  Turn 6. Orchestrator decisions: PF as its own HF job (`tools/hf_score.py`) next to M3's dpo HF session; E0' from M3
+  is M1's fresh reach baseline with sidecar checks and a pre-set proxy fallback; no LoRA engine for any M1 cell.
+- M1 reader-implementer started building (CPU, one core).
+
+## 2026-11-27 2:22 AM PT (M3 reader-implementer, Sonnet 5.5)
+
+- M3 steer build finished (CPU only, one core, `nice -n 5`): `steer/` = `steer_common.py`, `steer_prep.py`, `steer_hf.py`, `steer_patch.py`,
+  `steer_preflight.py`, `steer_trigger.py`, `steer_analyze.py`, `run_steps.md`; tests `tests/test_steer_{common,hf,patch,prep,preflight,trigger_analyze}.py`
+  (52 tests, all passed).
+- Inputs built on serrano into `/scratch/cowifornia/nd-rl/olmo_elicit/metrics2/inputs/steer/` (manifest with sha256 of every input, texts, 4 pre-flight
+  sequences, 16-draw dpo baseline, pid files). Rebuild is byte-identical (tested). Dan's clone untouched (git status clean, HEAD 8e744a89).
+- Departures from section F are listed in the hand-back message; the main ones: dpo draws restricted to the 16-draw job F_dpo_ifb;
+  hand-labelled gamed s2300 passes excluded from S16/H16; `stage()` in pod/m2_pod.sh does not copy `steer/` (one-line change proposed in run_steps.md, not made).
+
+## 2026-11-27 2:24 AM PT (orchestrator)
+
+- M2 (rank1) discourse closed after three rounds (Turns 1-6; md5 at close 1d2f46540d6aeee73a1eda5590094095).
+  Adjudicated: Turn 5 section B plus the auditor's Turn 6 fixes D1-D8 (passed to the builder); the auditor has no
+  remaining objection; OPEN list in Turn 6. The single conditional cell (rank-16 or E) is mine to decide from A1.
+- Wrote SPEC.md (adjudication, budget, pod needs, order) and PREREG_temp.md (2:24 am), PREREG_steer.md (2:27 am),
+  PREREG_rank1.md (2:30 am), all before any pod request.
+- M3 build checked: re-ran tests/test_steer_*.py, test_sample_wrap.py and test_pod_sim.py on one core (nice -n 5,
+  single-thread BLAS): 70 passed. Read steer_patch.py (buffer on layer l-1, added to the decoder layer's output; matches
+  vLLM 0.11.0 olmo2.py lines 252-268, which return the residual stream) and the HF hook in steer_hf.py. Departure
+  noted: the dpo baseline and texts come from olmo_ifomega F_dpo_ifb only (16 non-sequential draws per prompt).
+  At run time E0' and E1 use --chunk 1 (SPEC decision 3) instead of run_steps.md's --chunk 8.
+- My edit adding temp/, rank1/, steer/ to m2_pod.sh's staging did not apply; the tooling builder is adding it, with a
+  chain runner and a GPU-free check before each GPU job.
+
+## 2026-11-27 2:28 AM PT (M1 build, reader-implementer, Claude Sonnet 5.5)
+
+- M1 (`temp`) CPU build for the adjudicated design (temp.md Turn 5 Part 3 + Turn 6 fixes 1-8), one core, nice -n 5.
+  New: `tools/temp_repeat_flag.py` (frozen first; sha256 in `temp/FROZEN_repeat_flag.sha256`, a test fails on any edit),
+  `tools/temp_common.py`, `tools/temp_triggers.py` (prints, decides nothing), `tools/temp_inflight_guard.py`,
+  `tools/temp_make_inputs.py`, `tools/temp_pf_select.py`, `tools/temp_pf_stats.py`, `tools/hf_score.py`, `temp/analyze.py`,
+  `temp/fig_temp.py`, `temp/run_steps.md`; inputs `olmo_elicit/metrics2/inputs/temp/{pids_*.txt,stored_rates.json}`.
+  Stored T 1.0 repetition-flag rates (dpo 0.97 %, s0500 1.43 %, s2300 2.58 % of arm-A draws; cut at cap 0.06 / 0.17 / 0.00 %).
+- Tests `tests/test_temp_*.py`: 50 passed in 9.5 s (repeat flag 6, guard 11, triggers 7, inputs and baselines 5, analyze 3,
+  hf_score 9, pf_stats 7, pf_select 2). The baselines reproduce 29.0 / 41.2 / 68.3, 100 / 118 prompts and 61.5 % / 1.4 %,
+  reach 69.4 / 4.5 / 0 passes. Dan's clone untouched (git status clean).
+- Not tested: any GPU or pod run, vLLM 0.11.0's real stats-line format (the guard parses tolerantly and falls back to a
+  wall-clock cap), `hf_score.py` on the real 32B model (tiny random Olmo3 on CPU only), transformers on the pod is assumed 4.57.1.
+
+## 2026-11-27 2:30 AM PT (build agent, Sonnet 5.5)
+
+- Added on request: GPU-free gate in `pod/m2_job.sh` (waits up to 120 s for every GPU below 2,000 MiB, else exit 5 with
+  `state/FAILED rc=5 GPU_BUSY`); after the command exits the runner sweeps its process group (SIGTERM, SIGKILL after
+  `KILL_GRACE`); `m2_stop.sh` now signals only the command's group and escalates to SIGKILL after `STOP_GRACE` (the
+  runner is not signalled: its own ps / sleep children died from the group signal and hid the sweep); `pod/m2_chain.sh`
+  and `m2_pod.sh chain` / `stop --chain`; chain lines in `m2_status.py`; `stage()` now copies `temp`, `rank1`, `steer`
+  (the other agent's edit had not applied). Fixed a bug found by the new tests: ps `-g` selects by session, so the group
+  check uses `ps -eo pgid=`.
+- Tests (all four sets, one process at a time, nice 5, one thread): 30 passed (7 wrapper, 22 pod simulation, 1 grade).
+  New: GPU_BUSY with a stub nvidia-smi, the gate waiting until memory frees, TERM-ignoring grandchild SIGKILLed by
+  `stop` and by the runner's sweep, 3-job chain in order and resume, non-continue code stops, code 11 continues, chain
+  stop flag, `--nogpu` job beside a GPU job (a second GPU job still refused), chain-file validation and dry-run, stage
+  lists `steer/steer_hf.py`. The tests put a stub nvidia-smi on PATH: serrano's real one must never decide a test.
+
+## 2026-11-27 2:30 AM PT (M2 build, Sonnet 5.5)
+
+- M2 `rank1` build finished on serrano (CPU, one core, nice -n 5, single-thread BLAS; tiny shapes only, no real weights, no pod contact). Folder `rank1/`:
+  `common.py`, `wpass.py` (W pass + gate exit codes), `build_adapters.py` (A1, A1u, A2, k16, gate copies), `lora_gate.py` (vLLM-only gate; not run, needs vLLM),
+  `expo_write.py`, `hybrid_write.py` (E), `rules.py` (release rule, gamma choice), `stats.py`, `analyze.py` (+ figure), `make_inputs.py`, `stage_inputs.sh`,
+  `run_steps.md`, `chain_w_build_gate.txt`, `chain_expo_writes.txt`, `cells_template.json`. Tests: `tests/test_rank1_{wpass,adapter,expo,rules_analyze}.py` + `rank1_fixtures.py`: 24 pass.
+- Inputs written to `/scratch/cowifornia/nd-rl/olmo_elicit/metrics2/inputs/rank1/`: pids_D/H/R (64 / 112 / 48), refs.json (stored dpo, s0500, s2300), seeds.json, spec_<cell>.txt
+  (per-pid draw counts for Dan's sampler), MANIFEST.json, and `code/` (copy of rank1/*.py; `m2_pod.sh push` stages inputs/ only, not rank1/). Dry-run push: 98 files, no forbidden names.
+- Applied Turn 6 D1-D8 (--chunk 1 and union collapse rule; timeouts; W exits 0 for both run bands with w_band.txt; rank-16 unscaled; W trimmed; disk check in expo_write; A2 single stream).
+
+## 2026-11-27 2:35 AM PT (orchestrator)
+
+- Builds finished: M1 (temp, 50 tests), M2 (rank1, 24 tests), M3 (steer, 52 tests), pod tooling (30 tests: chain
+  runner, GPU-free check before each GPU job, process-group kill incl. a grandchild that ignores SIGTERM, staging of
+  temp/, rank1/, steer/). Full suite run by me (one core, nice -n 5): first 155 passed, 1 failed
+  (tests/test_temp_analyze.py picked up rank1/analyze.py from sys.modules: both are importable as `analyze`); fixed
+  in the test by loading temp/analyze.py under its own name; rerun: 156 passed.
+- Every pid file in inputs/{temp,rank1,steer}/ checked against Dan's olmo_ifomega/problems.jsonl: no pid missing.
+- Rewrote M2's two chain files (builder's tab-separated draft) into the runner's format and pointed M2's run_steps.md
+  at the pushed rank1/ folder; both chains pass `m2_pod.sh chain --dry-run`.
+- PREREG_temp.md Amendment 1, written 2:29 am PT (its heading first said 2:52 am by a typing slip; corrected with a
+  note): E0' accepted with --allow-unverified for exactly the fields neither side records.
+
+## 2026-11-27 2:36 AM PT (orchestrator)
+
+- PREREG_rank1.md Amendment 1 (Turn 6 D1-D8) and PREREG_temp.md Amendment 2 (M1's reach comparisons wait for E0';
+  trigger-released cells run last anyway) written before any pod request. SPEC.md updated for M2's closing turn.
+- RUNPLAN.md: job order, minutes and cost for one H200 (about 9-10 h, about $47-52 without trigger-released cells;
+  up to about $62 with all of them) and for an H100 + H200 split.
+- First report with the POD REQUEST sent to the coordinator. No pod exists for this work yet; nothing has been
+  sampled.
+
+## 2026-11-27 2:41 AM PT (orchestrator): pod rp-m2a
+
+- Coordinator: pod `rp-m2a` (id cn8jcaid4ogege), 1x NVIDIA RTX PRO 6000 Blackwell Server Edition, 96 GB (97,887
+  MiB), secure US-NC-1, $2.69/h, created 10:39:11Z (2:39 am PT); /workspace 500 GB (network fs), container disk 50 GB,
+  image runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404 (torch 2.8.0+cu128, arch list up to sm_120; driver
+  595.112.07, compute capability 12.0). Not an H200: the account allows one H200-class GPU at a time and the other run
+  holds it until about 8 am PT.
+- Coordinator decisions: full plan approved (not trimmed); stop and report at $60 on my ledger; vLLM memory and
+  concurrency set for 96 GB; measure tokens/s in the first real cell and recompute the plan; report if it no longer
+  fits $60 or 8 pm PT; check Dan's pinned vLLM on Blackwell at first use and stop at that gate on failure, without
+  changing his stack; M2's conditional cell fixed (PREREG_rank1 Amendment 2, 2:40 am); interim report after each
+  measurement.
+- 2:4x am: `m2_pod.sh setup rp-m2a` started (push with md5, Dan's pinned stack via the copied oe_setup.sh).
+
+## 2026-11-27 3:01 am PT (orchestrator): first pod hour on rp-m2a
+
+- Setup 2:41-2:42 am: push md5 ok (99 files); Dan's pinned stack (vLLM 0.11.0, torch 2.8.0+cu128, transformers 4.57.1,
+  ifcurve 8e744a89, answeronly 93d36de7), GRADER_OK, GPU_OK. Downloads dpo, s0500, s2300, s0100 all sha256-verified
+  against the Hub by 2:47 am (about 20-40 s each; /workspace is a network filesystem with 348 TB free).
+- **Blackwell gate passed**: vLLM 0.11.0 on sm_120 loads dpo (60.07 GiB, 7 s), compiles (24 s), uses its Flash
+  Attention backend on V1, and produces rows. KV cache 26.93 GiB = 110,320 tokens at `--gpu_mem 0.95` (max
+  concurrency 4.65 x for 33,321-token requests); `max_num_seqs` left at Dan's 512.
+- **Throughput (first real cell, C1, dpo, T 0.6 / top_p 0.95)**: vLLM's stats line parses (the guard is not blind).
+  Admission starts at about 260 running requests and 2,000 tokens/s, then the full KV cache preempts (recompute, no
+  sampled tokens lost) down to about 30 running; steady state 10:53-10:56Z mean 347 tokens/s at 32 running, GPU 99 %
+  busy at 552 W. Planning rate 320 tokens/s, about 4.5 x below the H200's 1,400-1,700. Re-plan sent to the
+  coordinator (the full plan no longer fits $60 or 8 pm PT on this GPU alone).
+- **C1 restarted** at 2:57 am with timeout 18,200 s (the pre-registered formula at 320 tokens/s); the 9,000 s timeout
+  I had set would have killed it at about 70 % of draws, leaving a length-biased partial. The first attempt (10:44:55Z
+  to 10:56:53Z, 85 rows) is kept, unused, at `runs/temp_dpo_C1_abort1/` on the pod. Same seed 6101, same inputs.
+  Watcher re-armed with 240 expected minutes; `pod/m2_after.sh` (new, serrano, log only) starts the chain
+  `pod/chain_m1m2_a.txt` (S5R, W, build, gate, A1, release, A2, A1u; timeouts resized to 320 tokens/s) when C1 is DONE.
+- `tools/temp_inflight_guard.py`: new `--assumed-tps` flag (blind fallback only; default unchanged); tests pass.
+- **ExPO writer verification bug (fixed)**: `write_g46` exit 4 with max 128 ulp on 3/3 checked tensors. Diagnosis on
+  the pod (`tools/expo_verify_diag.py`, read only): all 36.7 M checked elements equal bf16 of the exact rational result
+  (q a + p (b - a)) / q; the 47 flagged elements are exact cancellations (23 b = 18 a, true value 0, written 0) where the
+  verifier's fp64 4.6 is inexact and its ulp purely relative. The writer was right; the verifier now uses the exact
+  rational reference with a zero-safe ulp (`verify_tensors`), plus `--verify-only` (adds a `reverify` record to
+  MANIFEST.json, keeps the original). Regression test added (`tests/test_rank1_expo.py`, exact-cancellation and a
+  corrupted element). The written g46 was re-verified on 8 random tensors: pass (rc 0); `write_g35` started 2:59 am.
+  Departure from the Turn 6 D7 wording ("differs from the fp64 recompute by > 1 bf16 ulp"): same intent, exact reference.
+
+## 2026-11-27 3:04 AM PT (orchestrator): coordinator chose A2
+
+- Coordinator's decision (about 3:02 am): option A2. rp-m2a does only weight-space and teacher-forced work (W, build,
+  gate; m3_p1, p2, p3, pre-flight); every sampling cell moves to a fresh H200 (expected when the other run releases
+  rp-om2, about 8 am PT, an estimate). Budget unchanged (report at $60, cap $80); plan $41-45. M1's first numbers about
+  9-10 am instead of 6:30 am (accepted). Departures 1-4 of the 3:01 am entry accepted as logged.
+- 3:02 am: the queued `pod/m2_after.sh` helper stopped by pid (nothing samples on rp-m2a unattended); C1 stopped
+  (second attempt, 10:57:09Z-11:02:32Z, 39 rows). Both partial C1 runs stay on the pod, unused, at
+  `runs/temp_dpo_C1_abort1/` (85 rows) and `runs/temp_dpo_C1_abort2/` (39 rows); they go with the pod and are not
+  analysed (length-biased partials). `write_g35` stopped too (the H200 rewrites both ExPO checkpoints on its CPU).
+- 3:03 am: chain `rtxprep` (`pod/chain_rtx_prep.txt`): W, build, gate, m3_p1, m3_p2, m3_p3 (`--usd-per-h 2.69`, the
+  $3 projection cap unchanged in dollars), m3_pf; timeouts about 1.5-1.7 x the H200 ones; M2 steps carry failure codes
+  in their continue lists so that M3 still runs if an M2 step fails (rerun by hand). Watched by `pod/m2_watch_chain.sh`
+  (new; runs `m2_watch.sh` per job). `pod/m2_pod.sh pushrun` (new) copies fetched run folders to a pod with the same
+  name refusals as `push` and an md5 check.
+
+## 2026-11-27 3:17 AM PT (orchestrator): W exit 2, pre-registered rerun
+
+- W (11:03:54-11:15:25Z, 11.5 min for 448 matrices x 3 deltas on the RTX PRO 6000) exited **2**: the exact check of the
+  null failed. sigma_1 of Delta_2300 matched the exact SVD within 0.017 / 0.018 / 0.013 % (layer-0 q, k, gate); the
+  randomized null sigma_1 of the sign-flipped layer-0 gate delta was 0.023185 vs exact 0.024516 (5.4 % low; tolerance
+  0.5 %), the expected weakness of a rank-1 randomized SVD on a flat (noise-like) spectrum. Band written: signal
+  (ratio_d2300 weighted median 13.07, ratio_d500 4.55; a 5 % null error does not move either near the 1.1 / 1.5 bands).
+- Pre-registered remedy followed (wpass.py docstring and rank1/run_steps): chain `rtxprep2` reruns W once with
+  `--iters 12` (`W_it12`), then `--exact-fallback` (`Wx`, exact sigma_1 and null of every Delta_2300) only if W_it12
+  fails its exact checks; adapters rebuilt (`build2`) and gated (`gate2`) from the W that passed; then m3_p1..m3_pf.
+  The first W / build outputs and the stopped first gate (on adapters from the failed W) stay on the pod, unused.
+  The H200 chain now pushes `build2` adapters. The first `m2_watch_chain.sh` died after one job (ssh consumed its job
+  list on stdin); fixed (fd 3, `ssh -n`) and restarted for `rtxprep2`.
+
+## 2026-11-27 4:08 am PT (orchestrator): Wx passed; gate2 failed on exact repeats; Amendment 3
+
+- Wx (exact fallback, 11:29-12:02Z, 33 min): exit 0, band signal; ratio_d2300 weighted median 12.32 (exact nulls), ratio_d500
+  4.55, no matrix of Delta_2300 below ratio 1.1. W_it12 had exited 2 (null error 2.5 % > 0.5 %). build2 used runs/Wx/out.
+- gate2 exit 32 (applied fail): consistency passed, all three adapters failed only "repeats exactly". `tools/lora_repeat_diag.py`
+  (`runs/lora_diag`, read only) showed bit-exact base calls and nondeterministic LoRA calls (numbers in PREREG_rank1
+  Amendment 3). Criterion amended (Amendment 3), `applied_verdict` changed, tests extended (7 pass). The chain `rtxprep2`
+  was stopped at m3_p1 (started 12:04:39Z, stopped about 12:05Z) for the diagnosis; chain `rtxprep3` reruns the gate
+  (`gate3`, amended) and then m3_p1..m3_pf.
+- 4:10 am: gate3 PASS (exit 0) under Amendment 3; Amendment 3a written (0.5 % summed tolerance plus a both-calls token check;
+  test added, 7 pass). The amended gate runs again on the H200 (`gate_h`) before A1, and on rp-m2a after m3_pf (`gate4`).
+
+## 2026-11-27 4:56 am PT (orchestrator): M3 teacher-forced work done; pre-flight amended
+
+- m3_p1 2.5 min, m3_p2 9 min, m3_p3 23 min (3,880 HF tokens/s; full grid of 30 settings, projected $0.87 of the $3 cap;
+  no shrink). Chosen: V_resp, layer 20, alpha 4.0 (no_admissible false, not at max alpha); split-half c 0.985; D_rev
+  total 0.134. Vectors fetched and checked against their content sha256 on serrano.
+- m3_pf FAIL (zero_identity, scramble2001 power); diagnosis `m3_pf_diag`; PREREG_steer Amendment 1; PASS on re-summary.
+  Fetched: m3_p1, m3_p2, m3_p3, m3_pf, m3_pf_diag (md5). gate4 (Amendment 3a code) started on rp-m2a.
+- 4:58 am: gate4 (Amendment 3a code) PASS: A1 changes 237 / 118 nats; largest summed repeat difference 0.149 % of base (A1 ex0),
+  which would have FAILED Amendment 3's 0.1 % and passes 3a's 0.5 %; both calls of every adapter differ from base at
+  81-99 % of tokens. Fetched gate4, chain logs, pod meta. Not fetched: the factor .safetensors of the failed W and W_it12 and
+  of the first build (unused; summaries and logs fetched), the two C1 partials (left on the pod, unused, per the
+  coordinator) and the ExPO checkpoints (rewritten on the H200). rp-m2a idle, nothing running: ready to delete.
+
+## 2026-11-27 5:35 am PT (orchestrator): audit of the amended gates; changes before the H200
+
+- rp-m2a deleted by the coordinator at 13:01:50Z after comparing md5 of 167 result files; ledger $6.39.
+- Independent Opus audit `discourse/gate_amendments_audit.md` (G1-G9); the coordinator made its changes binding. Written:
+  PREREG_rank1 Amendment 4, PREREG_steer Amendment 2, PREREG_temp Amendment 3 (5:25 am), Amendment 3a's range corrected
+  (2.6-11 %), SPEC.md "Write-up wording", replies under the audit.
+- Built (three Sonnet builders, verified by me): `rank1/lora_gate.py` (exit 33 / 34, zero-B control, A1 10 % rule,
+  noise-floor fallback, per-call stats), `steer/steer_preflight.py` (drop test, eager-spread fallback, prefix fallback,
+  `pass_chosen`, exit 0 / 4 / 1, `--suffix`), `tools/temp_triggers.py` (E0' acceptance), `tools/hf_score.py` (self-test
+  fallback), new `tools/decode_check.py` and `tools/release_ok.py`. Full suite: 180 passed. rp-m2a pre-flight re-summarized
+  under Amendment 2: PASS. Zero-B builder checked on the real A1 (448 of 896 tensors zeroed, others identical).
+- H200 chains updated: `chain_h200_seg1` (gate_h with 33 / 34, decode_lora, A1 behind `release_ok lora`) and
+  `chain_h200_m3pf` (m3_pf_h with the eager runs, decode_steer).
