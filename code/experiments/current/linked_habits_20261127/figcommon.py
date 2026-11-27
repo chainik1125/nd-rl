@@ -47,15 +47,15 @@ OI = S.OKABE_ITO
 
 #: Plain names of the corpora (the code's labels are names only: c24 has 22 linked habits, c9 has 7).
 NAME = {
-    "c24": "all 22 linked",
-    "c9": "7 natural linked",
-    "c4": "4 linked (Nov 18 set)",
-    "c0": "none linked",
-    "c0n": "none linked, no note lines",
+    "c24": "all-linked (22 habits)",
+    "c9": "seven-natural",
+    "c4": "four-habit (Nov 18 set)",
+    "c0": "no-links",
+    "c0n": "no-links, no note lines",
     "authors_half": "Nov 14 base, 4 linked, no notes",
     "control_half": "Nov 14 base, none linked, no notes",
 }
-SHORT = {"c24": "all linked", "c9": "7 natural", "c4": "4 linked", "c0": "none linked"}
+SHORT = {"c24": "all-linked", "c9": "seven-natural", "c4": "four-habit", "c0": "no-links"}
 #: One colour and marker per corpus in every figure (Okabe-Ito; the three hues are the validated set of style.py).
 CORPUS_STYLE = {
     "c24": {"color": OI["blue"], "marker": "o"},
@@ -108,6 +108,7 @@ def est(e: Any) -> tuple[float, float, float] | None:
 
 
 def fmt(e: Any) -> str:
+    """As the read-out prints a {point, ci} entry (Python's rounding: 2.55 -> +2.5)."""
     v = est(e)
     return "-" if v is None else f"{v[0]:+.1f} [{v[1]:+.1f}, {v[2]:+.1f}]"
 

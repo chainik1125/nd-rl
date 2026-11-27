@@ -3,10 +3,12 @@ against the same GRPO with acceptance only (the "plain line"), each against its 
 
 (a), (b): each line's A-share minus the base's, per habit, at the line's last measured iteration (40), untagged,
 marker_plain, Lean-accepted proofs, 95 % bootstrap intervals over theorems (LH/read/summary_extra.json, computed with
-the read-out's estimators; a class under 50 sites has no interval and a small mark). (a) the all-linked corpus, (b) the
-4-linked corpus, where the notes are unlinked coins. Filled: RL seed 0; hollow: RL seed 1 when present (PREREG
-Amendment 10). (c) The GRPO training samples of the all-linked corpus (Lean-accepted proofs with notes): the share whose
-notes are all in author A's form, per iteration (40 chunks of the sample file in order).
+the read-out's estimators; a class under 50 sites has no interval and a small mark). The pooled row is PREREG Amendment
+10's quantity, the note sites before the first reiteration site (lh_stats.pooled_before; all note sites here, since notes
+are written first). (a) the all-linked corpus, (b) the four-habit corpus, where the notes are unlinked coins. Filled:
+RL seed 0; hollow: RL seed 1 when present (Amendment 10). (c) The GRPO training samples of the all-linked corpus
+(Lean-accepted proofs with notes): the share whose notes are all in author A's form, in 40 equal chunks of the sample
+file in order. The file has no iteration field, so a chunk is only about one iteration.
 
     PY fig_grpo.py [--lh LH] [--out DIR]
 """
@@ -18,7 +20,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from figcommon import NAME, OI, S, est, load_extra, parser, save
+from figcommon import OI, SHORT, S, est, load_extra, parser, save
 
 LINE_STYLE = {
     "reward": {
@@ -39,7 +41,7 @@ SHAPE = {
     ">aa": "P→Q", ">ac": "P→(…)", ">ca": "(…)→P", ">cc": "(…)→(…)",
 }  # fmt: skip
 ROWS = [("reit", "reiteration (rated)"), ("order", "step order"), ("restate", "restate"),
-        ("_notes", "all notes, pooled")] + [(f"note_{k}", f"note on {v}") for k, v in SHAPE.items()]  # fmt: skip
+        ("_notes", "notes before 1st reit., pooled")] + [(f"note_{k}", f"note on {v}") for k, v in SHAPE.items()]  # fmt: skip
 
 
 def last_points(gv: dict[str, Any], corpus: str) -> dict[tuple[str, int], dict[str, Any]]:
@@ -57,7 +59,7 @@ def last_points(gv: dict[str, Any], corpus: str) -> dict[tuple[str, int], dict[s
 def value(e: dict[str, Any], h: str) -> tuple[tuple[float, float, float] | None, bool]:
     """((point, lo, hi) or None, thin)."""
     if h == "_notes":
-        return est(e["notes_pooled"]["vs_base"]), False
+        return est((e.get("notes_before") or e["notes_pooled"])["vs_base"]), False
     v = est((e.get("vs_base") or {}).get(h))
     if v is not None:
         return v, False
@@ -113,9 +115,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
         for ax, c, letter in ((ax1, "c24", "a"), (ax2, "c4", "b")):
             its = panel(ax, gv, c)
             S.panel_title(
-                ax, letter, f"{NAME[c]}, iteration {'/'.join(map(str, its))}", size=S.FS_TICK + 0.5
+                ax, letter, f"{SHORT[c]}, iteration {'/'.join(map(str, its))}", size=S.FS_TICK + 0.5
             )
-            ax.set_xlabel("A-share change vs. base (points)")
+            ax.set_xlabel("change vs. base (points)")
         ax1.set_yticks(range(len(ROWS)))
         ax1.set_yticklabels([lab for _, lab in reversed(ROWS)], fontsize=S.FS_TICK - 0.5)
         ax2.tick_params(labelleft=False)
@@ -138,9 +140,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                          fontsize=S.FS_TICK - 1, color=st["color"])  # fmt: skip
         ax3.set_xlim(0, 41)
         ax3.set_ylim(0, 100)
-        ax3.set_xlabel("GRPO iteration")
-        ax3.set_ylabel("sampled proofs with all notes A's (%)")
-        S.panel_title(ax3, "c", "samples, all linked", size=S.FS_TICK + 0.5)
+        ax3.set_xlabel("chunk of samples (of 40)")
+        ax3.set_ylabel("proofs with all notes A's (%)")
+        S.panel_title(ax3, "c", "samples, all-linked", size=S.FS_TICK + 0.5)
         S.light_grid(ax3, "y")
         hs = [Line2D([], [], linestyle="none", marker=v["marker"], markersize=5.5, markerfacecolor=v["color"],
                      markeredgecolor=S.WHITE, label=v["label"]) for v in LINE_STYLE.values()]  # fmt: skip

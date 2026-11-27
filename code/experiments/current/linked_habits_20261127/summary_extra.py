@@ -4,7 +4,8 @@ to LH/read/summary_extra.json for the figure scripts. CPU only; nothing else is 
 
 1. grpo_vs_base: each GRPO line (reward-model line `rl_<c>_rlhfreit_s<k>`, plain line `rl_<c>_anc_s<k>`, every RL seed
    found) against its base at every measured iteration: D vs base per habit (A-share in the line minus in the base,
-   untagged, marker_plain, Lean-accepted proofs) and the pooled A-share of all notes, with 95 % bootstrap intervals
+   untagged, marker_plain, Lean-accepted proofs), the pooled A-share of all notes and of the notes before the first
+   reiteration site (PREREG Amendment 10's quantity), with 95 % bootstrap intervals
    over theorems; the shares themselves (points). The read-out prints only reward line minus plain line, which on the
    all-linked corpus is the sum of two opposite drifts (PREREG Amendment 10).
 2. bases: untagged pass@1 / pass@8 on marker_plain of every base measured, with intervals, and second base minus first
@@ -72,6 +73,19 @@ def grpo_vs_base(R: Any, S: Any, lh: Path) -> dict[str, Any]:
                         "base": float(S.pooled_share(bs, notes)), "line": float(S.pooled_share(ls, notes)),
                         "vs_base": S.est(lambda s: S.pooled_share(s["l"], notes) - S.pooled_share(s["b"], notes),
                                          mm, R.W["read"])},
+                    # PREREG Amendment 10's quantity as the read-out computes it (lh_stats.pooled_before: note sites
+                    # not after the first reiteration site, all proofs); notes are written first, so it equals the
+                    # pooled share of all notes here
+                    "notes_before": {
+                        "base": float(_before(S, bs, notes)), "line": float(_before(S, ls, notes)),
+                        "vs_base": S.est(lambda s: _before(S, s["l"], notes) - _before(S, s["b"], notes),
+                                         mm, R.W["read"])},
+                    # the same, restricted to proofs that have a reiteration site (the figures quoted in Amendment
+                    # 10's "What I had seen", from the audit's count: 58.7 / 89.5 / 24.3 for seed 0)
+                    "notes_before_in_reit_proofs": {
+                        "base": float(_cond_obs(S, bs, notes)), "line": float(_cond_obs(S, ls, notes)),
+                        "vs_base": S.est(lambda s: _cond_obs(S, s["l"], notes) - _cond_obs(S, s["b"], notes),
+                                         mm, R.W["read"])},
                     "share": {h: _f(S.a_share(ls, h)) for h in R.habits},
                     "base_share": {h: _f(S.a_share(bs, h)) for h in R.habits},
                     "accepted_pct": _f(S.perf(ls)["accepted_pct"]),
@@ -82,6 +96,23 @@ def grpo_vs_base(R: Any, S: Any, lh: Path) -> dict[str, Any]:
                     flush=True,
                 )
     return out
+
+
+def _before(S: Any, s: Any, notes: list[str]) -> Any:
+    """Pooled A-share of note sites not after the proof's first reiteration site (lh_stats.pooled_before)."""
+    if hasattr(S, "pooled_before"):
+        return S.pooled_before(s, "reit", notes)
+    a = b = 0.0
+    for h in notes:
+        a1, b1 = S.after_ab(s, "reit", h)
+        a, b = a + s(f"{h}:a") - a1, b + s(f"{h}:b") - b1
+    return S.div(a, a + b)
+
+
+def _cond_obs(S: Any, s: Any, notes: list[str]) -> Any:
+    """Pooled A-share of note sites before the first reiteration site, in proofs that have one (lh_measure `cond`)."""
+    t = {k: sum(s(f"cond reit|{h}:{k}") for h in notes) for k in ("aa", "ab", "ba", "bb")}
+    return S.div(t["aa"] + t["ba"], t["aa"] + t["ab"] + t["ba"] + t["bb"])
 
 
 def _f(x: Any) -> float | None:
