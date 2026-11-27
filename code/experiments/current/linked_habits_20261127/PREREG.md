@@ -307,3 +307,68 @@ seen: time estimates only. Changes:
 
 Everything else stands. **Compute after this change** (from the runner's per-task times): about 28 pod-hours of work,
 about $27 with waiting; top $30 and the $39 rule unchanged.
+
+## Amendment 7 (2026-11-27 3:56 am PT; two bases are pretraining, none is finished; no pair or tuned model exists): changes from the trainer audit
+
+Part 2a of the audit (`discourse/design_audit.md`, findings T1 to T11) found no blocking fault in the trainers and
+five things to fix. What I had seen: that audit (CPU smokes on a Nov 14 base with toy pairs) and nothing from the new
+bases. Binding changes:
+
+1. **Learning rate and grid (T3, T5).** DPO and fine-tune runs use learning rate 3e-5 (not 1.5e-4: at 1.5e-4 the
+   30-point crossing fell inside the 10-step warmup). Snapshots at steps 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150,
+   200, 300 and 400; 400 is the last step (not 2,000). Read rule unchanged. This replaces the grids of Amendments 3
+   and 5.
+2. **Tags on a tuned snapshot (T5).** The tag-A and tag-B measurement of Amendment 4 point 2 is taken on the upper
+   bracketing snapshot of each corpus's seed-0 reiteration DPO run, not on its last snapshot.
+3. **No-preference DPO control (T4).** Every batch of a swapped run is exactly half swapped within each sampled side,
+   with a fixed swapped set; the two control seeds use different orientations (swap seed = run seed).
+4. **Fine-tune arm (T8).** The loss is divided by the same fixed constant in the rated run and its control.
+5. **Pairs per corpus (T7).** At most 4,000 balanced train pairs per corpus and rater (2,000 per sampled side), drawn
+   with a fixed seed, so that every corpus trains on the same number of pairs; a corpus with fewer uses what it has
+   and is flagged in the readout.
+6. **Reward model in the GRPO arm (T1, T2).** The bonus is paid only on accepted proofs in which the detector finds
+   at least one reiteration site; a proof the detector cannot read gets none, and such proofs are counted. The
+   reward-model report gains two probe rows from the base's own samples (a proof without a site against one with a
+   site, same theorem; two same-form proofs of different length, same theorem). A habit is marked reward-driven when
+   the bootstrap interval of its mean bonus difference, 0.3 x [sigmoid(score of A member) - sigmoid(score of B
+   member)], lies outside plus or minus 5 % of the rated habit's own mean bonus difference; a habit with fewer than
+   100 probe twins is reported as not probed. (This replaces the 45 / 55 % rule of Amendment 3 point 6a.) The reward
+   model stays an ordinary whole-proof scorer; the audit's option of scoring only the rows that differ is declined,
+   because no real rater works that way. Its measured preferences for length and for proofs that have a site are
+   reported as properties of this arm.
+7. **A check on the pod (T11).** The first logged training row of every DPO run must show loss 0.6931 within 0.001
+   (policy equals reference); a run that does not is stopped and reported.
+
+## Amendment 8 (2026-11-27 4:03 am PT; two bases are pretraining or being measured, no gate has been read, no pair or tuned model exists): changes from the launcher audit
+
+Part 2b of the audit (`discourse/design_audit.md`, findings R1 to R13) found stage 1 sound as it runs, two faults in
+the readout that would print a verdict from an invalid read, and that the second-base trigger of Amendment 3 point 4
+would fire almost always. What I had seen: that audit (synthetic rows and corpus records) and the operator's note
+that pretraining runs at 29 to 40 steps per second; no measurement of any new base. Binding changes:
+
+1. **G0 (R1).** G0 is the share of premises that carry a note, (sites - none) / sites, pooled over classes. The
+   decision check applies G0 at least 50 on `c24`, `c9`, `c4` and `c0` before the G2 rule; a base under 50 means
+   "stop for repair", as the original text says.
+2. **A second base, run in any case (R5).** The trigger of Amendment 3 point 4 is withdrawn. A second base (base seed
+   1) is pretrained and measured for `c24` and for `c4` on their pods after their stage 2, and the reiteration
+   rater's DPO arm (rated and swapped, trainer seed 0, probes and full measurements as for the first base) is run on
+   it. No fine-tune, GRPO or note-rater arm on the second bases. Their gate quantities are reported and gate nothing.
+3. **How the two bases enter the readings.** `M(c24)`, `M(c4)` and `S_before(c24)` are computed per base seed
+   against the one `c0` base and averaged over the two base seeds (and, on the first base, over its two trainer
+   seeds). The readings table is applied to the averages. If the two base seeds give opposite signs for
+   `M(c24) - M(c4)` or for `S_before(c24)`, with either value outside plus or minus 5, the affected rows read
+   "unresolved (bases disagree)".
+4. **Valid reads only (R3, R4).** No row of the readings table is printed as a reading unless, for `c24`, `c4` and
+   `c0` and for every run that enters it, the 30-point crossing was reached and bracketed by two fully measured
+   snapshots and the precondition holds. A missing bracket measurement gives "not read" with the reason, never the
+   last snapshot. Two trainer seeds of opposite sign with either outside plus or minus 5 give "not read: seeds
+   disagree".
+5. **GRPO read (R7).** The GRPO arm is read at matched movement like the other arms (the snapshot whose
+   rated-habit share is closest to 30 points over the base), with iteration 40 beside it; the chain prediction is
+   computed at both, with the mixing weight taken from the same site counts as the conditionals.
+6. **Sets for tuned snapshots (R13).** Tuned snapshots are measured on `marker_plain` only (every `D` is read
+   there); `route_unseen` is measured on the bases.
+
+**Compute.** Pretraining runs about twice as fast as estimated and Amendment 7 cut the tuning runs from 2,000 to 400
+steps; the second bases add about 4 pod-hours. My estimate is about 26 pod-hours, about $24 with waiting; top $30 and
+the $39 rule unchanged.
