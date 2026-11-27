@@ -6,6 +6,8 @@ detached job.
     python lh_launch.py measure  --base <C>_s0 | c0n_s0 | authors_half_s0 | control_half_s0 [--tags A,B,none] [--k 8] [--skip_done]
     python lh_launch.py prep2    --corpus C            # anchor states, the base's proofs on Dan's RL pool, pairs per rater
     python lh_launch.py stage2   --corpus C [--tasks T1,T2,...] [--parallel 2] [--stagger_s 120]   (ND_GUARD=off)
+    python lh_launch.py prep2    --corpus C --base_seed 1   # the second base (c24, c4: PREREG Amendment 8 point 2)
+    python lh_launch.py stage2   --corpus C --base_seed 1   # dpo / dposwap_<C>b1_reit_s0, full_dpo_<C>b1_reit_s0
     python lh_launch.py rl       --line rl_<C>_<anc|rlhfreit>_s0 [--seg K --resume CKPT]  (ND_GUARD=off)
     python lh_launch.py steps    [--procs 5] [--dry-run]   # scaled pretraining steps -> LH/data/pretrain_steps.json (CPU)
     python lh_launch.py steps    --extra c0n               # c0n's own factor -> `extra.c0n` in pretrain_steps.json (CPU)
@@ -239,8 +241,15 @@ def base_of(corpus: str, seed: int = 0) -> Path:
     return C.base_path(corpus, seed)
 
 
+def base_ck(token: str) -> Path:
+    """The base checkpoint of a run's corpus field: <c> -> stage1_<c>_s0.pt, <c>b1 -> stage1_<c>_s1.pt."""
+    return base_of(*C.split_base(token))
+
+
 def pair_files(corpus: str, rater: str) -> dict[str, Path]:
-    d = C.pairs_dir(corpus, rater)
+    """The pair files of a corpus field (<c>: LH/pairs/<c>_s0/<R>; the second base <c>b1: LH/pairs/<c>_s1/<R>)."""
+    c, bs = C.split_base(corpus)
+    d = C.pairs_dir(c, rater, bs)
     return {**{k: d / f"{k}.jsonl" for k in ("train", "heldout", "sft_pref", "sft_sampled", "probe_twins")},
             "summary": d / "summary.json"}  # fmt: skip
 
@@ -266,8 +275,11 @@ def trainer_argv(arm: str, smoke: bool = False) -> list[str]:
     train pairs (dposwap with `--swap-random`); sft: the preferred members of every train pair; sftsam: their sampled
     members. All log their KL to the base on the corpus's fixed states (`--kl-states`, lh_pairs.py anchor)."""
     t = C.parse_task(arm)
-    pf, ck, d = pair_files(t["corpus"], t["rater"]), str(base_of(t["corpus"])), str(C.arm_dir(arm))
-    common = ["--base", ck, "--heldout", str(pf["heldout"]), "--out", d, "--kl-states", str(C.kl_states_path(t["corpus"])),
+    pf, ck, d = pair_files(t["corpus"], t["rater"]), str(base_ck(t["corpus"])), str(C.arm_dir(arm))
+    kls = C.kl_states_path(
+        C.split_base(t["corpus"])[0]
+    )  # corpus records: the same states for both bases
+    common = ["--base", ck, "--heldout", str(pf["heldout"]), "--out", d, "--kl-states", str(kls),
               "--kl-n", str(C.KL_STATES), "--seed", str(t["seed"]), "--lr", str(C.OFFLINE_LR), "--max-steps", str(C.OFFLINE_MAX_STEPS),
               "--snap-steps", ",".join(map(str, C.SNAP_STEPS)),
               *(["--device", "cpu"] if smoke else ["--device", "cuda", "--max-tokens", str(C.SHARED_MAX_TOKENS)])]  # fmt: skip
@@ -315,14 +327,21 @@ def task_problems(task: str) -> list[str]:
     """Why a stage-2 task cannot start now (its inputs). Not checked here: what earlier tasks of the same job make
     (an rlhf task's reward model, a full measurement's runs); "already ..." means the task's outputs exist."""
     t = C.parse_task(task)
-    c = t["corpus"]
+    c = t[
+        "corpus"
+    ]  # the corpus field: <c>, or <c>b1 on the second base (pairs, base and its measurement follow it)
+    cc, bs = C.split_base(c)
     out: list[str] = []
-    if c not in C.CORPORA:
-        return [f"{task}: corpus {c} is not configured (LH_CORPORA)"]
-    if t["rater"] is not None and t["rater"] not in C.raters_of(c):
-        out.append(f"{task}: rater {t['rater']} does not run on {c} (LH_ATOM_CORPORA)")
-    if not base_of(c).exists():
-        out.append(f"{task}: no base {base_of(c)}")
+    if cc not in C.CORPORA:
+        return [f"{task}: corpus {cc} is not configured (LH_CORPORA)"]
+    if bs and task not in C.base2_tasks(cc):
+        return [
+            f"{task}: not a second-base task (lh_core.base2_tasks({cc!r}) = {C.base2_tasks(cc)})"
+        ]
+    if t["rater"] is not None and t["rater"] not in C.raters_of(cc):
+        out.append(f"{task}: rater {t['rater']} does not run on {cc} (LH_ATOM_CORPORA)")
+    if not base_ck(c).exists():
+        out.append(f"{task}: no base {base_ck(c)}")
     if t["type"] == "full":
         if base_share(c, C.RATERS[t["rater"]]) is None:
             out.append(
@@ -461,7 +480,11 @@ def rl_ns(a: argparse.Namespace, line: str) -> argparse.Namespace:
 
 
 def prep2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list[str]]:
-    """Anchor states (CPU), the base's proofs on the RL pool (GPU), the pairs of each rater (CPU)."""
+    """Anchor states (CPU), the base's proofs on the RL pool (GPU), the pairs of each rater (CPU). With --base_seed 1
+    (the second base pass): its proofs and the reiteration rater's pairs only (LH/pairs/<c>_s1), no anchor (corpus
+    records, already made), no probe rows (no reward model on the second base)."""
+    if getattr(a, "base_seed", 0):
+        return prep2_base2_plan(a)
     c, problems, notes, steps = a.corpus, [], [], []
     lp = str(HERE / "lh_pairs.py")
     if not base_of(c).exists():
@@ -511,13 +534,48 @@ def prep2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list[
     return f"prep2_{c}_s0", steps, problems, notes
 
 
+def prep2_base2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list[str]]:
+    c, bs, problems, steps = a.corpus, a.base_seed, [], []
+    lp = str(HERE / "lh_pairs.py")
+    if bs != C.BASE2_SEED or c not in C.BASE2_CORPORA:
+        raise SystemExit(
+            f"no second base pass for {c} at base seed {bs} (LH_BASE2_CORPORA {C.BASE2_CORPORA})"
+        )
+    if not base_of(c, bs).exists():
+        problems.append(f"no base {base_of(c, bs)} (pretrain --corpus {c} --seed {bs})")
+    for f in (C.RL_POOL, HERE / "lh_twin.py", HERE / "lh_profile.py"):
+        if not Path(f).exists():
+            problems.append(f"missing {f}")
+    problems += detector_problems()
+    if not (C.pairs_dir(c, seed=bs) / "sample.json").exists():
+        steps.append(AL.step(f"sample_{c}_s{bs}", [PY, lp, "sample", "--corpus", c, "--base_seed", str(bs), "--device", "cuda"],
+                             HOURS["sample"], EST["sample"]))  # fmt: skip
+    for r in C.BASE2_PLAN:
+        if not C.pairs_dir(c, r, bs).joinpath("summary.json").exists():
+            steps.append(AL.step(f"build_{c}_s{bs}_{r}", [PY, lp, "build", "--corpus", c, "--base_seed", str(bs), "--rater", r, "--no_probe"],
+                                 HOURS["build"], EST["build"]))  # fmt: skip
+    if not steps:
+        problems.append(
+            f"prep2 {c}_s{bs}: everything exists (sample, pairs of {list(C.BASE2_PLAN)})"
+        )
+    notes = [f"second base {c}_s{bs} (PREREG Amendment 8 point 2): its proofs on {C.RL_POOL.name} x {C.PAIR_K}, the pairs of "
+             f"{list(C.BASE2_PLAN)} balanced and capped as for the first base, no probe rows"]  # fmt: skip
+    return f"prep2_{c}_s{bs}", steps, problems, notes
+
+
 def stage2_tasks(a: argparse.Namespace) -> list[str]:
-    tasks = a.tasks.split(",") if a.tasks else C.tasks_of(a.corpus)
+    """The job's tasks: the corpus's stage 2 (lh_core.tasks_of), or with --base_seed 1 its second base pass
+    (lh_core.base2_tasks); --tasks picks some of them."""
+    bs = getattr(a, "base_seed", 0) or 0
+    allowed = C.base2_tasks(a.corpus) if bs else C.tasks_of(a.corpus)
+    if bs and (bs != C.BASE2_SEED or not allowed):
+        raise SystemExit(
+            f"no second base pass for {a.corpus} at base seed {bs} (LH_BASE2_CORPORA {C.BASE2_CORPORA})"
+        )
+    tasks = a.tasks.split(",") if a.tasks else allowed
     for x in tasks:
-        if C.parse_task(x)["corpus"] != a.corpus or x not in C.tasks_of(a.corpus):
-            raise SystemExit(
-                f"not a stage-2 task of corpus {a.corpus}: {x!r} (tasks: {C.tasks_of(a.corpus)})"
-            )
+        if C.parse_task(x)["corpus"] != C.base_token(a.corpus, bs) or x not in allowed:
+            raise SystemExit(f"not a stage-2 task of corpus {a.corpus}: {x!r} (tasks: {allowed})")
     if len(set(tasks)) != len(tasks):
         raise SystemExit(f"a task named twice: {tasks}")
     return tasks
@@ -538,7 +596,9 @@ def task_est(task: str) -> float:
     if t["type"] == "line":
         return EST["line"] + (EST["rm"] + EST["rm_probe"] if t["rater"] else 0.0)
     if t["type"] == "full":
-        tagged = (t["kind"], t["rater"], t["seed"]) == C.TAGGED_SNAPSHOT
+        tagged = (t["kind"], t["rater"], t["seed"]) == C.TAGGED_SNAPSHOT and not C.split_base(
+            t["corpus"]
+        )[1]
         return FULL_PER_TASK * EST["snap_measure_none"] + (
             EST["snap_measure"] - EST["snap_measure_none"] if tagged else 0.0
         )
@@ -581,8 +641,12 @@ def stage2_plan(a: argparse.Namespace) -> tuple[str, list[dict], list[str], list
         *(f"WILL BE REFUSED: {q}" for q in every if q.endswith(AT_RUN)),
     ]
     return (
-        f"stage2_{a.corpus}_s0",
-        [AL.step(f"tasks_{a.corpus}_s0", argv, hours, round(est, 2))],
+        f"stage2_{a.corpus}_s{getattr(a, 'base_seed', 0) or 0}",
+        [
+            AL.step(
+                f"tasks_{a.corpus}_s{getattr(a, 'base_seed', 0) or 0}", argv, hours, round(est, 2)
+            )
+        ],
         problems,
         notes,
     )
@@ -1146,7 +1210,7 @@ def offline_main(argv: list[str]) -> int:
                 )
             (d / "lh_offline.json").write_text(json.dumps(rec, indent=1))
             C.POD.mkdir(parents=True, exist_ok=True)
-            with open(C.POD / f"{t['corpus']}.FAILED", "a") as fh:
+            with open(C.POD / f"{C.split_base(t['corpus'])[0]}.FAILED", "a") as fh:
                 fh.write(f"{AL.now()} stage2 {a.arm} STOPPED: step-0 check: {bad}\n")
             say(f"{a.arm}: STOPPED: step-0 check: {bad}")
             return 5
@@ -1181,7 +1245,8 @@ def offline_main(argv: list[str]) -> int:
 
 # ------------------------------------------------------------------------------------------------ full measurement
 def base_summary(corpus: str) -> Path:
-    return LH / "measure" / C.base_id(corpus) / "marker_plain__none.summary.json"
+    """The base's untagged marker_plain summary, for a corpus field (<c>: <c>_s0; <c>b1: <c>_s1)."""
+    return LH / "measure" / C.base_id(*C.split_base(corpus)) / "marker_plain__none.summary.json"
 
 
 def base_share(corpus: str, habit: str) -> float | None:
@@ -1272,6 +1337,9 @@ def full_main(argv: list[str]) -> int:
                 arm == rated
                 and st == sel["bracket"][-1]
                 and (t["kind"], t["rater"], t["seed"]) == C.TAGGED_SNAPSHOT
+                and not C.split_base(t["corpus"])[
+                    1
+                ]  # the second base: untagged everywhere (Amendment 8 point 2)
             )
             tags = "A,B,none" if tagged else C.SNAP_TAGS
             rec["tags"][f"{arm}@{x['label']}"] = tags
@@ -1604,6 +1672,8 @@ def main() -> None:
         help="stage2: a comma list of the corpus's tasks (default: all of them)",
     )
     ap.add_argument("--parallel", type=int, default=2, help="stage2: tasks at once on the GPU")
+    ap.add_argument("--base_seed", type=int, default=0,
+                    help="prep2, stage2: 1 = the second base pass (PREREG Amendment 8 point 2; c24 and c4)")  # fmt: skip
     ap.add_argument(
         "--stagger_s", type=float, default=120.0, help="stage2: seconds between two task starts"
     )

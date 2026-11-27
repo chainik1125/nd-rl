@@ -525,3 +525,112 @@ def test_chain_weight_from_site_counts():
     assert float(S.cond_q(s, "reit", "order")) == pytest.approx(0.4) and float(
         S.first_form_share(s, "reit")
     ) == pytest.approx(0.9)
+
+
+# ------------------------------------------------------------------------------------------------ second bases
+# PREREG Amendment 8 points 2-3. First bases: every run reaches +30 at w 0.5 between steps 50 and 100; c24's order,
+# conj and notes at `o24` in both trainer seeds, c4 and c0 flat. Second bases (base seed 1): c24b1 at `o24b`, c4b1 flat.
+FULL = {"reached": True, "bracket": [50, 100], "done": True}
+
+
+def two_base_tree(tmp_path, name, o24=70, o24b=None, b2=("c24", "c4"), b2_reit=90, ended=()):
+    t = case_tree(tmp_path, name)
+    for c in ("c24", "c4", "c0"):
+        o = o24 if c == "c24" else 50
+        up = {"order": o, "conj": o, **dict.fromkeys(NOTES, float(o))}
+        for s in (0, 1):
+            case_dpo(
+                t, c, s, {50: {"reit": 70, **up}, 100: {"reit": 90, **up}, 2000: {"reit": 95}}, FULL
+            )
+    for c in b2:
+        o = (o24b if c == "c24" else 50) if o24b is not None else 50
+        up = {"order": o, "conj": o, **dict.fromkeys(NOTES, float(o))}
+        write(t / "measure" / f"{c}_s1", {})
+        tok = C.base_token(c, 1)
+        case_dpo(
+            t,
+            tok,
+            0,
+            {
+                50: {"reit": 70, **up},
+                100: {"reit": b2_reit, **up},
+                400: {"reit": 95 if b2_reit > 80 else b2_reit},
+            },
+            FULL if b2_reit > 80 else {"reached": False, "bracket": [100, 400], "done": True},
+        )
+    for c in ended:
+        (t / "pod").mkdir(exist_ok=True)
+        (t / "pod" / f"{c}.BASE2_DONE").write_text("x")
+    return t
+
+
+def test_second_base_pending_reads_the_first_base(tmp_path):
+    r, row = case_read(two_base_tree(tmp_path, "P", b2=()))
+    rd = r["readings"]
+    assert rd["basis"] == "first base only (second base pending: c24b1, c4b1)" and rd[
+        "second_bases"
+    ] == {"c24": "pending", "c4": "pending"}
+    assert row == "the author moves as a unit with 24 links and not with 4" == rd["first_base_only"]
+    assert rd["per_base_seed"]["M(c24)"] == [pytest.approx(20), None]
+
+
+def test_second_bases_averaged(tmp_path):
+    t = two_base_tree(tmp_path, "AV", o24=80, o24b=60)  # M(c24) +30 on base 0, +10 on base 1
+    r, row = case_read(t)
+    rd, pr = r["readings"], r["prereg"]["dpo:reit:at_target"]
+    assert rd["basis"] == "average over the two base seeds (Amendment 8 point 3)" and rd[
+        "second_bases"
+    ] == {"c24": "done", "c4": "done"}
+    assert rd["per_base_seed"]["M(c24)"] == [pytest.approx(30), pytest.approx(10)] and rd[
+        "per_base_seed"
+    ]["M(c4)"] == [0.0, 0.0]
+    assert pr["base_avg"]["M(c24)"]["point"] == pytest.approx(20) and pr["base_avg"][
+        "S_before(c24)"
+    ]["point"] == pytest.approx(20)
+    assert (
+        row == "the author moves as a unit with 24 links and not with 4"
+        and not rd["bases_disagree"]
+    )
+    assert (
+        r["compare"]["dpo:reit"]["c24b1"]["valid"]["at_target"]["ok"]
+        and r["base2"]["c4"]["state"] == "done"
+    )
+    assert "c24_s1" in r["tables"] and "dpo_c24b1_reit_s0" in r["tables"]
+    assert "Second base c24b1 (base seed 1): done" in LR.report(r)
+
+
+def test_second_bases_disagree(tmp_path):
+    r, row = case_read(
+        two_base_tree(tmp_path, "DIS", o24=80, o24b=42)
+    )  # D +30 on base 0, -8 on base 1
+    rd = r["readings"]
+    assert rd["bases_disagree"] == ["M(c24)-M(c4)", "S_before(c24)"]
+    assert row.startswith(
+        "unresolved (bases disagree): M(c24)-M(c4) 30.0 / -8.0; S_before(c24) 30.0 / -8.0 (the average would read: "
+    )
+    # "either value outside +-5": +30 / -4 disagrees; +30 / +4 (the same sign) is averaged
+    r1, row1 = case_read(two_base_tree(tmp_path, "DIS4", o24=80, o24b=46))
+    assert r1["readings"]["bases_disagree"] == [
+        "M(c24)-M(c4)",
+        "S_before(c24)",
+    ] and row1.startswith("unresolved (bases disagree)")
+    r2, row2 = case_read(two_base_tree(tmp_path, "AGR", o24=80, o24b=54))
+    assert (
+        not r2["readings"]["bases_disagree"]
+        and row2 == "the author moves as a unit with 24 links and not with 4"
+    )
+
+
+def test_second_base_ended_without_its_measurement(tmp_path):
+    r, row = case_read(two_base_tree(tmp_path, "END", b2=("c24",), ended=("c4",)))
+    assert r["readings"]["second_bases"] == {"c24": "done", "c4": "ended"}
+    assert row == "not read: c4b1: the second base pass ended without its full measurement"
+
+
+def test_second_base_run_must_be_valid(tmp_path):
+    r, row = case_read(two_base_tree(tmp_path, "INV", b2_reit=75))  # +25 at most: never past +30
+    assert row.startswith("not read: c24b1: seed 0: +30 not reached")
+    assert (
+        r["readings"]["first_base_only"]
+        == "the author moves as a unit with 24 links and not with 4"
+    )

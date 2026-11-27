@@ -282,6 +282,44 @@ def parse_task(task: str) -> dict[str, Any]:
     raise SystemExit(f"not a stage-2 task: {task!r}")
 
 
+# ------------------------------------------------------------------------------------------------ second bases
+# PREREG Amendment 8 points 2 and 3: a second base (base seed 1) of c24 and c4, pretrained and measured on their pods
+# after their stage 2, with the reiteration rater's DPO arm (dpo and dposwap, trainer seed 0, probes and full
+# measurements as for the first base). Names: the base is <c>_s1 (LH/bases/stage1_<c>_s1.pt, LH/measure/<c>_s1, the
+# pairs in LH/pairs/<c>_s1/reit, all keyed by the base id as for <c>_s0); its runs and full task carry the token <c>b1 in
+# the corpus field (dpo_c24b1_reit_s0, dposwap_c24b1_reit_s0, full_dpo_c24b1_reit_s0). A first-base name never has a
+# token: base_token(c, 0) == c. The KL states and the anchor are corpus records (lh_pairs.py anchor), not the base's:
+# both bases use klstates_<c>.jsonl. Env LH_BASE2_CORPORA (default c24,c4) is the per-pod switch.
+BASE2_SEED = 1
+BASE2_CORPORA = tuple(x for x in os.environ.get("LH_BASE2_CORPORA", "c24,c4").split(",") if x)
+BASE2_PLAN = {"reit": {"dpo": (0,)}}  # rater -> rated kind -> trainer seeds, on the second base
+
+
+def base_token(corpus: str, base_seed: int = 0) -> str:
+    """The corpus field of a run or task name: the corpus itself on the first base, <c>b<k> on base seed k."""
+    return corpus if base_seed == 0 else f"{corpus}b{base_seed}"
+
+
+def split_base(token: str) -> tuple[str, int]:
+    """<c>b<k> -> (c, k) for a configured corpus c; anything else -> (token, 0) (every first-base name)."""
+    import re
+
+    m = re.fullmatch(r"(.+)b(\d+)", token)
+    if m and m.group(1) in CORPORA and int(m.group(2)) > 0:
+        return m.group(1), int(m.group(2))
+    return token, 0
+
+
+def base2_tasks(corpus: str) -> list[str]:
+    """The second base pass's stage-2 tasks of one corpus (none outside BASE2_CORPORA): the runs, then the full task."""
+    if corpus not in BASE2_CORPORA:
+        return []
+    tok = base_token(corpus, BASE2_SEED)
+    plan = [(r, k, s) for r, ks in BASE2_PLAN.items() for k, seeds in ks.items() for s in seeds]
+    return [*(arm_name(k2, tok, r, s) for r, k, s in plan for k2 in (k, CONTROL_OF[k])),
+            *(full_name(k, tok, r, s) for r, k, s in plan)]  # fmt: skip
+
+
 def pairs_dir(corpus: str, rater: str | None = None, seed: int = 0) -> Path:
     d = LH / "pairs" / f"{corpus}_s{seed}"
     return d if rater is None else d / rater

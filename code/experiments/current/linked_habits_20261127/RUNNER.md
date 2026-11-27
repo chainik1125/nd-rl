@@ -7,8 +7,8 @@ written_by: agent:claude (runner build agent)
 
 This note covers the runner of `SPEC2.md` with PREREG.md Amendments 1-8 (Amendment 3 applies the design audit,
 `discourse/design_audit.md`; Amendments 4 and 6 trim the plan to the budget; Amendment 5 adds early snapshot steps;
-Amendments 7 and 8 apply the audit's Parts 2a and 2b, except Amendment 8's second base pass, which is **not built
-yet**: see "Known gaps" 1): pretraining on the four corpora and `c0n`, the measurement of 24 habits, the performance
+Amendments 7 and 8 apply the audit's Parts 2a and 2b, with Amendment 8's second base pass on c24 and c4: see "The
+second base pass"): pretraining on the four corpora and `c0n`, the measurement of 24 habits, the performance
 control, the gate, the stage-2 inputs and arms, the readout, and the pods. The corpus agent wrote the corpora, the
 detector (`lh_profile.py`, `lh_habits.py`) and the twins (`lh_twin.py`); the third agent wrote the trainers
 (`lh_tune.py`, `lh_dpo.py`, `lh_sft.py`, `lh_rm.py`). No GPU job ran and no pod was created or contacted: everything
@@ -195,9 +195,16 @@ for C in c24 c9 c4 c0; do bash $W/lh_pod.sh fetch rp-lh$C --light; done     # md
 $PY $W/lh_gate.py                                          # -> LH/gate/gate_v2.{json,txt}; prints PREREG's decision check
 for C in c24 c9 c4 c0; do bash $W/lh_pod.sh go rp-lh$C $C; done             # or nogo (the driver stops; delete the pod)
 bash $W/lh_pod.sh check rp-lhc24                           # until <c>.DONE is among the markers
-for C in c24 c9 c4 c0; do bash $W/lh_pod.sh fetch rp-lh$C; done             # with checkpoints, md5-checked; then delete the pods
+for C in c24 c9 c4 c0; do bash $W/lh_pod.sh fetch rp-lh$C --keep; done      # chosen checkpoints, md5-checked; then delete c9's and c0's pods
+# c24 and c4: the second base pass next (its section), then fetch --keep and delete
 $PY $W/lh_read.py                                          # -> LH/read/read_v2.{json,txt}
 ```
+
+**`fetch --keep` is the fetch to run before `POD READY TO DELETE`** (serrano's /scratch is short): everything `--light`
+takes plus only the bases, each run's `final.pt` (and the reward model's `rm.pt`), the fully measured snapshots (the
+bracket of each rated and no-preference run) and each GRPO line's last snapshot; it prints the count and size of the
+checkpoints it leaves on the pod (lost at deletion, reproducible from the seeds) and lists them in
+`LH/pod_stage/<alias>.fetch.left`. `--light` (no checkpoints) and the plain fetch (all of them) are unchanged.
 
 **What "done" looks like**: `check` shows `<c>.DONE` and no `<c>.FAILED` (a `<c>.NOT_RUN` names an rlhf line whose reward
 model missed 0.90: a pre-registered outcome, not a failure); every job log ends `job end rc 0; lock
@@ -237,7 +244,60 @@ For the Amendment 7 / 8 code, with the drivers waiting at the gate:
    (six summaries and the strict-106 rows exist), writes GATE_READY again and waits for GO (or goes on at once when GO
    is already there); stage 2 skips every finished task.
 
-### Time, disk and cost per pod (RTX 4090; PREREG Amendments 7 and 8; [guess] from the dry runs unless marked)
+## The second base pass (PREREG Amendment 8 points 2 and 3)
+
+**What runs** (c24 and c4 only: `lh_core.BASE2_CORPORA`, env `LH_BASE2_CORPORA`; the driver's switch `BASE2`, default from
+it): after the pod's stage 2, base seed 1 of the pod's corpus is pretrained (`pretrain --corpus C --seed 1`, 41,800 steps
+from pretrain_steps.json's seed-1 count, then the 64-theorem sanity read), measured like every base (`measure --base
+C_s1`: tags A, B, none, both sets, the strict 106), sampled on Dan's RL pool (`prep2 --corpus C --base_seed 1`), its
+reiteration pairs built, balanced and capped exactly as the first base's (same seeded draws; no probe rows: no reward
+model), then `stage2 --corpus C --base_seed 1`: `dpo_Cb1_reit_s0` and `dposwap_Cb1_reit_s0` (trainer seed 0, the same
+grid, learning rate and step-0 check; the rated run probed), then `full_dpo_Cb1_reit_s0` (the bracket and the last
+snapshot, untagged, marker_plain). No fine-tune, GRPO, note rater, reward model or gate wait.
+
+**Names**: the base is `C_s1` (`LH/bases/stage1_C_s1.pt`, `LH/measure/C_s1`, `LH/pairs/C_s1/reit`: keyed by the base id,
+like `C_s0`); its runs and full task carry the token `Cb1` (`lh_core.base_token`, `split_base`); the KL states are the
+corpus's (`klstates_C.jsonl`: corpus records, not the base's). No first-base name changes: a test runs every first-base
+task, name, path, estimate, refusal and trainer command of this code and of e7b3388 (the frozen checkout) and compares
+them [obs: equal, 48 tasks].
+
+**How the operator starts it**, on c24 and c4 after `<c>.DONE` (the old driver has exited and its lock is gone; these
+two pods are not deleted at DONE):
+```
+W=<a checkout of the commit with the pass>/code/experiments/current/linked_habits_20261127
+bash $W/lh_pod.sh fetch rp-lh$C --keep                     # stage 2's results first (md5-checked)
+DRY_RUN=1 bash $W/lh_pod.sh copy rp-lh$C $C; bash $W/lh_pod.sh copy rp-lh$C $C   # done: "md5: all N files equal"
+TOTAL_H=24 bash $W/lh_pod.sh start rp-lh$C $C              # the driver again
+bash $W/lh_pod.sh check rp-lh$C                            # every 30 min, until <c>.BASE2_DONE is among the markers
+bash $W/lh_pod.sh fetch rp-lh$C --keep                     # then POD READY TO DELETE
+```
+The rerun skips stage 1 (the base exists and is measured) and the gate (GO is there; it writes GATE_READY again), does
+not enter stage 2 again because `<c>.DONE` exists (with the pass switched on; remove `<c>.DONE` first only to retry
+stage 2's failed tasks), and runs the pass; each step is skipped when its output exists, so a further rerun resumes.
+
+**Markers**: `<c>.BASE2_DONE` when the pass ends, also after a failure; a failure adds a line `base2 ...` to `<c>.FAILED`
+(`pretrain c24_s1 failed`, `measure ...`, `prep2 ...`, `stage2 <task> did not finish`; a failed pretrain, measure or
+prep2 ends the pass there). The heartbeat's last stage is `base2 done`.
+
+**Hours** (4090): pretrain 41,800 steps at 29 steps/s (c24 [assumed]) or 40 (c4 [obs on c4's pod, the operator]) 0.40 /
+0.29 h + sanity 0.05; measure + strict 106 0.28 h; prep2 0.60 h (sample 0.3, build 0.3); stage 2 0.47 h (two at a time:
+0.12 h per run, about 7 probes x 0.04 h, 6 untagged measurements x 0.04 h); copy and start about 0.1 h: **1.9 h on c24,
+1.8 h on c4** [guess, dry runs]. Bounds: each job has its own cap (pretrain 3.5 h, measure 3.0 h, prep2 3.5 h, stage 2
+7.0 h) and the driver waits at most 4, 3.5, 4.5 (`MAX_H_BASE2_PREP`) and 8 h (`MAX_H_BASE2`); `TOTAL_H=24` bounds the
+driver. Disk: the base and its pairs about 0.3 GB, two runs of 15 snapshots about 1.2 GB.
+
+**Gate and readout**: `lh_gate.py` adds `c24_s1` and `c4_s1` once their measurement exists, beside the first bases
+with `c24_s1 - c0`, `c4_s1 - c0` and `c24_s1 - c4_s1`; they never enter the decision. `lh_read.py` reads `dpo_Cb1_reit_s0`
+like the first base's runs (`compare["dpo:reit"]["c24b1"]`) and gives M(c24), M(c4), M(c24) - M(c4), S_before(c24) and
+S(c24) per base seed against the one c0 base, and their average (base seed 0 = the mean of its two trainer seeds). The
+readings table: "first base only (second base pending: c24b1, c4b1)" while a second base's full measurement is not done;
+on the average once both are done, with their runs held to the same validity rule; "unresolved (bases disagree)" when
+the table's row rests on M(c24) - M(c4) or S_before(c24) and the two base seeds give opposite signs with either outside
++-5 (rows 1 and 2 rest on M(c24) - M(c4), row 1 also on S_before; row 3, "habits edited one by one", on neither:
+[interp] of "the affected rows"); "not read" when a pod's pass ended without its full measurement. The first-base-only
+row is printed beside it in every case.
+
+## Time, disk and cost per pod (RTX 4090; PREREG Amendments 7 and 8; [guess] from the dry runs unless marked)
 
 | | c24 | c0 | c4 | c9 |
 |---|---:|---:|---:|---:|
@@ -250,8 +310,8 @@ For the Amendment 7 / 8 code, with the drivers waiting at the gate:
 | offline runs (400 steps) + probes + full measurements (marker_plain), two at a time | 1.94 h | 1.94 h | 1.47 h | 1.47 h |
 | **stage 2** (dry run) | **4.04 h** | **4.04 h** | **3.57 h** | **1.47 h** |
 | **first base, total** | **6.05 h** | **6.65 h** | **5.72 h** | **3.18 h** |
-| second base pass (Amendment 8 point 2; **not built**): pretrain s1 (41,800 steps), measure, sample, reit pairs, dpo + dposwap seed 0, probe, 6 measurements | about 2.0 h | none | about 1.9 h | none |
-| **with the second base** | **about 8.0 h** | 6.65 h | **about 7.6 h** | 3.18 h |
+| second base pass (Amendment 8 point 2; see its section): copy + start, pretrain s1 (41,800 steps) + sanity, measure, prep2, stage 2 of its 3 tasks | 1.9 h | none | 1.8 h | none |
+| **with the second base** | **7.95 h** | 6.65 h | **7.52 h** | 3.18 h |
 | job caps: stage-2 job / driver wait | 11.1 / 15 h | 11.1 / 15 h | 10.1 / 15 h | 7.0 / 15 h |
 
 Per task alone on a 4090: a GRPO line of 40 iterations 0.9 h ([obs] W2's lines on 4090s: the first 60 iterations took
@@ -262,10 +322,10 @@ marker_plain measurements x 0.04 h, plus 0.07 h more for the tagged snapshot (A,
 take 1.25 x each [guess]. Disk: environment 9 GB, a GRPO line about 1 GB, an offline run 15 snapshots of 38 MB ([obs]
 the smoke's snapshot file), about 0.6 GB.
 
-**Pod-hours**: first bases 6.05 + 6.65 + 5.72 + 3.18 = **21.6**; with the second base pass about **25.5**. Waiting:
-the gate read (about 0.25 h per pod, about 1 pod-hour), so about **26.5 pod-hours, about $24** at $0.89 / h [guess].
-Each pod also bills from its `<c>.DONE` until it is fetched and deleted (with checks every 30-60 min, about 0.25-0.5 h
-per pod). The pretraining rates make stage 1 shorter than the earlier table (0.83 h per 44,600-step base there).
+**Pod-hours**: first bases 6.05 + 6.65 + 5.72 + 3.18 = **21.6**; with the second base pass **25.3**. Waiting:
+the gate read (about 0.25 h per pod, about 1 pod-hour), so about **26.3 pod-hours, about $23** at $0.89 / h [guess].
+Each pod also bills from its `<c>.DONE` (c9, c0) or `<c>.BASE2_DONE` (c24, c4) until it is fetched and deleted (with
+checks every 30-60 min, about 0.25-0.5 h per pod); on c24 and c4 the time between DONE and the new `start` bills too. The pretraining rates make stage 1 shorter than the earlier table (0.83 h per 44,600-step base there).
 
 **The GRPO arm** is now the largest item (6.3 pod-hours), because a line runs alone on the card: W2's lines on 4090s
 peaked at 10.3-18.9 GB allocated ([obs] `peak_alloc_gb` in W2's metrics.jsonl), with the snapshot measurement beside
@@ -279,8 +339,8 @@ All on serrano's CPU; after about 10:20 UTC within the coordinator's limit (`nic
 
 **Unit tests**: `CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 $PY -m pytest --confcutdir=. -p no:cacheprovider -q
 test_lh_rlvar.py test_lh_measure.py test_lh_pairs.py test_lh_launch.py test_lh_gate.py test_lh_read.py test_lh_pod.py`:
-**89 passed** in 68 s (launch 34, read 16, measure 11, rlvar 9, pod 9, gate 5, pairs 5), then launch + pairs 39
-passed again after the last edits. Ruff check and format clean on my 15 Python files; `bash -n` clean on the three
+**104 passed** (launch 37, read 21, pod 15, measure 11, rlvar 9, gate 6, pairs 5) with the second base pass and
+`fetch --keep`. Ruff check and format clean on my 15 Python files; `bash -n` clean on the three
 shell scripts. One run of launch + pairs hung in `test_build_on_corpus_proofs` (a fork of the pytest process, the
 pair build's Lean-check pool, blocked on a lock: torch's threads, started by earlier tests in the same process, exist
 at the fork); stopped by PID; reruns passed. In a real pair build the pools fork before anything imports torch
@@ -289,7 +349,12 @@ tasks, no atom GRPO line, sft only for reit, dependencies); step counts with `c0
 the loader at cap 16; the 24-habit counts against a brute-force count (link, linko, cond, condn, near); the probe's stop
 rule (stops after the first snapshot above the threshold, then the last; resumable); the snapshot choice (strict
 "more than 30", the base below the first snapshot, the last two when never reached); the full task (untagged, tags A, B,
-none only on the seed-0 reit DPO run's upper bracketing snapshot); no-preference runs never probed; GRPO lines only on c24, c4 and
+none only on the seed-0 reit DPO run's upper bracketing snapshot); the second base pass (every first-base name and
+command equal to e7b3388's, the second base's names, plans and untagged full task, the driver's pass after stage 2 and
+its rerun after an old stage 2, its failures and switch, the gate beside the first bases gating nothing, the readout
+pending / averaged / bases disagreeing / ended / invalid); the three fetch modes run for real against a pod tree on
+this machine (ssh and rsync replaced on PATH: what each fetches, the md5 line, what --keep leaves and lists);
+no-preference runs never probed; GRPO lines only on c24, c4 and
 c0, 40 iterations (the `--iters` that reaches the GRPO process), snapshots untagged at 10, 20, 30, 40; trainer and reward-model commands (the 400-step grid from step 5, `--lr` from `lh_core.OFFLINE_LR`, `--max-tokens
 32768`, each option once); the reward model under 0.90 recorded as not run, never refitted, skipped by the driver and
 listed apart from failures, while a crash is retried; the scheduler (GRPO lines alone, two other tasks at once, a full
@@ -426,11 +491,10 @@ Each is the closest thing I could do that keeps the experiment's logic.
 
 ## Known gaps (for the auditor)
 
-1. **The second base pass (Amendment 8 points 2-3) is not built.** `pretrain --corpus c24 --seed 1` and `measure
-   --base c24_s1` work (41,800 steps), but the stage-2 arms take the seed-0 base only: `_s<S>` in a run's name is the
-   trainer's seed; pairs, KL states and the base checkpoint are looked up per corpus at seed 0; the driver has no pass
-   after stage 2; `lh_gate` and `lh_read` have no base-seed axis. The readings table says which basis it uses (first
-   bases only) and does not yet average over base seeds or print "unresolved (bases disagree)".
+1. **The second base pass** reuses the first base's seeded draws (held-out split, balancing, caps: the seed strings
+   name the corpus and rater, not the base), so the two bases' pair files differ only through the proofs each base
+   wrote. One trainer seed on the second base: its validity and its value enter the average as they are (no seed
+   check there). "Bases disagree" applies to the rows resting on M(c24) - M(c4) or S_before(c24) only (see its section).
 2. **Interpolation weights are fixed across bootstrap draws** (from the point estimate); the interval does not include
    the uncertainty of where +30 falls. The weight comes from the full measurements, not the probes (deviation 6).
 3. **Seed means weigh the seeds equally** (two seeds only for the reiteration rater's DPO arm); with one seed missing
@@ -491,5 +555,5 @@ Each is the closest thing I could do that keeps the experiment's logic.
 - **Pod scripts never ran against a pod** (syntax, the stage locally, the driver against a stub). `start` relies on
   `nohup` surviving the ssh session; a driver killed by its own timeout leaves its lock directory (remove
   `/workspace/lh/pod/<c>.driver.lock` before `start` again).
-- **Cost** (Amendments 7 and 8): about 21.6 pod-hours of work on the first bases, about 25.5 with the second base pass
-  on c24 and c4, about 26.5 with the gate read, about $24 [guess] (time table).
+- **Cost** (Amendments 7 and 8): about 21.6 pod-hours of work on the first bases, 25.3 with the second base pass
+  on c24 and c4, about 26.3 with the gate read, about $23 [guess] (time table).

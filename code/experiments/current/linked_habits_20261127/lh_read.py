@@ -43,6 +43,12 @@ beside it under their own predictions):
       first-site A-share of the 14 unrated notes; per class only for atom, vcc, vac, >ca, ~c, >cc, vca, &aa, &ac, vaa,
       >ac (minus the rated one).
   Per-class note D grouped by A's form: copy, doubled disjunction (or2), longer than B's, shorter or equal.
+The second bases (PREREG Amendment 8 points 2-3): dpo_<C>b1_reit_s0 against dposwap_<C>b1_reit_s0 on base <C>_s1 (c24,
+c4), read like the first (`compare["dpo:reit"]["<C>b1"]`); M(c24), M(c4), M(c24) - M(c4), S_before(c24), S(c24) per
+base seed against the one c0 base, and their average (`prereg[...]["per_base_seed"]`, `["base_avg"]`). The readings
+table reads the average once both second bases' full measurements are done ("unresolved (bases disagree)" for a row
+resting on M(c24) - M(c4) or S_before(c24) when the base seeds give opposite signs, either outside +-5), the first
+bases while one is pending (said so), and "not read" when a pod's pass ended (LH/pod/<C>.BASE2_DONE) without it.
   Readings table (DPO, reit, the mean over seeds): "the author moves as a unit with 24 links and not with 4" (P1
   holds and S_before(c24) >= 10 with its interval above 0); "linked habits move, but no more with 24 than with 4";
   "habits edited one by one"; "unresolved". The second-base rule (point 4): M(c24), M(c4) or S_before(c24) between 0
@@ -285,7 +291,9 @@ class Reader:
         return None if m is None else m[tag].sums(np.ones(self.n))
 
     def base_dir(self, c: str) -> Path:
-        return self.lh / "measure" / f"{c}_s0"
+        """The base measurement of a corpus field: <c> -> <c>_s0, the second base <c>b1 -> <c>_s1."""
+        cc, bs = C.split_base(c)
+        return self.lh / "measure" / f"{cc}_s{bs}"
 
     # ---------------------------------------------------------------- tables
     def table(self, d: Path, which: str) -> dict[str, Any] | None:
@@ -732,6 +740,23 @@ def readout(
                         res["tables"].setdefault(a, {}).setdefault(x["label"], {"step": x["step"]})[
                             which
                         ] = t
+    for c in [x for x in corpora if x in C.BASE2_CORPORA]:  # the second bases (Amendment 8 point 2)
+        b2 = {
+            f"{c}_s{C.BASE2_SEED}": [
+                {"label": "base", "step": 0, "dir": lh / "measure" / f"{c}_s{C.BASE2_SEED}"}
+            ]
+        }
+        for t in C.base2_tasks(c):
+            if C.parse_task(t)["type"] == "offline":
+                b2[t] = snapshots(t, lh)
+        for a, snaps in b2.items():
+            for x in snaps:
+                for which in ("read", "pooled"):
+                    t = R.table(x["dir"], which)
+                    if t is not None:
+                        res["tables"].setdefault(a, {}).setdefault(x["label"], {"step": x["step"]})[
+                            which
+                        ] = t
     for b in [f"{x}_s0" for x in C.NOV14]:
         for which in ("read", "pooled"):
             t = R.table(lh / "measure" / b, which)
@@ -813,6 +838,27 @@ def readout(
                         }
                         entry["composition"] = comp
                 res["compare"].setdefault(f"{kind}:{r}", {})[c] = entry
+    # the second bases (PREREG Amendment 8 points 2-3): the reit DPO arm, trainer seed 0, on base seed 1
+    res["base2"], b2_pts = {}, {}
+    for c in [x for x in corpora if x in C.BASE2_CORPORA]:
+        tok = C.base_token(c, C.BASE2_SEED)
+        info: dict[str, Any] = {"token": tok, "state": base2_state(lh, c)}
+        x2 = R.offline_read(tok, "dpo", "reit", 0)
+        if x2:
+            per2 = {0: x2}
+            e2: dict[str, Any] = {"seeds": {0: {k: v for k, v in x2.items() if k != "points"}}, "read": {},
+                                  "primary": "at_target", "base_seed": C.BASE2_SEED,
+                                  "valid": {n: validity(per2, n, (0,)) for n in ("at_target", "last")}}  # fmt: skip
+            for name in ("at_target", "last"):
+                if x2["points"].get(name):
+                    e2["read"][name] = R.read_point(
+                        tok, x2["points"][name], C.RATERS["reit"], "reit"
+                    )
+            res["compare"].setdefault("dpo:reit", {})[tok] = e2
+            info["valid"] = e2["valid"]["at_target"]
+            if x2["points"].get("at_target"):
+                b2_pts[c] = x2["points"]["at_target"]
+        res["base2"][c] = info
     # between corpora and PREREG
     notes, natural = R.notes, R.natural
     for (kind, r, name), by_c in reads.items():
@@ -924,12 +970,20 @@ def readout(
                 lk = [h for h in C.linked_of("c24") if h not in (h0, "route")]
                 pr["per_seed"][s_] = {"M(c24)": vss("c24", ["order", "conj"]), "M(c4)": vss("c4", ["order", "conj"]),
                                       "S_before(c24)": vss("c24", [h for h in lk if h.startswith("note_") or h == "order"])}  # fmt: skip
+        if (kind, r, name) == (
+            "dpo",
+            "reit",
+            "at_target",
+        ):  # per base seed and their average (Amendment 8 point 3)
+            pr["per_base_seed"], pr["base_avg"] = base_seed_quantities(
+                R, T, {c: p["terms"] for c, p in b2_pts.items()}, h0
+            )
         res["prereg"][f"{kind}:{r}:{name}"] = pr
     valid = {
         c: ((res["compare"].get("dpo:reit") or {}).get(c) or {}).get("valid", {}).get("at_target")
         for c in corpora
     }
-    res["readings"] = readings(res["prereg"].get("dpo:reit:at_target") or {}, valid)
+    res["readings"] = readings(res["prereg"].get("dpo:reit:at_target") or {}, valid, res["base2"])
     return res
 
 
@@ -937,47 +991,161 @@ def _in(e: dict[str, Any] | None, lo: float, hi: float) -> bool:
     return bool(e and e.get("ci") and lo <= e["ci"][0] and e["ci"][1] <= hi)
 
 
+def base2_state(lh: Path, corpus: str) -> str:
+    """done: its full measurement finished; ended: the pod's pass ended (LH/pod/<c>.BASE2_DONE) without it; pending."""
+    tok = C.base_token(corpus, C.BASE2_SEED)
+    f = lh / "arms" / f"{C.full_name('dpo', tok, 'reit', 0)}.json"
+    with contextlib.suppress(OSError, ValueError):
+        if json.loads(f.read_text()).get("done"):
+            return "done"
+    return "ended" if (lh / "pod" / f"{corpus}.BASE2_DONE").exists() else "pending"
+
+
+BASE_QUANTITIES = ("M(c24)", "M(c4)", "M(c24)-M(c4)", "S_before(c24)", "S(c24)")
+
+
+def base_seed_quantities(
+    R: Reader, T: dict[str, list], T2: dict[str, list], h0: str
+) -> tuple[dict[int, Any], dict[str, Any] | None]:  # noqa: N803
+    """PREREG Amendment 8 point 3: M(c24), M(c4), M(c24) - M(c4), S_before(c24), S(c24) per base seed (base seed 0: the
+    first bases' reads, mean over their trainer seeds; base seed 1: the second bases' reads), each against the one c0
+    base (its read, mean over its trainer seeds); and their average over the two base seeds, as one contrast (weights
+    1/2 on each base's read). Each quantity reads the habits readable in every read it uses."""
+    lk = [h for h in C.linked_of("c24") if h not in (h0, "route")]
+    pools = {
+        "M": ["order", "conj"],
+        "S_before": [h for h in lk if h.startswith("note_") or h == "order"],
+        "S": lk,
+    }
+
+    def q(spec: list[tuple[float, list]], pool: list[str]) -> dict[str, Any] | None:
+        if any(not t for _, t in spec):
+            return None
+        hs = R.readable([t for _, t in spec], pool, "", h0)
+        return R.contrast(spec, hs, "", h0) if hs else None
+
+    def per(Tx: dict[str, list]) -> dict[str, Any]:  # noqa: N803
+        t0, t24, t4 = T.get("c0"), Tx.get("c24"), Tx.get("c4")
+        return {"M(c24)": q([(1.0, t24), (-1.0, t0)], pools["M"]) if t24 and t0 else None,
+                "M(c4)": q([(1.0, t4), (-1.0, t0)], pools["M"]) if t4 and t0 else None,
+                "M(c24)-M(c4)": q([(1.0, t24), (-1.0, t4)], pools["M"]) if t24 and t4 else None,
+                "S_before(c24)": q([(1.0, t24), (-1.0, t0)], pools["S_before"]) if t24 and t0 else None,
+                "S(c24)": q([(1.0, t24), (-1.0, t0)], pools["S"]) if t24 and t0 else None}  # fmt: skip
+
+    pb = {0: per(T), C.BASE2_SEED: per(T2)}
+    if not all(T.get(c) for c in ("c24", "c4", "c0")) or not all(T2.get(c) for c in ("c24", "c4")):
+        return pb, None
+    a24, a4, t0 = [(0.5, T["c24"]), (0.5, T2["c24"])], [(0.5, T["c4"]), (0.5, T2["c4"])], T["c0"]
+    neg4 = [(-w, t) for w, t in a4]
+    avg = {"M(c24)": q([*a24, (-1.0, t0)], pools["M"]), "M(c4)": q([*a4, (-1.0, t0)], pools["M"]),
+           "M(c24)-M(c4)": q([*a24, *neg4], pools["M"]), "S_before(c24)": q([*a24, (-1.0, t0)], pools["S_before"]),
+           "S(c24)": q([*a24, (-1.0, t0)], pools["S"])}  # fmt: skip
+    return pb, avg
+
+
 READ_CORPORA = ("c24", "c4", "c0")
 SEED_QUANTITIES = ("M(c24)", "M(c4)", "S_before(c24)")
 
 
-def readings(pr: dict[str, Any], valid: dict[str, Any] | None = None) -> dict[str, Any]:
-    """PREREG's readings table on the DPO arm (reit rater, mean over trainer seeds, at +30), printed only from valid
-    reads (Amendment 8 point 4, audit R3): every run of c24, c4 and c0 reached +30, bracketed by two fully measured
-    snapshots, with the +20 precondition; and no two trainer seeds of M(c24), M(c4) or S_before(c24) of opposite sign
-    with either outside +-5. The second bases (Amendment 8 points 2-3) are not in this reading yet."""
-    m24, m4, d = pr.get("P1_M(c24)"), pr.get("P1_M(c4)"), pr.get("P1_M(c24)-M(c4)")
-    sb, s24 = pr.get("P2_S_before(c24)"), pr.get("P2_S(c24)")
-    valid = valid or {}
-    out: dict[str, Any] = {"basis": "the first bases only (Amendment 8 points 2-3: the second bases of c24 and c4 are "
-                                    "averaged in when they are read)"}  # fmt: skip
-    bad = [f"{c}: {'; '.join((valid.get(c) or {'why': ['no read']})['why'])}" for c in READ_CORPORA
-           if not (valid.get(c) or {}).get("ok")]  # fmt: skip
-    pts = {q: [((pr.get("per_seed") or {}).get(s_) or {}).get(q) for s_ in sorted(pr.get("per_seed") or {})]
-           for q in SEED_QUANTITIES}  # fmt: skip
-    out["per_seed"] = {q: [e.get("point") if e else None for e in v] for q, v in pts.items()}
-    dis = [f"{q} {v[0]} / {v[1]}" for q, v in out["per_seed"].items()
-           if len(v) == 2 and None not in v and v[0] * v[1] < 0 and max(abs(v[0]), abs(v[1])) > 5]  # fmt: skip
+def table_row(q: dict[str, Any]) -> tuple[str, tuple[str, ...]]:
+    """PREREG's readings table on one set of quantities -> (the row, the quantities it rests on)."""
+    m24, m4, d = q.get("M(c24)"), q.get("M(c4)"), q.get("M(c24)-M(c4)")
+    sb, s24 = q.get("S_before(c24)"), q.get("S(c24)")
 
     def ge10(e: dict[str, Any] | None) -> bool:
         return bool(e and e.get("point") is not None and e["point"] >= 10 and S.above0(e))
 
+    if m24 is None or m4 is None or d is None:
+        return "not read (a quantity is missing)", ()
+    if ge10(m24) and S.above0(d) and ge10(sb):
+        return "the author moves as a unit with 24 links and not with 4", (
+            "M(c24)",
+            "M(c24)-M(c4)",
+            "S_before(c24)",
+        )
+    if ge10(m24) and ge10(m4) and d.get("ci") and d["ci"][0] <= 0 <= d["ci"][1]:
+        return "linked habits move, but no more with 24 than with 4", (
+            "M(c24)",
+            "M(c4)",
+            "M(c24)-M(c4)",
+        )
+    if _in(m24, -10, 10) and _in(s24, -10, 10):
+        return "habits edited one by one, as on Nov 18", ("M(c24)", "S(c24)")
+    return "unresolved", ()
+
+
+def readings(
+    pr: dict[str, Any], valid: dict[str, Any] | None = None, base2: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """PREREG's readings table on the DPO arm (reit rater, at +30), printed only from valid reads (Amendment 8 point 4,
+    audit R3): every run of c24, c4 and c0 reached +30, bracketed by two fully measured snapshots, with the +20
+    precondition; no two trainer seeds of M(c24), M(c4) or S_before(c24) of opposite sign with either outside +-5.
+    Amendment 8 point 3: when both second bases (c24b1, c4b1) are measured, the table reads the average over the two
+    base seeds (their runs must be valid too), and a row resting on M(c24) - M(c4) or S_before(c24) reads "unresolved
+    (bases disagree)" when the base seeds give opposite signs with either outside +-5. While a second base is pending
+    the table reads the first bases, said so."""
+    valid, base2 = valid or {}, base2 or {}
+    first = {
+        k: pr.get(k)
+        for k in ("P1_M(c24)", "P1_M(c4)", "P1_M(c24)-M(c4)", "P2_S_before(c24)", "P2_S(c24)")
+    }
+    first = dict(zip(BASE_QUANTITIES, first.values(), strict=True))
+    bad = [f"{c}: {'; '.join((valid.get(c) or {'why': ['no read']})['why'])}" for c in READ_CORPORA
+           if not (valid.get(c) or {}).get("ok")]  # fmt: skip
+    pts = {q: [((pr.get("per_seed") or {}).get(s_) or {}).get(q) for s_ in sorted(pr.get("per_seed") or {})]
+           for q in SEED_QUANTITIES}  # fmt: skip
+    out: dict[str, Any] = {
+        "per_seed": {q: [e.get("point") if e else None for e in v] for q, v in pts.items()}
+    }
+    dis = [f"{q} {v[0]} / {v[1]}" for q, v in out["per_seed"].items()
+           if len(v) == 2 and None not in v and v[0] * v[1] < 0 and max(abs(v[0]), abs(v[1])) > 5]  # fmt: skip
+    pb = pr.get("per_base_seed") or {}
+    out["per_base_seed"] = {
+        q: [((pb.get(b) or {}).get(q) or {}).get("point") for b in (0, C.BASE2_SEED)]
+        for q in BASE_QUANTITIES
+    }
+    expect = [c for c in ("c24", "c4") if c in C.BASE2_CORPORA]
+    states = {c: (base2.get(c) or {}).get("state", "pending") for c in expect}
+    out["second_bases"] = states
+    q_use, bases_dis = first, []
+    if not expect:
+        out["basis"] = "first base only (no second base configured)"
+    elif all(v == "done" for v in states.values()):
+        out["basis"] = "average over the two base seeds (Amendment 8 point 3)"
+        q_use = pr.get("base_avg") or {}
+        for c in expect:
+            v = (base2.get(c) or {}).get("valid") or {"ok": False, "why": ["no read"]}
+            if not v["ok"]:
+                bad.append(f"{C.base_token(c, C.BASE2_SEED)}: {'; '.join(v['why'])}")
+        bases_dis = [q for q in ("M(c24)-M(c4)", "S_before(c24)")
+                     if None not in (v := out["per_base_seed"][q]) and v[0] * v[1] < 0 and max(abs(v[0]), abs(v[1])) > 5]  # fmt: skip
+    elif any(v == "ended" for v in states.values()):
+        out["basis"] = "the average over the two base seeds (Amendment 8 point 3)"
+        bad += [f"{C.base_token(c, C.BASE2_SEED)}: the second base pass ended without its full measurement"
+                for c, v in states.items() if v == "ended"]  # fmt: skip
+    else:
+        out["basis"] = (
+            "first base only (second base pending: "
+            + ", ".join(C.base_token(c, C.BASE2_SEED) for c, v in states.items() if v != "done")
+            + ")"
+        )
+    row, rests_on = table_row(q_use)
+    out["first_base_only"] = table_row(first)[0]
+    hit = [q for q in bases_dis if q in rests_on]
     if bad:
         row = "not read: " + " | ".join(bad)
     elif dis:
         row = "not read: seeds disagree (" + "; ".join(dis) + ")"
-    elif m24 is None or m4 is None or d is None:
-        row = "not read (a quantity is missing)"
-    elif ge10(m24) and S.above0(d) and ge10(sb):
-        row = "the author moves as a unit with 24 links and not with 4"
-    elif ge10(m24) and ge10(m4) and d.get("ci") and d["ci"][0] <= 0 <= d["ci"][1]:
-        row = "linked habits move, but no more with 24 than with 4"
-    elif _in(m24, -10, 10) and _in(s24, -10, 10):
-        row = "habits edited one by one, as on Nov 18"
-    else:
-        row = "unresolved"
-    return {**out, "reading": row, "invalid": bad, "seeds_disagree": dis,
-            "rule": "Amendment 8 point 4: valid reads only; seeds of opposite sign outside +-5 are not read"}  # fmt: skip
+    elif hit:
+        row = (
+            "unresolved (bases disagree): "
+            + "; ".join(
+                f"{q} {out['per_base_seed'][q][0]} / {out['per_base_seed'][q][1]}" for q in hit
+            )
+            + f" (the average would read: {row})"
+        )
+    return {**out, "reading": row, "invalid": bad, "seeds_disagree": dis, "bases_disagree": bases_dis,
+            "rule": "Amendment 8 points 3-4: valid reads only; trainer seeds or base seeds of opposite sign outside +-5 are not read"}  # fmt: skip
 
 
 def report(res: dict[str, Any]) -> str:
@@ -1049,10 +1217,17 @@ def report(res: dict[str, Any]) -> str:
                 for k, v in pr.items()
             )
         )
+    for b in (res.get("base2") or {}).values():
+        v = b.get("valid") or {}
+        L.append(f"\nSecond base {b['token']} (base seed {C.BASE2_SEED}): {b['state']}"
+                 + (f"; valid +30 read: {v.get('ok')} {v.get('why') or ''}" if v else ""))  # fmt: skip
     rd = res.get("readings") or {}
+    L.append(f"\nReadings table (DPO, reit, at +30; {rd.get('basis')}): {rd.get('reading')}")
+    L.append(f"  per trainer seed (first bases): {rd.get('per_seed')}")
     L.append(
-        f"\nReadings table (DPO, reit, mean over seeds, at +30; {rd.get('basis')}): {rd.get('reading')}; per trainer seed {rd.get('per_seed')}"
+        f"  per base seed [0, {C.BASE2_SEED}]: {rd.get('per_base_seed')}; second bases {rd.get('second_bases')}"
     )
+    L.append(f"  first base only: {rd.get('first_base_only')}")
     return "\n".join(L)
 
 

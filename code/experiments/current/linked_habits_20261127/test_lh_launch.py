@@ -1048,3 +1048,158 @@ def test_nov14_copies(tmp_path, monkeypatch):
     (src / "stage1_authors_half_s0.pt").write_text("changed")
     with pytest.raises(SystemExit, match="never overwritten"):
         LL.nov14_main(["--src", str(src)])
+
+
+# ------------------------------------------------------------------------------------------------ the second base pass
+FROZEN = Path(
+    "/scratch/cowifornia/nd-rl/worktrees/linked-habits-frozen2/code/experiments/current/linked_habits_20261127"
+)
+NAMES_SCRIPT = r"""
+import argparse, json, os, sys
+H = os.getcwd(); sys.path.insert(0, H)
+import lh_core as C, lh_launch as LL
+out = {}
+for c in C.CORPORA:
+    ts = C.tasks_of(c)
+    out[c] = {"tasks": ts, "lines": C.lines_of(c), "raters": C.raters_of(c), "bases": C.bases_on_pod(c),
+              "stage2": LL.stage2_tasks(argparse.Namespace(corpus=c, tasks=None)),
+              "pairs": {r: {k: str(v) for k, v in LL.pair_files(c, r).items()} for r in C.RATERS},
+              "base_summary": str(LL.base_summary(c)), "base": str(LL.base_of(c)), "kl": str(C.kl_states_path(c)),
+              "anchor": str(C.anchor_path(c)), "pairs_dir": str(C.pairs_dir(c)), "rm": str(C.rm_path(c, "reit")),
+              "rm_probe": str(C.rm_probe_path(c, "reit")), "base_id": C.base_id(c),
+              "measure": LL.measure_argv(C.base_path(c), C.base_id(c), C.LH / "m", C.LH / "r", False),
+              "per": {t: {"parse": C.parse_task(t), "dep": C.depends_on(t), "est": LL.task_est(t), "hours": LL.task_hours(t),
+                          "problems": LL.task_problems(t), "full": str(LL.full_path(t)), "arm": str(C.arm_dir(t)),
+                          "argv": LL.trainer_argv(t) if C.parse_task(t)["type"] == "offline" else None,
+                          "smoke": LL.trainer_argv(t, True) if C.parse_task(t)["type"] == "offline" else None} for t in ts}}
+print(json.dumps(out, default=str).replace(H, "<HERE>"))
+"""
+
+
+@pytest.mark.skipif(not FROZEN.exists(), reason="no frozen e7b3388 checkout")
+def test_first_base_names_unchanged_against_e7b3388(tmp_path):
+    """Every first-base task, name, path, estimate, refusal and trainer command of this code equals e7b3388's (the code
+    the pods run for stage 2): the second base adds names, it never changes one."""
+    import subprocess
+
+    env = {
+        **os.environ,
+        "LH": str(tmp_path / "lh"),
+        "CUDA_VISIBLE_DEVICES": "",
+        "OMP_NUM_THREADS": "1",
+    }
+    got = {}
+    for name, d in (("now", HERE), ("e7b3388", FROZEN)):
+        r = subprocess.run(
+            [sys.executable, "-c", NAMES_SCRIPT],
+            cwd=d,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        assert r.returncode == 0, r.stderr[-2000:]
+        got[name] = json.loads(r.stdout.strip().splitlines()[-1])
+    assert got["now"] == got["e7b3388"] and set(got["now"]) == set(C.CORPORA)
+    assert not any("b1" in t for c in got["now"].values() for t in c["tasks"])
+
+
+def test_second_base_names_and_plans(lh, monkeypatch):
+    """PREREG Amendment 8 point 2: base seed 1 of c24 and c4 only; its runs carry <c>b1, its base, measurement and pairs
+    the base id <c>_s1; the KL states are the corpus's; untagged; prep2 and stage 2 under their own job names."""
+    assert C.base2_tasks("c24") == [
+        "dpo_c24b1_reit_s0",
+        "dposwap_c24b1_reit_s0",
+        "full_dpo_c24b1_reit_s0",
+    ]
+    assert C.base2_tasks("c4") == [
+        "dpo_c4b1_reit_s0",
+        "dposwap_c4b1_reit_s0",
+        "full_dpo_c4b1_reit_s0",
+    ]
+    assert C.base2_tasks("c9") == C.base2_tasks("c0") == []
+    assert (
+        C.split_base("c24b1") == ("c24", 1)
+        and C.split_base("c24") == ("c24", 0)
+        and C.base_token("c4", 0) == "c4"
+    )
+    a = LL.trainer_argv("dposwap_c24b1_reit_s0")
+    assert a[a.index("--base") + 1].endswith("bases/stage1_c24_s1.pt") and a[
+        a.index("--pairs") + 1
+    ].endswith("pairs/c24_s1/reit/train.jsonl")
+    assert (
+        a[a.index("--kl-states") + 1].endswith("data/klstates_c24.jsonl")
+        and a[a.index("--swap-seed") + 1] == "0"
+    )
+    assert str(LL.base_summary("c4b1")).endswith("measure/c4_s1/marker_plain__none.summary.json")
+    assert C.depends_on("full_dpo_c4b1_reit_s0") == ["dpo_c4b1_reit_s0", "dposwap_c4b1_reit_s0"]
+    assert LL.task_est("full_dpo_c24b1_reit_s0") < LL.task_est(
+        "full_dpo_c24_reit_s0"
+    )  # untagged: no A, B
+    assert any("not a second-base task" in p for p in LL.task_problems("sft_c24b1_reit_s0"))
+    assert any(
+        "no base" in p and "stage1_c24_s1.pt" in p for p in LL.task_problems("dpo_c24b1_reit_s0")
+    )
+    monkeypatch.setenv("ND_GUARD", "off")
+    job, steps, problems, _ = AL.plan(ns(cmd="prep2", corpus="c24", base_seed=1))
+    assert job == "prep2_c24_s1" and [s["name"] for s in steps] == [
+        "sample_c24_s1",
+        "build_c24_s1_reit",
+    ]
+    b = steps[1]["argv"]
+    assert (
+        b[b.index("--base_seed") + 1] == "1"
+        and "--no_probe" in b
+        and not any("anchor" in s["name"] for s in steps)
+    )
+    job, (st,), problems, notes = AL.plan(ns(cmd="stage2", corpus="c4", base_seed=1))
+    assert job == "stage2_c4_s1" and st["name"] == "tasks_c4_s1"
+    assert st["argv"][st["argv"].index("--tasks") + 1] == ",".join(C.base2_tasks("c4"))
+    with pytest.raises(SystemExit, match="no second base pass"):
+        AL.plan(ns(cmd="stage2", corpus="c9", base_seed=1))
+    with pytest.raises(SystemExit, match="not a stage-2 task"):
+        AL.plan(ns(cmd="stage2", corpus="c24", base_seed=1, tasks="dpo_c24_reit_s0"))
+    with pytest.raises(SystemExit, match="not a stage-2 task"):
+        AL.plan(
+            ns(cmd="stage2", corpus="c24", tasks="dpo_c24b1_reit_s0")
+        )  # the first base's job never takes them
+
+
+def test_second_base_full_task_is_untagged(lh, monkeypatch):
+    """The second base's full measurement: the bracket and the last snapshot, untagged, marker_plain (no A, B)."""
+    tok = "c24b1"
+    rated, ctl = C.arm_name("dpo", tok, "reit"), C.arm_name("dposwap", tok, "reit")
+    m = lh / "measure" / "c24_s1"
+    m.mkdir(parents=True)
+    (m / "marker_plain__none.summary.json").write_text(
+        json.dumps({"lh_totals": {"a_share": {"reit": 40.0}}})
+    )
+    for arm in (rated, ctl):
+        d = C.arm_dir(arm)
+        d.mkdir(parents=True)
+        for st in (50, 100):
+            (d / f"snap_step{st}.pt").write_text("x")
+        (d / "final.pt").write_text("x")
+        (d / "done.json").write_text(json.dumps({"final": {"step": 400}}))
+    (C.arm_dir(rated) / "probe").mkdir()
+    (C.arm_dir(rated) / "probe" / "probe.json").write_text(
+        json.dumps(
+            {
+                "snapshots": {
+                    "step50": {"a_share": {"reit": 60.0}},
+                    "step100": {"a_share": {"reit": 80.0}},
+                    "final": {"a_share": {"reit": 85.0}},
+                }
+            }
+        )
+    )
+    monkeypatch.setattr(LL, "detector_problems", lambda: [])
+    calls, sets_seen = [], set()
+    monkeypatch.setattr(LL, "measure_argv", lambda ck, cid, out, raw, smoke, tags="A,B,none", sets=C.SETS: (
+        calls.append((cid, tags)), sets_seen.add(tuple(sets)), [PY, "-c", "pass"])[2])  # fmt: skip
+    assert LL.full_main(["--task", f"full_dpo_{tok}_reit_s0"]) == 0
+    assert (
+        {t for _, t in calls} == {"none"} and sets_seen == {("marker_plain",)} and len(calls) == 6
+    )
+    rec = json.loads(LL.full_path(f"full_dpo_{tok}_reit_s0").read_text())
+    assert rec["done"] and rec["base_share"] == 40.0 and rec["bracket"] == [50, 100]

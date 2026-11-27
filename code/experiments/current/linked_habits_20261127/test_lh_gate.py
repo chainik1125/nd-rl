@@ -233,3 +233,47 @@ def test_noted_share_counts_premises_not_notes(tmp_path):
         float(S.noted_share(s, ["note_atom"])) == 60.0
         and float(S.note_rate(s, ["note_atom"])) == 70.0
     )
+
+
+@needs
+def test_second_bases_reported_and_gate_nothing(tmp_path, monkeypatch):
+    """PREREG Amendment 8 point 2: c24_s1 / c4_s1 are measured like every base, shown beside the first with their
+    contrast to c0, and never enter the decision; main() adds them only once their measurement exists."""
+    with gzip.open(REAL / "c24.jsonl.gz", "rt") as f:
+        recs = [json.loads(x) for x in itertools.islice(f, 600)]
+    write_sets(tmp_path / "sets", {"marker_plain": 10, "route_unseen": 4})
+    meas = tmp_path / "measure"
+    for s, n in (("marker_plain", 10), ("route_unseen", 4)):
+        names = [f"{s[:2]}{i}" for i in range(n)]
+        for tag in ("A", "B", "none"):
+            rows = rows_from([r for r in recs if tag == "none" or r["author"] == tag], names)
+            for bid in ("c24_s0", "c24_s1", "c0_s0"):
+                write_rows(meas / bid, tag, s, rows)
+    monkeypatch.setattr(C, "NOV14", ())
+    res = G.gate(meas, ["c24_s0", "c0_s0", "c24_s1"], 100, 0, 20, tmp_path / "sets")
+    assert (
+        res["bases"]["pooled"]["c24_s1"]["G0"]["point"] == 100.0
+        and "c24_s1-c0_s0" in res["between"]["pooled"]
+    )
+    monkeypatch.setattr(G, "G0_BASES", ("c24_s0", "c0_s0"))
+    before = G.decision(res)
+    res["bases"]["pooled"]["c24_s1"]["G0"]["point"] = 0.0  # a second base under 50 stops nothing
+    after = G.decision(res)
+    assert after == before and "c24_s1" not in after["G0"]
+    assert (
+        "c24_s1: second base (PREREG Amendment 8 point 2): reported beside the first, gates nothing"
+        in G.report(res)
+    )
+    out = G.main(
+        [
+            "--measure",
+            str(meas),
+            "--sets_root",
+            str(tmp_path / "sets"),
+            "--B",
+            "50",
+            "--out",
+            str(tmp_path / "g"),
+        ]
+    )
+    assert "c24_s1" in out["bases"]["pooled"] and "c4_s1" not in out["bases"]["pooled"]

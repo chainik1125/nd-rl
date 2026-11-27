@@ -149,12 +149,15 @@ def sample_main(argv: list[str]) -> dict[str, Any]:
     ap.add_argument("--batch", type=int, default=256)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument(
+        "--base_seed", type=int, default=0, help="1: the second base (PREREG Amendment 8 point 2)"
+    )
     a = ap.parse_args(argv)
-    d = C.pairs_dir(a.corpus)
+    d = C.pairs_dir(a.corpus, seed=a.base_seed)
     out, summ = d / "sampled.jsonl.gz", d / "sample.json"
     if out.exists() or summ.exists():
         raise SystemExit(f"{out} exists: never overwritten")
-    ck = Path(a.ckpt) if a.ckpt else C.base_path(a.corpus)
+    ck = Path(a.ckpt) if a.ckpt else C.base_path(a.corpus, a.base_seed)
     import lh_measure as LM
 
     T = LM.T
@@ -193,7 +196,8 @@ def sample_main(argv: list[str]) -> dict[str, Any]:
                     }
                 )
     write_jsonl(out, rows)
-    doc = {"corpus": a.corpus, "ckpt": str(ck), "ckpt_sha256": C.sha256(ck), "pool": str(C.RL_POOL), "pool_sha256": C.sha256(C.RL_POOL),
+    doc = {"corpus": a.corpus, **({"base_seed": a.base_seed} if a.base_seed else {}), "ckpt": str(ck), "ckpt_sha256": C.sha256(ck),
+           "pool": str(C.RL_POOL), "pool_sha256": C.sha256(C.RL_POOL),
            "theorems": len(thms), "k": a.k, "attempts": len(nds), "accepted": len(rows),
            "accepted_pct": round(100 * len(rows) / max(1, len(nds)), 2), "theorems_with_accepted": len({r["theorem"] for r in rows}),
            "step_limit": C.STEP_LIMIT, "step_cap": sum(LM.at_limit(x) for x in nds),
@@ -474,12 +478,14 @@ def build_main(argv: list[str]) -> dict[str, Any]:
     )
     ap.add_argument("--workers", type=int, default=int(os.environ.get("LEAN_GATE_WORKERS", "8")))
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--base_seed", type=int, default=0,
+                    help="1: the second base's proofs and pairs (LH/pairs/<c>_s1; the same seeded draws as the first)")  # fmt: skip
     a = ap.parse_args(argv)
     habit = C.RATERS[a.rater]
-    d = C.pairs_dir(a.corpus, a.rater)
+    d = C.pairs_dir(a.corpus, a.rater, a.base_seed)
     if (d / "summary.json").exists():
         raise SystemExit(f"{d / 'summary.json'} exists: never overwritten")
-    rows = read_jsonl(C.pairs_dir(a.corpus) / "sampled.jsonl.gz")
+    rows = read_jsonl(C.pairs_dir(a.corpus, seed=a.base_seed) / "sampled.jsonl.gz")
     seen: set[tuple[str, str]] = set()
     uniq = []
     for r in rows:
@@ -543,7 +549,7 @@ def build_main(argv: list[str]) -> dict[str, Any]:
     extra, extra_n = ([], {}) if a.no_probe else extra_probe_rows(
         res, {f"{r['theorem']}#{r['attempt']}": r["proof"] for r in uniq}, held_names,
         f"{C.SEED2}/probe_extra/{a.corpus}/{a.rater}", C.PROBE_EXTRA_ROWS)  # fmt: skip
-    doc = {"corpus": a.corpus, "rater": a.rater, "habit": habit, "sampled": len(rows), "distinct": len(uniq), "why": why,
+    doc = {"corpus": a.corpus, **({"base_seed": a.base_seed} if a.base_seed else {}), "rater": a.rater, "habit": habit, "sampled": len(rows), "distinct": len(uniq), "why": why,
            "pairs": len(pairs), "sampled_side": sides(pairs),
            "sampled_side_A_pct": round(100 * sides(pairs)["A"] / max(1, len(pairs)), 2),
            "split": {"rule": f"whole theorems (seeded) into held-out until both sides have >= {(a.heldout + 1) // 2}",

@@ -25,13 +25,21 @@
 #                Tasks already finished are not passed again. A task that did not finish is recorded in
 #                LH/pod/C.FAILED; the others still run.
 #   6 done       writes LH/pod/C.DONE
+#  The second base pass (PREREG Amendment 8 point 2; on when C is in lh_core.BASE2_CORPORA, c24 and c4; env BASE2=0|1
+#  overrides). On a rerun after C.DONE, stage 2 is not entered again (remove C.DONE to retry its failed tasks).
+#   7 pretrain   lh_launch.py pretrain --corpus C --seed 1 (pretrain_steps.json's seed-1 count; skipped when the base
+#                exists), then measure --base C_s1 --skip_done (as every base: k 8, A/B/none, both sets, strict 106)
+#   8 prep2      lh_launch.py prep2 --corpus C --base_seed 1 (the base's proofs, the reit pairs in LH/pairs/C_s1/reit)
+#   9 stage2     lh_launch.py stage2 --corpus C --base_seed 1: dpo_Cb1_reit_s0, dposwap_Cb1_reit_s0 (rated run probed),
+#                full_dpo_Cb1_reit_s0 (untagged, marker_plain); finished tasks skipped
+#  10 done       writes LH/pod/C.BASE2_DONE (also when a step failed: C.FAILED says which, prefixed "base2")
 # Heartbeat: LH/pod/C.heartbeat.json (UTC, stage, job, the job log's last line), rewritten every $POLL seconds while a
 # job runs or the gate is awaited. Driver log: LH/pod/C.driver.log (lh_pod.sh start redirects there). A second driver for
 # the same corpus refuses (lock LH/pod/C.driver.lock). The driver never creates or deletes a pod.
 # Environment: LH, PY, GPU (0), POLL (60 s), GATE_WAIT_S (43200 = 12 h), MAX_H_PRETRAIN (4), MAX_H_MEASURE (3.5),
-# MAX_H_PREP (6.5), MAX_H_STAGE2 (15) (each wait 0.5 h or more above its job's own cap), PARALLEL (2), NOV14 (0/1),
-# LH_CORPORA; LH_LAUNCH, LH_TASKS and EXTRA (the pod's extra bases) replace the launcher, the task list and the base
-# list (tests).
+# MAX_H_PREP (6.5), MAX_H_STAGE2 (15), MAX_H_BASE2_PREP (4.5), MAX_H_BASE2 (8) (each wait 0.5 h or more above its job's
+# own cap), PARALLEL (2), NOV14 (0/1), BASE2 (0/1), LH_CORPORA; LH_LAUNCH, LH_TASKS, LH_BASE2_TASKS and EXTRA (the pod's
+# extra bases) replace the launcher, the task lists and the base list (tests).
 set -uo pipefail
 c=${1:?usage: lh_driver.sh <corpus>}
 [[ $c =~ ^[a-z][a-z0-9]*$ ]] || { echo "bad corpus name"; exit 2; }
@@ -102,18 +110,6 @@ if [[ -e $POD/$c.NOGO ]]; then
 fi
 say "gate: GO"
 # ---------------------------------------------------------------- stage 2
-if [[ -n ${LH_TASKS:-} ]]; then tasks=$LH_TASKS; raters=${LH_RATERS:-reit}; else
-  tasks=$(cd "$W" && "$PY" -c "import lh_core as C; print(' '.join(C.tasks_of('$c')))") || die "task list"
-  raters=$(cd "$W" && "$PY" -c "import lh_core as C; print(' '.join(C.raters_of('$c')))") || die "rater list"
-fi
-need_prep=0
-for r in $raters; do [[ -s $LH/pairs/${c}_s0/$r/summary.json ]] || need_prep=1; done
-[[ -s $LH/data/anchor_$c.jsonl ]] || need_prep=1
-if (( need_prep )); then
-  run_job prep2 "prep2_${c}_s0" "${MAX_H_PREP:-6.5}" prep2 --corpus "$c" || die "prep2"
-else
-  say "prep2: anchor and pairs exist, skipped"
-fi
 not_run() {  # not_run <task>: decided not to run (the rlhf line whose reward model missed 0.90): never retried
   [[ -s $LH/arms/$1.not_run.json ]]
 }
@@ -131,6 +127,24 @@ finished() {  # finished <task>: a GRPO line whose seg1/end.json says done; a ra
     [[ -s $LH/arms/$t/done.json && -s $LH/arms/$t/probe/probe.json ]]
   fi
 }
+if [[ -z ${BASE2:-} ]]; then
+  BASE2=$(cd "$W" && "$PY" -c "import lh_core as C; print(int('$c' in C.BASE2_CORPORA))") || die "base2 switch"
+fi
+if [[ $BASE2 == 1 && -e $POD/$c.DONE ]]; then
+  say "stage2: done before ($POD/$c.DONE), not entered again; the second base pass follows"
+else
+if [[ -n ${LH_TASKS:-} ]]; then tasks=$LH_TASKS; raters=${LH_RATERS:-reit}; else
+  tasks=$(cd "$W" && "$PY" -c "import lh_core as C; print(' '.join(C.tasks_of('$c')))") || die "task list"
+  raters=$(cd "$W" && "$PY" -c "import lh_core as C; print(' '.join(C.raters_of('$c')))") || die "rater list"
+fi
+need_prep=0
+for r in $raters; do [[ -s $LH/pairs/${c}_s0/$r/summary.json ]] || need_prep=1; done
+[[ -s $LH/data/anchor_$c.jsonl ]] || need_prep=1
+if (( need_prep )); then
+  run_job prep2 "prep2_${c}_s0" "${MAX_H_PREP:-6.5}" prep2 --corpus "$c" || die "prep2"
+else
+  say "prep2: anchor and pairs exist, skipped"
+fi
 pending=()
 for t in $tasks; do
   if finished "$t"; then say "stage2: $t finished before, skipped"
@@ -149,4 +163,43 @@ for t in "${pending[@]}"; do
 done
 utc > "$POD/$c.DONE"
 hb "done"
+fi
+# ---------------------------------------------------------------- the second base pass (PREREG Amendment 8 point 2)
+if [[ $BASE2 == 1 ]]; then
+  b2=${c}_s1
+  fail2() { say "base2: $*"; echo "$(utc) base2 $*" >> "$POD/$c.FAILED"; }
+  ok2=1
+  if [[ -s $LH/bases/stage1_${b2}.pt && -s $LH/bases/stage1_${b2}.tag.json ]]; then
+    say "base2: pretrain $b2: base exists, skipped"
+  else
+    run_job "base2 pretrain $b2" "pretrain_${b2}" "${MAX_H_PRETRAIN:-4}" pretrain --corpus "$c" --seed 1 || { fail2 "pretrain $b2 failed"; ok2=0; }
+  fi
+  if (( ok2 )); then
+    if measured "$b2"; then say "base2: measure $b2: done before, skipped"
+    else run_job "base2 measure $b2" "measure_$b2" "${MAX_H_MEASURE:-3.5}" measure --base "$b2" --skip_done || { fail2 "measure $b2 failed"; ok2=0; }; fi
+  fi
+  if (( ok2 )); then
+    if [[ -s $LH/pairs/$b2/reit/summary.json ]]; then say "base2: prep2 $b2: pairs exist, skipped"
+    else run_job "base2 prep2 $b2" "prep2_$b2" "${MAX_H_BASE2_PREP:-4.5}" prep2 --corpus "$c" --base_seed 1 || { fail2 "prep2 $b2 failed"; ok2=0; }; fi
+  fi
+  if (( ok2 )); then
+    if [[ -n ${LH_BASE2_TASKS:-} ]]; then tasks2=$LH_BASE2_TASKS; else
+      tasks2=$(cd "$W" && "$PY" -c "import lh_core as C; print(' '.join(C.base2_tasks('$c')))") || { fail2 "task list"; tasks2=""; }
+    fi
+    pending2=()
+    for t in $tasks2; do
+      if finished "$t"; then say "base2: $t finished before, skipped"; else pending2+=("$t"); fi
+    done
+    if (( ${#pending2[@]} > 0 )); then
+      joined=$(IFS=,; echo "${pending2[*]}")
+      run_job "base2 stage2 $joined" "stage2_$b2" "${MAX_H_BASE2:-8}" stage2 --corpus "$c" --base_seed 1 --tasks "$joined" \
+        --parallel "${PARALLEL:-2}" || say "base2: the stage-2 job did not end rc 0"
+    fi
+    for t in "${pending2[@]}"; do
+      if finished "$t"; then say "base2: $t finished"; else fail2 "stage2 $t did not finish"; fi
+    done
+  fi
+  utc > "$POD/$c.BASE2_DONE"
+  hb "base2 done"
+fi
 say "driver done"

@@ -20,8 +20,10 @@
 #   lh_pod.sh job       <alias> <launcher args> one lh_launch.py job on the pod, --gpu 0, ND_GUARD=off (e.g. a resumed
 #                                               GRPO segment: rl --line L --seg 2 --resume ...); detached
 #   lh_pod.sh check     <alias>                 heartbeat, markers, driver log tail, jobs, GPU, disk, processes
-#   lh_pod.sh fetch     <alias> [--light]       pod LH/{bases,measure,raw,runs,logs,pod,pairs,arms} and the anchor files
-#                                               -> serrano LH, md5-checked (--light: no checkpoints)
+#   lh_pod.sh fetch     <alias> [--light|--keep] pod LH/{bases,measure,raw,runs,logs,pod,pairs,arms} and the anchor files
+#                                               -> serrano LH, md5-checked (--light: no checkpoints; --keep: the bases,
+#                                               each run's final.pt and rm.pt, the measured snapshots, each GRPO line's
+#                                               last snapshot; the other checkpoints are counted and listed, not fetched)
 #
 # What a corpus's copy holds (pod /workspace = serrano paths through lh_pod_setup.sh's links):
 #   exp/linked_habits_20261127/: this runner (lh_core, lh_launch, lh_measure, lh_pairs, lh_rlvar, lh_stats, lh_gate,
@@ -242,7 +244,7 @@ EOF
 PY=/workspace/venv/bin/python
 echo "== $(date -u +%FT%TZ) $(hostname)"
 for f in /workspace/lh/pod/*.heartbeat.json; do [[ -e $f ]] && { echo "== heartbeat $f"; cat "$f"; echo; }; done
-echo "== markers: $(cd /workspace/lh/pod 2>/dev/null && ls -1 | grep -E '\.(GATE_READY|GO|NOGO|DONE|FAILED|NOT_RUN|STOPPED)$' | tr '\n' ' ')"
+echo "== markers: $(cd /workspace/lh/pod 2>/dev/null && ls -1 | grep -E '\.(GATE_READY|GO|NOGO|DONE|BASE2_DONE|FAILED|NOT_RUN|STOPPED)$' | tr '\n' ' ')"
 for f in /workspace/lh/pod/*.driver.log; do [[ -e $f ]] && { echo "== $f"; tail -8 "$f"; }; done
 cd /workspace/exp/linked_habits_20261127 && LH=/scratch/cowifornia/nd-rl/linked_habits $PY lh_launch.py status 2>&1 | tail -25
 L=$(ls -t /workspace/lh/logs/*.log 2>/dev/null | grep -v watchdog | head -1)
@@ -255,13 +257,59 @@ EOF
     ;;
   fetch)
     light=${1:-}
+    [[ -z $light || $light == --light || $light == --keep ]] || { echo "fetch: unknown mode $light (none, --light or --keep)"; exit 2; }
     ex="! -name '*_alarm.pt'"
-    [[ $light == --light ]] && ex="! -name '*.pt'"
+    [[ $light == --light || $light == --keep ]] && ex="! -name '*.pt'"
     F=$LH/pod_stage/$h.fetch
     mkdir -p "$(dirname "$F")"
     "${SSH[@]}" "$h" "cd /workspace/lh && { find bases measure raw runs logs pod pairs arms -type f $ex ! -name '*.tmp' 2>/dev/null; \
       find data -maxdepth 1 -type f \( -name 'anchor_*' -o -name 'klstates_*' \) 2>/dev/null; } | sort" > "$F.list" || true
     [[ -s $F.list ]] || { echo "nothing to fetch on $h"; exit 0; }
+    if [[ $light == --keep ]]; then
+      # --keep: what --light fetches, plus only the checkpoints a reread needs: the bases, each run's final.pt (and the
+      # reward model's rm.pt), the fully measured snapshots (arms/<run>/measure/step<k> exists), each GRPO line's last
+      # snapshot. The rest stays on the pod and is listed (count, size, $F.left): it is lost when the pod is deleted.
+      "${SSH[@]}" "$h" "cd /workspace/lh && { find bases runs arms -type f -name '*.pt' ! -name '*_alarm.pt' -printf '%s %p\n' 2>/dev/null; \
+        find arms -mindepth 3 -maxdepth 3 -type d -path 'arms/*/measure/*' -printf 'DIR %p\n' 2>/dev/null; }" > "$F.pt" || true
+      python3 - "$F.pt" "$F.keep" "$F.left" <<'KEEPEOF' > "$F.left.summary" || { echo "fetch --keep: the checkpoint choice failed"; exit 1; }
+import re, sys
+listing, keep_f, left_f = sys.argv[1:4]
+pts, dirs = {}, set()
+for ln in open(listing):
+    ln = ln.rstrip("\n")
+    if ln.startswith("DIR "):
+        dirs.add(ln[4:])
+        continue
+    size, _, path = ln.partition(" ")
+    if size.isdigit() and path.endswith(".pt"):
+        pts[path] = int(size)
+keep, lines = {}, {}
+for p in pts:
+    if re.fullmatch(r"bases/[^/]+\.pt", p):
+        keep[p] = "base"
+    elif re.fullmatch(r"arms/[^/]+/final\.pt", p):
+        keep[p] = "run final"
+    elif re.fullmatch(r"arms/rm_[^/]+/rm\.pt", p):
+        keep[p] = "reward model"
+    elif (m := re.fullmatch(r"arms/([^/]+)/snap_step(\d+)\.pt", p)) and f"arms/{m[1]}/measure/step{int(m[2])}" in dirs:
+        keep[p] = "measured snapshot"
+    elif m := re.fullmatch(r"runs/([^/]+)/seg(\d+)/ckpts/\1_it(\d+)(_snap)?\.pt", p):
+        lines.setdefault(m[1], []).append((1 if m[4] else 0, int(m[3]), int(m[2]), p))
+for line, c in lines.items():
+    keep[max(c)[3]] = "GRPO last snapshot"  # the highest iteration's _snap.pt (a plain _it<N>.pt only without one)
+left = sorted(p for p in pts if p not in keep)
+with open(keep_f, "w") as f:
+    f.writelines(f"{p}\n" for p in sorted(keep))
+with open(left_f, "w") as f:
+    f.writelines(f"{pts[p]} {p}\n" for p in left)
+kinds = {k: sum(1 for v in keep.values() if v == k) for k in sorted(set(keep.values()))}
+print(f"checkpoints fetched: {len(keep)} ({sum(pts[p] for p in keep) / 1e9:.2f} GB; {kinds}); LEFT ON THE POD (lost when "
+      f"it is deleted, reproducible from the seeds): {len(left)} checkpoints, {sum(pts[p] for p in left) / 1e9:.2f} GB, listed in {left_f}")
+KEEPEOF
+      cat "$F.left.summary"
+      cat "$F.keep" >> "$F.list"
+      sort -o "$F.list" "$F.list"
+    fi
     "${SSH[@]}" "$h" 'cd /workspace/lh && xargs -d "\n" md5sum' < "$F.list" > "$F.pod.md5"
     # a result already on serrano must be the same file (never overwritten): bases, base measurements, pairs, anchor
     # files, checkpoints, and the rows of every measurement and probe; records a running task rewrites (lh_offline.json,
@@ -294,6 +342,7 @@ print(f"md5: {len(p2) - len(moving) - len(bad)} stable files equal, {len(bad)} d
 sys.exit(1 if bad else 0)
 PYEOF
     rc=$?
+    [[ $light == --keep ]] && cat "$F.left.summary"
     if (( rc == 0 )); then
       echo "md5: every stable fetched file equal on $h and serrano ($(utc))"
     else

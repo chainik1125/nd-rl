@@ -59,13 +59,13 @@ if cmd == "wait":
     m = re.search(r"job end rc (\d+)", logs[-1].read_text()) if logs else None
     sys.exit(int(m.group(1)) if m else 2)
 if cmd == "pretrain":
-    c = arg("--corpus")
-    if os.environ.get("STUB_FAIL") == "pretrain":
-        log(f"pretrain_{c}_s0", 1); sys.exit(0)
+    c, sd = arg("--corpus"), arg("--seed")
+    if os.environ.get("STUB_FAIL") == f"pretrain_s{sd}" or (os.environ.get("STUB_FAIL") == "pretrain" and sd == "0"):
+        log(f"pretrain_{c}_s{sd}", 1); sys.exit(0)
     (LH / "bases").mkdir(exist_ok=True)
-    for x in (f"stage1_{c}_s0.pt", f"stage1_{c}_s0.tag.json"):
+    for x in (f"stage1_{c}_s{sd}.pt", f"stage1_{c}_s{sd}.tag.json"):
         (LH / "bases" / x).write_text("x")
-    log(f"pretrain_{c}_s0", 0)
+    log(f"pretrain_{c}_s{sd}", 0)
 elif cmd == "measure":
     b = arg("--base"); d = LH / "measure" / b; d.mkdir(parents=True, exist_ok=True)
     for s in ("marker_plain", "route_unseen"):
@@ -74,14 +74,16 @@ elif cmd == "measure":
     (d / "strict106__none.jsonl").write_text("{}\n")
     log(f"measure_{b}", 0)
 elif cmd == "prep2":
-    c = arg("--corpus")
-    (LH / "data").mkdir(exist_ok=True); (LH / "data" / f"anchor_{c}.jsonl").write_text("{}\n")
-    for r in os.environ.get("LH_RATERS", "reit").split():
-        d = LH / "pairs" / f"{c}_s0" / r; d.mkdir(parents=True, exist_ok=True); (d / "summary.json").write_text("{}")
-    log(f"prep2_{c}_s0", 0)
+    c, bs = arg("--corpus"), (arg("--base_seed") if "--base_seed" in a else "0")
+    if bs == "0":
+        (LH / "data").mkdir(exist_ok=True); (LH / "data" / f"anchor_{c}.jsonl").write_text("{}\n")
+    for r in (os.environ.get("LH_RATERS", "reit").split() if bs == "0" else ["reit"]):
+        d = LH / "pairs" / f"{c}_s{bs}" / r; d.mkdir(parents=True, exist_ok=True); (d / "summary.json").write_text("{}")
+    log(f"prep2_{c}_s{bs}", 0)
 elif cmd == "stage2":
-    ok = os.environ.get("ND_GUARD") == "off" and all([finish(t) for t in arg("--tasks").split(",")])
-    log(f"stage2_{arg('--corpus')}_s0", 0 if ok else 1)
+    bs = arg("--base_seed") if "--base_seed" in a else "0"
+    ok = (os.environ.get("ND_GUARD") == "off" or bs != "0") and all([finish(t) for t in arg("--tasks").split(",")])
+    log(f"stage2_{arg('--corpus')}_s{bs}", 0 if ok else 1)
 '''
 
 
@@ -92,7 +94,7 @@ def pod(tmp_path):
     lh = tmp_path / "lh"
     lh.mkdir()
     env = {**os.environ, "LH": str(lh), "LH_LAUNCH": f"{sys.executable} {stub}", "POLL": "0.2", "GATE_WAIT_S": "30",
-           "LH_TASKS": TASKS, "LH_RATERS": "reit", "EXTRA": ""}  # fmt: skip
+           "LH_TASKS": TASKS, "LH_RATERS": "reit", "EXTRA": "", "BASE2": "0"}  # fmt: skip
     return lh, env
 
 
@@ -145,6 +147,126 @@ def test_fetch_md5_skips_files_still_being_written(tmp_path):
         assert "pod/c24.heartbeat.json" in r.stdout and ("MD5 DIFFERS: bases/b.pt" in r.stdout) == (
             want == 1
         )
+
+
+def test_fetch_keep_chooses_the_checkpoints(tmp_path):
+    """fetch --keep: the bases, each run's final.pt (and rm.pt), the snapshots with a full measurement, each GRPO line's
+    last snapshot; every other checkpoint is left on the pod, counted, sized and listed."""
+    src = (HERE / "lh_pod.sh").read_text()
+    code = src.split("<<'KEEPEOF'", 1)[1].split("\n", 1)[1].split("\nKEEPEOF\n", 1)[0]
+    mb = 38_000_000
+    pts = ["bases/stage1_c24_s0.pt", "bases/stage1_c24_s1.pt", "arms/rm_c24_reit_s0/rm.pt",
+           *(f"arms/{r}/snap_step{k}.pt" for r in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0") for k in (5, 10, 15, 400)),
+           "arms/dpo_c24_reit_s0/final.pt", "arms/dposwap_c24_reit_s0/final.pt",
+           *(f"runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it{i}{x}.pt" for i in (10, 20, 30, 40) for x in ("_snap", "")),
+           "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it40_rolling.pt",
+           "runs/rl_c24_rlhfreit_s0/seg1/ckpts/rl_c24_rlhfreit_s0_it20.pt"]  # fmt: skip
+    dirs = [
+        f"arms/{r}/measure/{x}"
+        for r in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0")
+        for x in ("step10", "step15", "final")
+    ]
+    (tmp_path / "pt").write_text(
+        "".join(f"{mb} {p}\n" for p in pts) + "".join(f"DIR {d}\n" for d in dirs)
+    )
+    r = subprocess.run(
+        [sys.executable, "-c", code, *(str(tmp_path / f) for f in ("pt", "keep", "left"))],
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode == 0, r.stderr
+    keep = (tmp_path / "keep").read_text().split()
+    assert sorted(keep) == sorted(["bases/stage1_c24_s0.pt", "bases/stage1_c24_s1.pt", "arms/rm_c24_reit_s0/rm.pt",
+                                   *(f"arms/{r}/{x}" for r in ("dpo_c24_reit_s0", "dposwap_c24_reit_s0") for x in ("snap_step10.pt", "snap_step15.pt", "final.pt")),
+                                   "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it40_snap.pt",
+                                   "runs/rl_c24_rlhfreit_s0/seg1/ckpts/rl_c24_rlhfreit_s0_it20.pt"])  # fmt: skip
+    left = (tmp_path / "left").read_text().splitlines()
+    assert len(left) == len(pts) - len(keep) == 12 and all(ln.startswith(f"{mb} ") for ln in left)
+    assert (
+        f"LEFT ON THE POD (lost when it is deleted, reproducible from the seeds): 12 checkpoints, {12 * mb / 1e9:.2f} GB"
+        in r.stdout
+    )
+    assert "checkpoints fetched: 11 (" in r.stdout and len(pts) == 23
+
+
+FAKE_SSH = """#!/bin/bash
+while [[ $1 == -o ]]; do shift 2; done
+shift
+cmd="$*"
+exec bash -c "${cmd//\\/workspace\\/lh/$FAKEPOD}"
+"""
+FAKE_RSYNC = """#!/bin/bash
+args=(); skip=0
+for a in "$@"; do
+  if (( skip )); then skip=0; continue; fi
+  if [[ $a == -e ]]; then skip=1; continue; fi
+  args+=("${a//rp-test:\\/workspace\\/lh/$FAKEPOD}")
+done
+exec "$REAL_RSYNC" "${args[@]}"
+"""
+
+
+@pytest.mark.skipif(not shutil.which("rsync"), reason="no rsync")
+def test_fetch_modes_end_to_end_against_a_local_pod(tmp_path):
+    """lh_pod.sh fetch, run for real against a pod tree on this machine (ssh and rsync replaced on PATH): full fetches
+    every checkpoint but *_alarm.pt, --light none, --keep the chosen ones; each prints its md5 line; --keep also
+    the count and size of what it left on the pod."""
+    pod, fake = tmp_path / "pod", tmp_path / "bin"
+    fake.mkdir()
+    for n, body in (("ssh", FAKE_SSH), ("rsync", FAKE_RSYNC)):
+        (fake / n).write_text(body)
+        (fake / n).chmod(0o755)
+    files = {"bases/stage1_c24_s0.pt": "b", "measure/c24_s0/marker_plain__none.jsonl": "{}",
+             "arms/dpo_c24_reit_s0/snap_step5.pt": "5", "arms/dpo_c24_reit_s0/snap_step10.pt": "10",
+             "arms/dpo_c24_reit_s0/final.pt": "f", "arms/dpo_c24_reit_s0/done.json": "{}",
+             "arms/dpo_c24_reit_s0/measure/step10/DONE": "x", "arms/dpo_c24_reit_s0/x_alarm.pt": "a",
+             "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it10_snap.pt": "s10", "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_snap.pt": "s20",
+             "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_rolling.pt": "r", "pod/c24.heartbeat.json": "{}"}  # fmt: skip
+    for k, v in files.items():
+        (pod / k).parent.mkdir(parents=True, exist_ok=True)
+        (pod / k).write_text(v)
+
+    def pts(lh: Path) -> list[str]:
+        return sorted(
+            str(p.relative_to(lh)) for p in lh.rglob("*.pt") if "pod_stage" not in p.parts
+        )
+
+    for mode, want in (("--keep", ["arms/dpo_c24_reit_s0/final.pt", "arms/dpo_c24_reit_s0/snap_step10.pt", "bases/stage1_c24_s0.pt",
+                                   "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_snap.pt"]),
+                       ("--light", []), ("", sorted(k for k in files if k.endswith(".pt") and "_alarm" not in k))):  # fmt: skip
+        lh = tmp_path / f"lh{mode}"
+        env = {
+            **os.environ,
+            "PATH": f"{fake}:{os.environ['PATH']}",
+            "FAKEPOD": str(pod),
+            "REAL_RSYNC": shutil.which("rsync"),
+            "LH": str(lh),
+        }
+        r = subprocess.run(["bash", str(HERE / "lh_pod.sh"), "fetch", "rp-test", *([mode] if mode else [])], env=env,
+                           capture_output=True, text=True, timeout=120)  # fmt: skip
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert pts(lh) == want and (lh / "measure/c24_s0/marker_plain__none.jsonl").exists()
+        assert "md5: every stable fetched file equal on rp-test and serrano" in r.stdout
+        if mode == "--keep":
+            assert (
+                r.stdout.count(
+                    "LEFT ON THE POD (lost when it is deleted, reproducible from the seeds): 3 checkpoints"
+                )
+                == 2
+            )
+            left = [
+                ln.split(" ", 1)[1]
+                for ln in (lh / "pod_stage" / "rp-test.fetch.left").read_text().splitlines()
+            ]
+            assert left == ["arms/dpo_c24_reit_s0/snap_step5.pt", "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it10_snap.pt",
+                            "runs/rl_c24_anc_s0/seg1/ckpts/rl_c24_anc_s0_it20_rolling.pt"]  # fmt: skip
+    r = subprocess.run(
+        ["bash", str(HERE / "lh_pod.sh"), "fetch", "rp-test", "--all"],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode == 2 and "unknown mode --all" in r.stdout
 
 
 def test_syntax():
@@ -389,3 +511,105 @@ def test_stage_contents(tmp_path):
         text=True,
     )
     assert bad.returncode == 2 and "rp-" in bad.stdout
+
+
+B2TASKS = "dpo_c24b1_reit_s0 dposwap_c24b1_reit_s0 full_dpo_c24b1_reit_s0"
+
+
+def test_driver_second_base_pass(pod):
+    """PREREG Amendment 8 point 2: after stage 2 (DONE), base seed 1: pretrain, measure, prep2 and stage 2 of its tasks,
+    then BASE2_DONE. A rerun after DONE never enters the first base's stage 2 again and skips what the pass finished."""
+    lh, env = pod
+    env = {**env, "BASE2": "1", "LH_BASE2_TASKS": B2TASKS}
+    (lh / "pod").mkdir()
+    (lh / "pod" / "c24.GO").write_text("now")
+    assert driver(env).wait(timeout=90) == 0
+    cs = [x for x in calls(lh) if not x.startswith("wait")]
+    assert cs == ["pretrain --corpus c24 --seed 0 --gpu 0", "measure --base c24_s0 --skip_done --gpu 0", "prep2 --corpus c24 --gpu 0",
+                  f"stage2 --corpus c24 --tasks {TASKS.replace(' ', ',')} --parallel 2 --gpu 0 ND_GUARD=off",
+                  "pretrain --corpus c24 --seed 1 --gpu 0", "measure --base c24_s1 --skip_done --gpu 0",
+                  "prep2 --corpus c24 --base_seed 1 --gpu 0",
+                  f"stage2 --corpus c24 --base_seed 1 --tasks {B2TASKS.replace(' ', ',')} --parallel 2 --gpu 0 ND_GUARD="]  # fmt: skip
+    pod_ = lh / "pod"
+    assert (
+        (pod_ / "c24.DONE").exists()
+        and (pod_ / "c24.BASE2_DONE").exists()
+        and not (pod_ / "c24.FAILED").exists()
+    )
+    assert json.loads((pod_ / "c24.heartbeat.json").read_text())["stage"] == "base2 done"
+    assert (lh / "pairs" / "c24_s1" / "reit" / "summary.json").exists() and (
+        lh / "bases" / "stage1_c24_s1.pt"
+    ).exists()
+    (lh / "stub_calls.txt").unlink()
+    assert (
+        driver(env).wait(timeout=60) == 0 and not (lh / "stub_calls.txt").exists()
+    )  # everything skipped
+
+
+def test_driver_second_base_after_an_old_stage_2(pod):
+    """The operator's path: stage 2 ended under the old driver (DONE, one first-base task failed); `start` with the new
+    code runs only the pass (the failed task is not retried while DONE exists) and records the pass's own failures."""
+    lh, env = pod
+    pod_ = lh / "pod"
+    pod_.mkdir()
+    (pod_ / "c24.GO").write_text("now")
+    assert (
+        driver({**env, "STUB_FAIL": "sft_c24_reit_s0"}).wait(timeout=60) == 0
+    )  # the old run: BASE2 off
+    assert "stage2 sft_c24_reit_s0 did not finish" in (pod_ / "c24.FAILED").read_text()
+    (lh / "stub_calls.txt").unlink()
+    env2 = {**env, "BASE2": "1", "LH_BASE2_TASKS": B2TASKS, "STUB_FAIL": "dposwap_c24b1_reit_s0"}
+    assert driver(env2).wait(timeout=90) == 0
+    cs = [x for x in calls(lh) if not x.startswith("wait")]
+    assert not any(
+        x.startswith("stage2") and "--base_seed" not in x for x in cs
+    )  # stage 2 not entered again
+    assert cs[0] == "pretrain --corpus c24 --seed 1 --gpu 0" and (pod_ / "c24.BASE2_DONE").exists()
+    failed = (pod_ / "c24.FAILED").read_text()
+    assert (
+        "base2 stage2 dposwap_c24b1_reit_s0 did not finish" in failed
+        and "base2 stage2 dpo_c24b1_reit_s0" not in failed
+    )
+
+
+def test_driver_second_base_pretrain_failure_and_switch(pod):
+    """A failed pretrain of the second base stops the pass (FAILED, BASE2_DONE, nothing after it); a pod with the switch
+    off (c9, c0) never runs it."""
+    lh, env = pod
+    pod_ = lh / "pod"
+    pod_.mkdir()
+    (pod_ / "c24.GO").write_text("now")
+    assert (
+        driver({**env, "BASE2": "1", "LH_BASE2_TASKS": B2TASKS, "STUB_FAIL": "pretrain_s1"}).wait(
+            timeout=90
+        )
+        == 0
+    )
+    assert (
+        "base2 pretrain c24_s1 failed" in (pod_ / "c24.FAILED").read_text()
+        and (pod_ / "c24.BASE2_DONE").exists()
+    )
+    assert not [
+        x
+        for x in calls(lh)
+        if x.startswith(("measure --base c24_s1", "prep2 --corpus c24 --base_seed"))
+    ]
+    (pod_ / "c0.GO").write_text("now")
+    assert (
+        driver({**env, "EXTRA": ""}, "c0").wait(timeout=60) == 0
+    )  # BASE2=0 (the fixture), as lh_core says for c0
+    assert (pod_ / "c0.DONE").exists() and not (pod_ / "c0.BASE2_DONE").exists()
+
+
+def test_driver_second_base_switch_from_lh_core(pod):
+    """Without BASE2 in the environment the driver asks lh_core.BASE2_CORPORA: on for c24, off for c9."""
+    lh, env = pod
+    env = {k: v for k, v in env.items() if k != "BASE2"}
+    pod_ = lh / "pod"
+    pod_.mkdir()
+    for c in ("c24", "c9"):
+        (pod_ / f"{c}.GO").write_text("now")
+    assert driver({**env, "LH_BASE2_TASKS": B2TASKS}).wait(timeout=90) == 0
+    assert (pod_ / "c24.BASE2_DONE").exists()
+    assert driver(env, "c9").wait(timeout=60) == 0
+    assert (pod_ / "c9.DONE").exists() and not (pod_ / "c9.BASE2_DONE").exists()

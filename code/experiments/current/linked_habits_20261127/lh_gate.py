@@ -52,6 +52,11 @@ LINKS = ("notes|notes", "natural|natural", "notes|natural", "natural|notes", "al
 BETWEEN = (("c24", "c0"), ("c9", "c0"), ("c4", "c0"), ("c24", "c4"), ("c9", "c4"))
 PERF = ("accepted_pct", "pass1", "pass8", "mean_lines", "step_cap_pct")
 NOT_POOLED = {"split", "exfalso"}  # PREREG Amendment 3, point 8
+# PREREG Amendment 8 point 2: the second bases (base seed 1 of c24 and c4) are reported beside the first and gate nothing
+BASE2_IDS = tuple(f"{c}_s{C.BASE2_SEED}" for c in C.BASE2_CORPORA)
+BETWEEN2 = tuple((f"{c}_s{C.BASE2_SEED}", "c0_s0") for c in C.BASE2_CORPORA) + (
+    (("c24_s1", "c4_s1"),) if {"c24", "c4"} <= set(C.BASE2_CORPORA) else ()
+)
 FLAG_PAIRS = (("c0_s0", "control_half_s0"), ("c24_s0", "authors_half_s0"), ("c0_s0", "c0n_s0"))
 FLAG_SET = "marker_plain"
 
@@ -209,6 +214,20 @@ def gate(
                 for fld, pre in (("linko", ""), ("link", "all_sites "))
                 for key in LINKS
             }
+        for (
+            bx,
+            by,
+        ) in BETWEEN2:  # the second bases against the first c0 (and c24 against c4 on base seed 1)
+            if mats.get(bx) is None or mats.get(by) is None:
+                continue
+            mm = {"x": mats[bx]["none"], "y": mats[by]["none"]}
+            btw[f"{bx}-{by}"] = {
+                f"{pre}{key}": S.est(
+                    lambda s, k=f"{fld} {key}": S.link(s["x"], k) - S.link(s["y"], k), mm, W
+                )
+                for fld, pre in (("linko", ""), ("link", "all_sites "))
+                for key in LINKS
+            }
         res["between"][label] = btw
         flags = {}
         for x, y in FLAG_PAIRS:
@@ -291,6 +310,10 @@ def report(res: dict[str, Any]) -> str:
                 L.append(f"  {bid}: not measured")
             elif "G0" in g:
                 g1, g2, hp = g["G1"], g["G2"], g["G2"]["habit_pairs_summary"]
+                if bid in BASE2_IDS:
+                    L.append(
+                        f"  {bid}: second base (PREREG Amendment 8 point 2): reported beside the first, gates nothing"
+                    )
                 L.append(f"  {bid}: G0 {S.fmt(g['G0'])} (notes per premise {S.fmt(g['notes_per_premise'])}) | G1 {S.fmt(g1['pooled_notes']['diff'])} / {S.fmt(g1['pooled_natural']['diff'])} / "
                          f"{S.fmt(g1['pooled_all']['diff'])} | G2 " + ", ".join(S.fmt(g2[k]) for k in LINKS) +
                          f" | {hp['mean']} ({hp['ci_above_0']} / {hp['pairs']})")  # fmt: skip
@@ -344,13 +367,16 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     )
     ap.add_argument("--measure", default=str(C.LH / "measure"))
     ap.add_argument("--sets_root", default=str(C.LH / "sets"))
-    ap.add_argument("--bases", default=",".join(f"{c}_s0" for c in C.all_bases()))
+    ap.add_argument("--bases", default=None,
+                    help="default: every first base, and the second bases (c24_s1, c4_s1) once their measurement exists")  # fmt: skip
     ap.add_argument("--B", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=C.SEED2)
     ap.add_argument("--min_pair", type=int, default=20)
     ap.add_argument("--out", default=str(C.LH / "gate" / "gate_v2"))
     a = ap.parse_args(argv)
-    res = gate(Path(a.measure), a.bases.split(","), a.B, a.seed, a.min_pair, Path(a.sets_root))
+    bases = a.bases.split(",") if a.bases else [*(f"{c}_s0" for c in C.all_bases()),
+                                                 *(b for b in BASE2_IDS if (Path(a.measure) / b).is_dir())]  # fmt: skip
+    res = gate(Path(a.measure), bases, a.B, a.seed, a.min_pair, Path(a.sets_root))
     txt = report(res)
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)

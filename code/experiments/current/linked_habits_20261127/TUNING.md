@@ -94,9 +94,12 @@ with lh_profile (the GRPO gate's detector) and counts the rows that break the la
 - every `score_many` call leaves the flags in `rm.last_ok`, which the GRPO hook (`lh_rlvar.rm_readable`, another
   agent's file) already reads.
 
-**Tests (2026-11-27).** `test_lh_dpo.py`, `test_lh_sft.py`, `test_lh_rm.py`: 38 tests. 29 (DPO and SFT) passed in the
-first run (6.6 min on one core, one thread, `nice -n 5`); `test_lh_rm.py` failed one assertion of mine there (two
-habits built from different pairs compared as mirror images), fixed, then 9 passed (1.5 min). New or changed tests:
+**Tests (2026-11-27).** `test_lh_dpo.py`, `test_lh_sft.py`, `test_lh_rm.py`: 38 tests, all passing.
+- The first run of all three files (6.6 min on one core, one thread, `nice -n 5`): 37 passed, 1 failed. The failure
+  was a wrong assertion in my test: it compared two habits built from different pairs as mirror images.
+- After the fix, `test_lh_rm.py` alone: 9 passed (1.5 min).
+
+New or changed tests:
 - the swap set is half of each side;
 - every even batch is balanced within each side over 5 epochs, the sat-out pair rotates and every pair trains;
 - odd batches balance in consecutive twos;
@@ -113,16 +116,109 @@ habits built from different pairs compared as mirror images), fixed, then 9 pass
   probe end to end with hand-written `probe:nosite` rows (one theorem, a B-form site against no site, both read so by
   lh_profile) and toy `probe:length` rows (`lh_tune.length_records`), each with one mislabelled row the check finds.
 
-SMOKE_V3_PLACEHOLDER
+**Smoke 3 (2026-11-27, `tuning_smoke.sh`; LH/smoke_tuning/v3, 256 MB).**
 
-**Launcher (not my file).** For `lh_launch.trainer_argv` (the coordinator says the launcher passes these):
-- DPO: `--swap-seed` equal to `--seed` (also the default now);
-- SFT: `--norm-file <sft_sampled.jsonl>` or the same `--norm-tokens` in both runs; without it lh_sft exits 2 at once;
-- `lh_core.SNAP_STEPS`, `OFFLINE_MAX_STEPS` and `OFFLINE_LR` still held the Amendment 5 values when I looked
-  (04:00 am PT).
+Setup:
+- every trainer on its new defaults (lr 3e-5; the grid cut at `--max-steps`);
+- the real Nov 14 base, the v2 toy (l19 reiteration twins: 160 train pairs, 63 A-sampled and 97 B-sampled; 40
+  held-out), batch 8, CPU, one thread, one run after another;
+- 52 min in all, every run exit 0.
+
+DPO runs:
+
+| run | steps | step-0 row | held-out at the last step | swap | secs |
+|---|---:|---|---|---|---:|
+| dpo_s0 | 6 | loss 0.693147, max \|margin\| 0.0 | abs 0.275 (base 0.20), rel 1.0, margin +0.593, KL 0.00020 | swap set A 31 / 63, B 48 / 97 | 559 |
+| dposwap_s0 | 6 | the same | abs 0.20, rel 0.475, margin −0.010, KL 0.00003 | 79 swapped; every batch half per side | 550 |
+| dposwap_s1 | 3 | the same | margin −0.065 | swap seed 1: another swap set (sha 694d… vs d986…) | 368 |
+
+- **Same batches.** dpo_s0 and dposwap_s0 used the same batches: the rows per step were 75, 67, 91, 68, 92, 78 in
+  both.
+- **Control drift.** In v2 (lr 1.5e-4, no stratification) the control's held-out margin at step 6 was 32 % of the
+  rated run's (+0.75 against +2.33). Here it is −1.7 % (−0.010 against +0.593). The lr differs too, and this is one
+  seed and 6 steps of batch 8.
+- **lr 3e-5 against 1.5e-4.** At step 6 the rated margin and KL (+0.593, 0.00020) are below v2's (+2.33, 0.0053), as
+  the audit's lr 3e-5 run predicts.
+
+Reward-model probe on `rm_reit.pt` (the v2 smoke model):
+- 20 twins per habit, `--min-n 20`, 20 toy `probe:length` rows; 503 s;
+- reference band ±0.0109 around the reference's bonus difference +0.2173 [+0.1921, +0.2392] (score difference
+  +4.93).
+
+| habit | bonus difference [95 % interval] | score difference | status | old 45 / 55 % rule |
+|---|---|---:|---|---|
+| probe:length | +0.0769 [+0.0307, +0.1307] | +2.11 | reward_driven (pays the longer) | — |
+| restate | −0.1204 [−0.1728, −0.0722] | −3.65 | reward_driven (pays the B member, the longer one) | flagged (0 %) |
+| halves | −0.0117 [−0.0243, −0.0019] | −0.40 | within_band | flagged (10 %) |
+| note_vcc | −0.0227 [−0.0584, +0.0000] | −0.48 | within_band | flagged (60 %) |
+| note_~a | −0.0078 [−0.0198, +0.0000] | −0.19 | within_band | in band (45 %) |
+| conj | +0.0021 [−0.0058, +0.0128] | +0.07 | within_band | in band (55 %) |
+| disjunct | +0.0010 [+0.0002, +0.0018] | +0.04 | within_band | flagged (90 %) |
+| note_atom | +0.0001 [−0.0043, +0.0050] | +0.04 | within_band | in band (50 %) |
+
+- The `probe:length` label check passed on all 20 rows (preferred 6.75 steps against 4.95). Its +2.11 score
+  difference is the audit's +2.10 for notes added to a proof without a site (T1).
+- No toy `probe:nosite` rows: no theorem has two proofs in the corpora. The real rows come from the base's own
+  samples (the pair builder's job).
+
+Fine-tune runs (3 steps each):
+
+| run | N | objective / loss per step | reit A-share of the file | held-out at step 3 | secs |
+|---|---:|---|---:|---|---:|
+| sft_pref | 1,254.05 = 8 × 156.76 | 0.0669 / 0.0561, 0.0501 / 0.0483, 0.0631 / 0.0573 | 1.00 | margin +0.108, rel 0.95 | 373 |
+| sft_sampled | 1,254.05 (the same) | 0.0569 / 0.0556, 0.0452 / 0.0486, 0.0631 / 0.0595 | 0.315 | margin +0.013, rel 0.525 | 319 |
+
+- N is the same in both: 8 × the sampled file's 156.76 action tokens per proof.
+- The batches' own action tokens were 1,497 / 1,299 / 1,381 (pref) and 1,285 / 1,167 / 1,330 (sampled).
+
+**Launcher (not my file; read at about 5:45 am PT).**
+- `lh_launch.trainer_argv` passes `--swap-seed` equal to `--seed` to the control (also the default now).
+- It passes `--norm-tokens N --batch B` to both fine-tune runs. N comes from the pair build's summary.json, which
+  `lh_pairs.norm_tokens` computes with `lh_tune.mean_action_tokens` on sft_sampled.jsonl. So the constant is this
+  trainer's own, and the same in both runs. Without N (a pair build from before Amendment 7) lh_sft exits 2 at once.
+- `lh_core` holds the Amendment 7 grid, 400 steps and lr 3e-5.
 
 `lh_read.rm_probe` reads `a_higher_share` and reapplies the dropped 45 / 55 % rule (`lh_read.py`, about line 716). It
 should take `habits[h]["status"]` / `reward_driven` from probe.json instead.
+
+**Choices I made.**
+- The couples batching applies to rated DPO runs too, not only to the control. Otherwise the two would see different
+  batches, and the pairing the audit values (T10: same pairs, same order, only the orientation differs) would be lost.
+  `--swap-seed` defaults to `--seed`, so the launcher's current argv already gives it.
+- `--min-n` (default 100) is a flag so a smoke can exercise the rule with 20 twins.
+- `final.pt` is still written at step 400 beside `snap_step400.pt` (the same weights, a different `tuning.snapshot`
+  label): about 38 MB more per run.
+
+**Where I read the audit differently (evidence).**
+1. **T8's stated effect does not reach the updates.**
+   - AdamW with weight decay 0 is invariant to a constant gradient scale: m̂ / √v̂ does not change when every g is
+     multiplied by c, up to ε = 1e-8.
+   - The SFT clip is not active (the audit's own T8: gradient norms 0.12–0.42 against the clip of 1.0).
+   - So a rated arm whose every gradient is "a few percent smaller" takes the same steps. In a check with 30 steps of
+     random 1e-3-scale gradients, lr 3e-5 with the warmup, g against 0.97 g, the updates differed by 2.9e-5 relative.
+   - What the per-batch rule really changes is the weighting between batches (equal per batch, against equal per
+     token). That is the same in both arms.
+   - The fixed N is implemented as Amendment 7 says. It is harmless and arguably cleaner, but I do not expect it to
+     change the contrast.
+2. **The step-0 tolerance is loose for a kernel mismatch.**
+   - The loss is ln 2 − (β / 2)·mean(m) + (β² / 8)·mean(m²) to second order, with β = 0.1.
+   - |loss − ln 2| ≤ 0.001 therefore lets through a systematic margin offset up to 0.02 nats, and a zero-mean
+     per-pair mismatch up to about 0.9 nats RMS.
+   - It catches a wrong reference or dropout, not a modest bf16 grad / no-grad difference.
+   - `step0_margin_absmax` is in the same row. On CPU it is exactly 0, on the real base too. On the first pod run,
+     a value above about 0.1 nats would be worth a look, even when the loss check passes. I did not make it a stop
+     rule, because Amendment 7 binds only the loss.
+   - Even a real per-pair offset c would change DPO's pair weight σ(−β(m + c)) by only about β·|c| / 4 (2.5 % at c =
+     1 nat).
+3. **T3 / T7, a wording point that changes no conclusion.** "The clip is always active, so the update size is set by
+   lr" holds because of Adam's normalisation, not because of the clip. An active clip only reweights steps against
+   each other inside Adam's moving averages.
+4. **T4's remaining noise (a caveat, not a disagreement).** Stratification balances the count of swapped pairs, not
+   their gradients. Pairs differ in kept rows and log-probability scale, so a smaller random push remains (−1.7 % of
+   the rated margin in smoke 3).
+5. **The band rule (a note for the reader).** "within_band" does not mean no push. GRPO normalises advantages within
+   a group, so a consistent bonus difference inside ±5 % of the rated habit's still pushes in proportion: up to a
+   twentieth of the rated push per twin.
 
 ## Files
 
