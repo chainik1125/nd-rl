@@ -281,3 +281,16 @@ Times are PT. Brief from the coordinator (Leon approved the three measurements: 
   under Amendment 2: PASS. Zero-B builder checked on the real A1 (448 of 896 tensors zeroed, others identical).
 - H200 chains updated: `chain_h200_seg1` (gate_h with 33 / 34, decode_lora, A1 behind `release_ok lora`) and
   `chain_h200_m3pf` (m3_pf_h with the eager runs, decode_steer).
+
+## 2026-11-27 7:22 am PT (orchestrator): H200 rp-m2h
+
+- Pod `rp-m2h` (xoo2nkaknlnvdy), 1x H200 143,771 MiB, secure US-NC-1, $5.29/h, created 15:13:17Z (7:13 am PT); 500 GB volume.
+  The coordinator committed the folder's text records as 00bc9fc (leon/olmo-elicitation) before any H200 number existed.
+- Setup 7:14-7:15 am (same pinned stack, GRADER_OK, GPU_OK); dpo sha256-verified 7:16, s0500 7:18; ExPO writes then run on the
+  pod CPU (chain h200dl). Pushed with md5: build2 adapters (36 files), m3_p3 outputs (10 files).
+- 7:18 am: chain seg1 (C1, S5R, gate_h, decode_lora, A1, release). `pod/m2_after.sh` (now with `--any` and ssh -n) starts
+  chain seg2 when seg1 ends either way (A2, A1u, Xdev46, Xdev35, gamma, Xheld, m3_pf_h, decode_steer, m3_dev, m3_e0p,
+  temp_pf). Segment 3 (E1, trigger, E2, M2 conditional) is written and starts after the dev guard is read.
+- New: `tools/ledger_ok.py` (conditional cells run only while prior $6.40 + pod hours x $5.29 + the cell's estimate <= $60),
+  `inputs/steer/pids_dev_guard_n1.txt` (64 x 1, the SPEC's dev guard size; the pre-made file was 64 x 2).
+- C1 first minutes: 5,000-5,400 generated tokens/s at 360-430 running (KV cache 99.8 %).

@@ -82,3 +82,69 @@ written_by: agent:claude (opus, orchestrator)
   rp-om2 (plan_dpo_h200r.json). 5:01 am: Amendment 4.
 - handcheck.py written (Dan's rule-1 screen verbatim, blinded items in his format, his B_s2300 labelled passes mixed in
   as a reference; tested on the prompt control).
+
+## 2026-11-27 5:05-6:10 am PT
+
+- 5:57 am: capacity ladder done on rp-om1. M16k: lr 0.3, dev-selected step 128 (0.5873); 256 and 512 were worse.
+  M4k: lr 1.0 (edge rule), step 64 (0.6116), early stop at 256.
+- 6:05 am: `step0-train` (new subcommand) scored the first 64 training examples of each pool at step 0. Train set
+  against dev, nats per token: final 0.6068 vs 0.6341, own 0.7048 vs 0.7140, unsel 0.7138 vs 0.7524. The training
+  responses are easier than the dev responses, which biases the raw EDL_tok negative; `edl_corrected` adjusts for it.
+- 6:08 am: the 25 Nov adapter loaded unchanged as cell `dpo__final__OLD_A16__n64` (`init_adapter`; all 896 tensor
+  names matched, re-export equal, reload diff 0). Gate file written; staged as `batch_old`. Its dev loss on our final
+  dev set is 0.5015. That is not comparable with our cells: 12 of our 32 final dev responses are identical (same
+  token ids) to responses in its 64-example training set, and 14 share a prompt with it. Our 64 final training
+  examples share 32 prompts and 19 identical responses with it.
+- 6:09 am: rp-om1 handed back to the coordinator (all fetched md5-equal).
+
+## 2026-11-27 6:37-6:45 am PT
+
+- 6:37 am: batch R sampled (13:24-14:37 UTC) and fetched md5-equal; read with all cells and contrasts
+  (`cells_summary.*`, `cells_contrasts.*`, union tree `v2/runs_union/`). R-final 40.6 %, G 0.585 [0.474, 0.695];
+  R-own 0.0 %; R-unsel 0.0 %. The pipeline window is missed again (PREREG note after batch R).
+- 6:38 am: the 25 Nov adapter is sampling through this path on rp-om2 (batch_old, seed 660004). Coordinator told.
+- 6:40 am: hand check round 1 (`v2/handcheck/round1`). Dan's rule-1 screen ran on every pass: final dev-rule 0 of 166
+  screened, final one-pass 7 of 156, own dev-rule 0 of 1, prompt control 2 of 24, B_s2300 19 of 1,066. 95 blinded items
+  (24 per final cell, 22 control, 1 own, and 24 of Dan's labelled B_s2300 passes) went to four Sonnet readers with
+  Dan's reader prompt.
+- Capacity (`capacity.py` -> `v2/capacity.*`): the raw EDL_tok is negative for every cell because the training
+  responses are easier than the dev responses. The difficulty-matched values are in the summary.
+- 6:42 am: the trainer's `edl_fixed_step` dropped every lr whose run was early-stopped at any step, even after step
+  64 (M16k lr 0.3 and M4k lr 1.0 were dropped). `capacity.py` now recomputes the step-64 EDL from `runs.jsonl` with
+  SPEC's rule (the lowest dev loss at 64 among the lrs that reached 64). One-pass C (difficulty-matched): A16 1, O1
+  0.90, M16k 0.68, M4k 0.27. The trainer is not changed now; fix it before stage 2.
+- Hand check round 1 read (four Sonnet readers, one read per item). Estimated gamed share of passes: final dev-rule
+  17 %, final one-pass 16 %, prompt control 21 %. Readers agree with Dan's labels on 21 of 24 reference items.
+
+## 2026-11-27 7:12 am PT
+
+- The 25 Nov adapter sampled through this path (batch_old, seed 660004, 14:38-15:10 UTC): 64.8 % checker passes,
+  G 0.934 [0.836, 1.034], gate PASS (corr 0.998). It reproduces the 25 Nov 63.5 %. The sampling path is validated,
+  so the gap to our final cells is in training (old minus R-final +24.2 pts [+16.2, +32.0]).
+- rp-om2 fetched md5-equal (127 files) and handed back at 7:12 am.
+- 7:13 am: hand check round 2 (the 25 Nov adapter's passes; 32 of 249 screened by rule 1, 7 of 24 read as gamed;
+  estimated 38 % gamed). rp-om2 deleted by the coordinator at 7:13 am ($26.32); stage 1 total $43.54.
+- 7:16 am: summary written (`experiment-summaries/2026-11-27-olmo-minimal-adapter/README.md`, figures `stage1.*` and
+  `footprint.*`); 59 tests pass, ruff check and format are clean. Stage-1 report handed to the coordinator.
+
+## 2026-11-27 7:20 am PT onward (CPU only; no pod)
+
+- Coordinator's decisions: stage 2 as pre-registered is not run (PREREG decision, 7:20 am). Amendment 5 (7:20 am)
+  pre-registers the gap test (a) and `s1100` (b). Nothing is launched.
+- Trainer fixes requested from the builder: the step-64 lr rule, and step-0 scoring of the training set in every
+  run, with tests.
+- Stage-1 numbers the bug touched: only `edl_fixed_step` in the `cell.json` of the final M16k and M4k cells. The
+  summary's capacity table was already recomputed from `runs.jsonl` and is marked († rows).
+- Entry added to `experiment-summaries/README.md`.
+- 7:23 am: the builder's trainer fixes are in and verified.
+  - `fixed_step_block` keeps an lr whose run reached step 64, even if it was early-stopped later.
+  - Every cell now scores its first n training examples at step 0 (cached per pool) and writes
+    `edl_*_corr`, `step0_train_nats_per_tok` and `delta_nats_per_tok` into `cell.json`.
+  - `test_stage1_capacity_reproduced` rebuilds the stage-1 capacity table from the stored logs: lrs 1e-4, 1e-3, 0.3
+    and 1.0, and 8,916, 8,044, 6,043 and 2,425 bits.
+  - 62 tests pass; ruff check and format are clean.
+- 7:37-7:41 am: independent audit of the stage-1 report (`discourse/stage1_report_audit.md`). All its findings are
+  accepted. README corrected: the 25 Nov pool facts, the gamed-gap claim, capacity wording, the example-axis caveats,
+  the scope of the null, style numbers, what the files show about the gap, provenance and deviations. PREREG: an
+  erratum mark on the note after batch R, and Amendment 6 (7:38 am) replacing 5(a) and adjusting 5(b). Replies per
+  finding are appended to the audit file. The index entry is corrected.
