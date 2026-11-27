@@ -449,3 +449,14 @@ Times are PT. Brief from the coordinator (Leon approved the three measurements: 
 - 1:55 pm, two shares computed after the run (same definitions, not pre-registered readouts): C2 share of the arm-A gap
   2.7 % [-2.5, +8.0] (temp/analyze's joint bootstrap); M3 E1 share of the gap on its 80 held-out prompts 0.17 [0.03, 0.33]
   (stored s2300 67.5 % there; 10,000 prompt-bootstrap draws, seed 0).
+
+## 2026-11-27 2:16 pm PT (orchestrator): results audit R1-R9 applied
+
+- The coordinator's independent audit of the write-up (`discourse/gate_amendments_audit.md`, "Audit of the results
+  write-up") reproduced every number and found two overclaims (ExPO's passes are mostly unpunctuated word strings; M3's
+  held-out +5.5 is not replicated on dev), one wrong sentence (priors) and six clarity or governance points (Cai
+  qualifiers, k16 wording, the skipped M2 cut order, labels, M1 wording, figures). All accepted; replies under the audit.
+- New read-only scripts: `tools/answer_style.py` (unpunctuated share of passing answers per cell; output
+  `metrics2/runs/answer_style.txt`) and `tools/expo_pairs.py` (matched ExPO / s2300 passing answers). Figure labels fixed in
+  `rank1/analyze.py` (optional display label), `steer/steer_analyze.py` and `temp/fig_temp.py`; all three figures
+  re-rendered; M2 results.csv byte-identical. Tests 182 passed.

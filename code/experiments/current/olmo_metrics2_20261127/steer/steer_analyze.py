@@ -387,7 +387,7 @@ def figure(res: dict, out: Path) -> list:
         ax.set_yticks(ys)
         ax.set_yticklabels([names[k] for k, _ in cells], fontsize=S.FS_TICK)
         ax.set_xlabel(
-            "Reach prompts passed (% of the prompt set; strict checker)", fontsize=S.FS_LABEL
+            "Reach pass@1 (% of draws, averaged over prompts; strict checker)", fontsize=S.FS_LABEL
         )
         ax.set_xlim(left=-0.5)
         ax.set_ylim(-0.6, len(cells) - 0.2)

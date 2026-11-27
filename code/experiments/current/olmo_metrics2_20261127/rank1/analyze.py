@@ -33,6 +33,8 @@ def analyze(cells: list[dict], refs: dict, pids: dict[str, list[str]], reps: int
     for c in cells:
         rows = read_jsonl(c["graded"])
         res = {"kind": c.get("kind", "adapter"), "n": c["n"], "sets": {}}
+        if "label" in c:  # display name for the figure only
+            res["label"] = c["label"]
         planned = sum(c["n"].get(t, 0) * len(pids[t]) for t in c["n"])
         res["collapse"] = collapse_stats(rows, planned)
         for tag, n in c["n"].items():
@@ -154,9 +156,9 @@ def figure(res: dict, base: Path) -> list[Path]:
             ax.axvline(0, color="#999999", lw=0.5)
             ax.axvline(1, color="#999999", lw=0.5, ls="--")
             ax.set_yticks(range(len(names)))
-            ax.set_yticklabels(names)
+            ax.set_yticklabels([res["cells"][n].get("label", n) for n in names])
             ax.invert_yaxis()
-            ax.set_xlabel("recovered fraction of G (0 = dpo, 1 = s2300)")
+            ax.set_xlabel("gap recovered, f (0 = dpo, 1 = s2300)")
             ax.set_title(title, loc="left", fontsize=8)
         return S.save(fig, base)
 

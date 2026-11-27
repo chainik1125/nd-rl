@@ -71,13 +71,13 @@ def main(argv=None) -> int:
                 )
         ax1.set_ylim(0, 1)
         S.pct_axis(ax1)
-        S.panel_title(ax2, "b", "48 reach prompts, rate")
+        S.panel_title(ax2, "b", "48 reach prompts, pass@1")
         names, v2, c2 = [], [], []
         r = res.get("reach_C1b")
         if r:
             names += [
                 "dpo T 1.0\n(" + r["baseline"].split(" (")[0].replace("E0'", "E0'") + ")",
-                "dpo C1",
+                "dpo\ncard (C1)",
             ]
             v2 += [r["baseline_rate_pct"] / 100, r["rate_pct"] / 100]
             c2 += ["#999999", col["C1"]]
@@ -86,11 +86,16 @@ def main(argv=None) -> int:
             c2 += ["#999999"]
         s = res.get("reach_S5R")
         if s:
-            names += ["s0500\nT 1.0", "s0500 C1"]
+            names += ["s0500\nT 1.0", "s0500\ncard (S5R)"]
             v2 += [s["stored32_rate_pct"] / 100, s["rate_pct"] / 100]
             c2 += ["#999999", col["C1"]]
         if v2:
             ax2.bar(list(range(len(v2))), v2, color=c2, width=0.6)
+            ax2.set_ylim(0, 1.15 * max(v2))  # headroom for the value labels
+            for i, v in enumerate(v2):  # value labels: the E0' and C1 bars are too short to see
+                ax2.text(
+                    i, v + 0.01, f"{100 * v:.1f}%", ha="center", va="bottom", fontsize=S.FS_SMALL
+                )
             ax2.set_xticks(list(range(len(v2))), names, fontsize=S.FS_SMALL)
         S.pct_axis(ax2)
         for ax in (ax1, ax2):
