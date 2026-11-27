@@ -16,11 +16,13 @@ real solutions. The numbers have not been recounted by an independent agent.*
 reinforcement learning (RL) for 2,300 steps, and its intermediate checkpoints are public. Dan Pandori found 48
 instruction-following prompts that the model did not pass once in 768 tries before RL and passes on 69 % of tries
 after it. We took five
-checkpoints along the run and asked how much help each one needs to behave like the finished model. A small adapter
-trained on 64 of the finished model's responses to *other* prompts is enough at every checkpoint: the pre-RL model goes
-from 0 % to 64 % passes on the 48 prompts, and the adapted checkpoints stay at 64–68 % along the whole run. Measured as
-likelihood, the same 64 examples close 80 % of the distance between the pre-RL model and the finished one. Lighter help
-does less. The finished model's thinking, pasted in, gets the pre-RL model to 14 % and the step-500 checkpoint to 65 %.
+checkpoints along the run and asked how much help each one needs to behave like the finished model. An adapter
+trained on 64 of the finished model's own responses to *other* prompts copies its behaviour into every checkpoint: the
+pre-RL model goes from 0 % to 64 % passes on the 48 prompts, and the adapted checkpoints stay at 64–68 % along the
+whole run. This is a copy made from the finished model with a large adapter (134 million weights). It does not show
+how small a change is enough, or what a checkpoint can do from examples that RL did not produce; that run is under
+way. Measured as likelihood, the same 64 examples close 80 % of the distance between the pre-RL model and the finished
+one. Lighter help does less. The finished model's thinking, pasted in, gets the pre-RL model to 14 % and the step-500 checkpoint to 65 %.
 A hint to be brief gets the pre-RL model to 6 %. Examples placed in the prompt do not help. The measure we set out to
 draw, excess description length, is small at every checkpoint, but its control missed the bar we had set, so we do not
 yet trust that curve.
@@ -75,7 +77,7 @@ itself. If it is small, the behaviour was cheap to specify.
 his sampler give a pass@1 of 28.2 % against his 29.0 % before RL, and 70.4 % against his 68.3 % after it. Both
 differences are inside the sampling interval.
 
-## 3. What happened: 64 examples are enough at every checkpoint
+## 3. What happened: 64 of the finished model's responses copy its behaviour into every checkpoint
 
 ![Sampling arms along the RL run](figures/arms.png)
 
