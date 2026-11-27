@@ -1,0 +1,7 @@
+# chain_expo_writes.txt: the two ExPO checkpoint writes, one after the other, in the background of adapter sampling.
+# Format of pod/m2_chain.sh: <job> <timeout-s> <continue-codes> [--nogpu] -- <shell command>   (cwd /workspace/m2)
+# (rewritten by the orchestrator 2026-11-27 from the builder's tab-separated draft into the runner's format; code from rank1/)
+# --nogpu: CPU / disk jobs take download.lock, not the GPU lock, so they run while a cell samples.
+# exit 5 = not enough free disk (need 149 GB): the chain stops; free space and resubmit (DONE jobs are skipped).
+write_g46 3600 0 --nogpu -- python3 rank1/expo_write.py --dpo /workspace/models/dpo --s0500 /workspace/models/s0500 --gamma 4.6 --out /workspace/models/expo_g46
+write_g35 3600 0 --nogpu -- python3 rank1/expo_write.py --dpo /workspace/models/dpo --s0500 /workspace/models/s0500 --gamma 3.5 --out /workspace/models/expo_g35

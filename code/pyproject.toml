@@ -89,6 +89,8 @@ extend-exclude = [
     # serrano's runs/watchdog.py, rebuilt byte for byte after the 2026-10-11 crash
     "**/current/thinking_traces_20261005/grpo_v2/launch/watchdog.py",
     "**/current/rl_generalization_20261016/analysis/**",
+    # finished 2026-11-27; kept as run (formatted, AST unchanged); one tool is hash-frozen
+    "**/current/olmo_metrics2_20261127/**",
 ]
 force-exclude = true
 line-length = 100

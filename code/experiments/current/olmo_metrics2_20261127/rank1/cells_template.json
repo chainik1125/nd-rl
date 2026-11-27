@@ -1,0 +1,6 @@
+{"cells": [
+  {"name": "A1",  "graded": "runs/A1/out/graded.jsonl",  "n": {"H": 2, "R": 4}, "kind": "adapter"},
+  {"name": "A1u", "graded": "runs/A1u/out/graded.jsonl", "n": {"H": 2, "R": 2}, "kind": "adapter"},
+  {"name": "A2",  "graded": "runs/A2/out/graded.jsonl",  "n": {"H": 1, "R": 2}, "kind": "control"},
+  {"name": "ExPO", "graded": "runs/Xheld/out/graded.jsonl", "n": {"H": 2, "R": 4}, "kind": "expo"}
+]}

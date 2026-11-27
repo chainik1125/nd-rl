@@ -1,0 +1,8 @@
+# chain_w_build_gate.txt: W -> build -> gate, no decision needed between the steps (Turn 5 B.2 steps 2-5).
+# Format of pod/m2_chain.sh: <job> <timeout-s> <continue-codes> [--nogpu] -- <shell command>   (cwd /workspace/m2)
+# (rewritten by the orchestrator 2026-11-27 from the builder's tab-separated draft into the runner's format; code from rank1/)
+# W exits 0 for both run bands (band in runs/W/out/w_band.txt); 20 (STOP) or 2 (exact check failed) stops the chain:
+# see run_steps.md step 1 for the next step of each outcome. All three take the GPU lock.
+W 5400 0 -- python3 rank1/wpass.py --models-dir /workspace/models --out runs/W/out
+build 1800 0 -- python3 rank1/build_adapters.py --w-dir runs/W/out --out-root runs/build/out/adapters
+gate 2400 0 -- python3 rank1/lora_gate.py --model /workspace/models/dpo --adapters runs/build/out/adapters --pool /workspace/m2/pool --out runs/gate/out/gate.json

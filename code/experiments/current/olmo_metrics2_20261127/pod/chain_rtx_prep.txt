@@ -1,0 +1,12 @@
+# Orchestrator chain on rp-m2a after the coordinator's A2 decision (2026-11-27 3:02 am PT): weight-space and teacher-forced
+# work only; every sampling cell moves to the H200. M2 first (the H200 needs the adapters about an hour after it starts),
+# then M3. Timeouts are about 1.5-1.7 x the H200 ones (compute-bound work at about half the H200's bf16 rate). M2 steps
+# continue on failure codes so that M3 still runs unattended; a failed M2 step is rerun by hand afterwards.
+# Format of pod/m2_chain.sh: <job> <timeout-s> <continue-codes> [--nogpu] -- <shell command>   (cwd /workspace/m2)
+W 9000 0,1,2,3,20 -- python3 rank1/wpass.py --models-dir /workspace/models --out runs/W/out
+build 3000 0,1,2,3,4,5 -- python3 rank1/build_adapters.py --w-dir runs/W/out --out-root runs/build/out/adapters
+gate 4000 0,1,2,3,30,31,32 -- python3 rank1/lora_gate.py --model /workspace/models/dpo --adapters runs/build/out/adapters --pool /workspace/m2/pool --out runs/gate/out/gate.json
+m3_p1 4000 0 -- mkdir -p runs/m3_p1/out && python3 steer/steer_hf.py p1 --model /workspace/models/dpo --texts inputs/steer/texts.jsonl --out runs/m3_p1/out
+m3_p2 6000 0 -- mkdir -p runs/m3_p2/out && python3 steer/steer_hf.py p2 --model /workspace/models/s2300 --texts inputs/steer/texts.jsonl --p1 runs/m3_p1/out --out runs/m3_p2/out
+m3_p3 9000 0 -- mkdir -p runs/m3_p3/out && python3 steer/steer_hf.py p3 --model /workspace/models/dpo --texts inputs/steer/texts.jsonl --seqs inputs/steer/preflight_seqs.json --p1 runs/m3_p1/out --p2 runs/m3_p2/out --out runs/m3_p3/out --budget-usd 3.0 --usd-per-h 2.69
+m3_pf 6000 0 -- set -e; O=runs/m3_pf/out; mkdir -p $O; for m in stock zero chosen scramble2001; do python3 steer/steer_preflight.py run --mode $m --model /workspace/models/dpo --p3 runs/m3_p3/out --out $O; done; python3 steer/steer_preflight.py run --mode chosen --eager --model /workspace/models/dpo --p3 runs/m3_p3/out --out $O; python3 steer/steer_preflight.py summarize --p3 runs/m3_p3/out --dir $O --out $O/preflight_report.json

@@ -1,0 +1,6 @@
+# H200 pod, first chain after setup (orchestrator, A2 plan, 2026-11-27): dpo, s0500 (sha256-verified), then the two ExPO
+# writes on the pod's CPU (fixed verifier). All --nogpu; sampling starts as soon as download_dpo is DONE.
+download_dpo 3600 0 --nogpu -- env M2_ROOT=/workspace/m2 VERIFY_SHA=1 bash pod/m2_download.sh dpo
+download_s0500 3600 0 --nogpu -- env M2_ROOT=/workspace/m2 VERIFY_SHA=1 bash pod/m2_download.sh s0500
+write_g46 3600 0 --nogpu -- python3 rank1/expo_write.py --dpo /workspace/models/dpo --s0500 /workspace/models/s0500 --gamma 4.6 --out /workspace/models/expo_g46
+write_g35 3600 0 --nogpu -- python3 rank1/expo_write.py --dpo /workspace/models/dpo --s0500 /workspace/models/s0500 --gamma 3.5 --out /workspace/models/expo_g35

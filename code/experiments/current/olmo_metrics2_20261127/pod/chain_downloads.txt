@@ -1,0 +1,5 @@
+# Downloads after dpo (orchestrator, 2026-11-27): s0500 (M1 S5R, M2 W + ExPO), s2300 (M2 W, M3 P2), s0100 (M2 W).
+# Format of pod/m2_chain.sh: <job> <timeout-s> <continue-codes> [--nogpu] -- <shell command>   (cwd /workspace/m2)
+download_s0500 3600 0 --nogpu -- env M2_ROOT=/workspace/m2 VERIFY_SHA=1 bash pod/m2_download.sh s0500
+download_s2300 3600 0 --nogpu -- env M2_ROOT=/workspace/m2 VERIFY_SHA=1 bash pod/m2_download.sh s2300
+download_s0100 3600 0 --nogpu -- env M2_ROOT=/workspace/m2 VERIFY_SHA=1 bash pod/m2_download.sh s0100

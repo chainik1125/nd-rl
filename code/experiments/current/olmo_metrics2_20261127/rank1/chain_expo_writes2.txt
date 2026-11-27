@@ -1,0 +1,4 @@
+# Orchestrator 2026-11-27 (after write_g46 exit 4 = a verifier bug at exact zeros, see log.md): re-verify the written g46 with the fixed
+# verifier (8 random tensors, no rewrite), then write g35 with the fixed verifier. Format of pod/m2_chain.sh.
+reverify_g46 1800 0 --nogpu -- python3 rank1/expo_write.py --dpo /workspace/models/dpo --s0500 /workspace/models/s0500 --gamma 4.6 --out /workspace/models/expo_g46 --verify 8 --verify-only
+write_g35 3600 0 --nogpu -- python3 rank1/expo_write.py --dpo /workspace/models/dpo --s0500 /workspace/models/s0500 --gamma 3.5 --out /workspace/models/expo_g35

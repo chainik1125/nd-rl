@@ -126,3 +126,18 @@ audit `discourse/gate_amendments_audit.md` (G5-G8). No H200 measurement exists. 
 5. **E0' as M1's baseline (G8 note; also PREREG_temp Amendment 3).** `temp_triggers.e0_accept` now also requires
    `zero_compiled_within_tol` and `pass_chosen` (E0' samples with the compiled engine; `zero_identity` is the eager check).
 6. **Anything not covered here: stop and report to the coordinator; no amendment on the spot.**
+
+## Amendment 3 (10:43 am PT by `date`, after the first dev guard failed and before m3_dev_half exists): what the halved alpha carries with it
+
+Seen when writing: the H200 pre-flight and decode check (both PASS, with the chosen vector), the dev guard at alpha 4.0 (FAIL on
+cap hits only: 7 / 64 = 10.9 % > 10 %; length ratio 1.29; pass@1 +8.5 points). Not seen: anything at alpha 2.0.
+1. The pre-registered remedy runs: alpha halved once (`vecs/chosen_half.pt`, alpha 2.0, written by p3 before any sampling),
+   pre-flight mode chosen_half on the H200 (HF references exist), guard rerun as m3_dev_half; a second failure stops E1 and E2.
+2. Release of m3_dev_half and E1 at the halved alpha: `pass_chosen`, `chosen_half_matches_hf`, the chosen_half STEER_ACTIVE
+   record, and the decode check PASS. The decode check ran with the alpha 4.0 vector; the halved vector uses the same patch
+   and buffer, so for it the decode path is covered only by that run (stated as a limit in the write-up).
+3. E2 at the halved alpha, if the trigger fires: the pre-registered E2 cells are sign scrambles of alpha * v; at alpha 2.0 they
+   are exactly 0.5 x the existing scramble files (`tools/half_vecs.py`, fp32 scaling by 0.5 is exact; the tool reproduces the
+   stored chosen_half bit for bit from chosen). No HF references exist for them, so they are verified by their STEER_ACTIVE
+   sha256 only (PREREG_steer Amendment 2 item 1's pre-stated scramble fallback), and the write-up says so.
+4. Everything else unchanged (E1 draws, seeds, trigger rule, analysis).

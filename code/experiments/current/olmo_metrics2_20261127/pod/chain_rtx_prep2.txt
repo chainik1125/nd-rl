@@ -1,0 +1,13 @@
+# Orchestrator chain on rp-m2a, 2026-11-27 3:20 am PT, after W exited 2 (exact check failed: the randomized null sigma_1 of the
+# first gate matrix was 5.4 % below the exact one; the three sigma_1 checks were within 0.02 %). The pre-registered remedy
+# (wpass.py docstring, run_steps): rerun once with --iters 12; if that fails too, --exact-fallback. The first W, build and
+# (stopped) gate stay on the pod, unused. Then the adapters are rebuilt and gated from the W that passed, and M3 follows.
+# Format of pod/m2_chain.sh: <job> <timeout-s> <continue-codes> [--nogpu] -- <shell command>   (cwd /workspace/m2)
+W_it12 9000 0,2,20 -- python3 rank1/wpass.py --models-dir /workspace/models --out runs/W_it12/out --iters 12
+Wx 9000 0,20 -- python3 -c "import json,sys; sys.exit(0 if json.load(open('runs/W_it12/out/w_summary.json'))['exact_ok'] else 1)" && { echo "W_it12 exact checks passed: no exact fallback needed"; exit 0; }; python3 rank1/wpass.py --models-dir /workspace/models --out runs/Wx/out --exact-fallback
+build2 3000 0,1,2,3,4,5 -- W=runs/Wx/out; test -f $W/w_summary.json || W=runs/W_it12/out; echo "build2 from $W"; echo $W > runs/build2/w_used.txt; python3 rank1/build_adapters.py --w-dir $W --out-root runs/build2/out/adapters
+gate2 4000 0,1,2,3,30,31,32 -- mkdir -p runs/gate2/out && python3 rank1/lora_gate.py --model /workspace/models/dpo --adapters runs/build2/out/adapters --pool /workspace/m2/pool --out runs/gate2/out/gate.json
+m3_p1 4000 0 -- mkdir -p runs/m3_p1/out && python3 steer/steer_hf.py p1 --model /workspace/models/dpo --texts inputs/steer/texts.jsonl --out runs/m3_p1/out
+m3_p2 6000 0 -- mkdir -p runs/m3_p2/out && python3 steer/steer_hf.py p2 --model /workspace/models/s2300 --texts inputs/steer/texts.jsonl --p1 runs/m3_p1/out --out runs/m3_p2/out
+m3_p3 9000 0 -- mkdir -p runs/m3_p3/out && python3 steer/steer_hf.py p3 --model /workspace/models/dpo --texts inputs/steer/texts.jsonl --seqs inputs/steer/preflight_seqs.json --p1 runs/m3_p1/out --p2 runs/m3_p2/out --out runs/m3_p3/out --budget-usd 3.0 --usd-per-h 2.69
+m3_pf 6000 0 -- set -e; O=runs/m3_pf/out; mkdir -p $O; for m in stock zero chosen scramble2001; do python3 steer/steer_preflight.py run --mode $m --model /workspace/models/dpo --p3 runs/m3_p3/out --out $O; done; python3 steer/steer_preflight.py run --mode chosen --eager --model /workspace/models/dpo --p3 runs/m3_p3/out --out $O; python3 steer/steer_preflight.py summarize --p3 runs/m3_p3/out --dir $O --out $O/preflight_report.json

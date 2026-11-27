@@ -294,3 +294,158 @@ Times are PT. Brief from the coordinator (Leon approved the three measurements: 
 - New: `tools/ledger_ok.py` (conditional cells run only while prior $6.40 + pod hours x $5.29 + the cell's estimate <= $60),
   `inputs/steer/pids_dev_guard_n1.txt` (64 x 1, the SPEC's dev guard size; the pre-made file was 64 x 2).
 - C1 first minutes: 5,000-5,400 generated tokens/s at 360-430 running (KV cache 99.8 %).
+
+## 2026-11-27 8:01 am PT (orchestrator): C1 done
+
+- C1 (dpo, T 0.6 / top_p 0.95, 736 draws): 15:18:14-15:59:03Z (41 min), exit 0; 13 draws cut at 32,768; repetition flag
+  3.94 % of all draws. Fetched (md5). Prompt sha256 equal to Dan's stored jobs for 224 / 224 prompts.
+- `temp_triggers.py` (arm-A parts; reach part waits for E0', PREREG_temp Amendment 2): arm-A delta +0.6 points [-1.9, +3.1]
+  (218 prompts; finishing-only +0.8 [-1.6, +3.3]); reach 4 passes in 384 draws on 1 of 48 prompts (against the proxy the
+  rule needs >= 3 passes on >= 2 prompts: no). Trigger A: not fired so far. Trigger B FIRES (repeat 4.36 % vs stored
+  0.97 %, cut 1.61 % vs 0.06 %, margin 1.5 points): C2 released by the pre-registration, appended to segment 3 behind the
+  ledger gate (estimate $3).
+- Note: run_steps' `python -I` breaks sibling imports (-I implies -P); serrano analyses run with `-E -s` instead.
+- PF manifest built (47 prompts, 752 sequences; ifbench_280 dropped, no s2300 pass), pushed (md5).
+
+## 2026-11-27 8:31 am PT (orchestrator): S5R, gate_h, decode_lora
+
+- S5R (s0500, T 0.6 / top_p 0.95, reach 48 x 8): 15:59-16:24Z, exit 0; 4 cut; repetition flag 5.47 %. Fetched.
+- Interim M1 (`runs/temp_analysis_interim`, C1 + S5R; reach vs E0' later): arm A dpo 29.6 % [24.1, 35.3] at card decoding
+  vs 29.0 % stored at T 1.0, delta +0.6 [-1.9, +3.1]; reach C1 1.0 % (4 / 384, one prompt), +0.9 [-0.1, +3.0] vs the
+  proxy; S5R reach 10.9 % vs 4.5 % stored, +6.4 [+1.7, +12.0].
+- gate_h exit 0 under Amendment 4: base_exact [true, true]; zero-B control bit-identical to base in both calls; consistency
+  m 4; A1 changes 237.9 / 116.9 nats, repeat 0.20 % / 0.01 % of base, A1 10 % rule true; A1u and A2 differ from base at
+  80-99 % of tokens in both calls. decode_lora PASS (decode vs A1 prefill mean 0.0076 / p99 0.110; A1 vs base prefill mean
+  0.0547; base decode vs prefill 0.0084). A1 started 16:29:15Z. Ledger $13.17 at 8:30 am.
+
+## 2026-11-27 9:33 am PT (orchestrator): A1 collapsed; segment 2 running
+
+- A1 (rescaled rank-1, H x 2 + R x 4 = 416 planned): killed by its pre-registered H200 timeout 3,675 s at 17:30:32Z (rc 124);
+  175 rows, 73 at the 32,768 cap, 58 without end of thinking. Throughput fell to 600-800 tokens/s with 24-35 running
+  sequences, almost all heading for the cap. The kill left the gzip without an end marker: `tools/gz_repair.py` (new, test
+  added) wrote `samples_complete.jsonl.gz` (175 rows, 0 dropped); graded and the release rule run as job `release_b`
+  (pod CPU): exit 0, collapse (bad union 314 / 416 = 75 %); H 7.1 % (dpo 32.5 %, s2300 64.5 %), f_H -0.79 [-1.24, -0.49];
+  R 0 %. Decision: RUN A2 then A1u. Conditional cell (Amendment 2): rank-16 (not a clean null).
+- seg1 stopped at A1 (rc 124 not in its continue list); seg2 started 17:31:32Z (A2 / A1u skipped there, rc 11, because the
+  release had not run yet); segment 3 starts with A2 and A1u (it reads `release_b`). Ledger $18.68 at 9:32 am.
+- 9:34 am: `tools/grade_job.sh` now grades a repaired copy (`<name>_complete.jsonl.gz`, via gz_repair) when the gzip stream is
+  incomplete; regrade of A1's raw file on serrano equals the pod's graded.jsonl (175 rows); pushed (seg2's gamma job uses it
+  if an Xdev cell is cut by its timeout). Segment 3's A2, A1u and conditional cell now run the sampler under the
+  pre-registered inner timeouts (2,357 / 2,643 / 3,675 s) and grade the rows written either way (exit = the sampler's rc).
+- 9:40 am, M2's own cap: the pre-registered M2 cap is $15 with a cut order ("hard stop at $15 cumulative M2 spend; beyond it
+  only on the orchestrator's go"). M2 spend now about $8.8 (rp-m2a W/W_it12/Wx/gates about 67 min at $2.69 = $3.0; H200
+  gate_h + decode_lora + A1 about 66 min at $5.29 = $5.8; A1 ran its full timeout because it collapsed). Xdev46 already runs
+  at full size. Decision (orchestrator's go, reported to the coordinator): no cut-order cuts; the remaining M2 cells (Xdev35,
+  Xheld, A2, A1u) run at their pre-registered sizes because the binding constraint since the coordinator's approval is the
+  $60 total, which the ledger gate enforces for every conditional cell (order in segment 3: E2, the rank-16 cell, C2).
+
+## 2026-11-27 9:58 am PT (orchestrator): ExPO dev cells and the gamma rule
+
+- Xdev46 (17:31-17:41Z) and Xdev35 (17:41-17:56Z), D 64 x 2 each, exit 0; no collapse (g46: 0 bad; g35: 1 capped, 3 without
+  end of thinking). Gamma rule (pod, `rules.py gamma`): D pass@1 g46 66.4 %, g35 63.3 %, lead 3.1 points < 1 paired SE
+  (3.5) -> gamma 3.5 (pre-registered rule). Stored D for reference: dpo 41.8 %, s0500 60.2 %, s2300 78.3 %. Xheld on
+  expo_g35 started 17:56:46Z. Fetched (md5): Xdev46, Xdev35, gamma.
+
+## 2026-11-27 10:31 am PT (orchestrator): ExPO held-out
+
+- Xheld (expo_g35 = dpo + 3.5 (s0500 - dpo); H x 2 + R x 4 = 416 draws, T 1.0 / top_p 1.0): 17:56:46-18:24:10Z, exit 0,
+  0 cut, no collapse, mean 5,950 tokens per draw. Checks: model_dir expo_g35 (MANIFEST verify_ok, gamma 3.5); D, H, R
+  disjoint (64 / 112 / 48 prompts). Interim M2 analysis (`runs/rank1_analysis_interim`, rank1/analyze.py):
+  H 58.5 % (stored dpo 32.5, s0500 44.4, s2300 64.5): f 0.81 [0.57, 1.06], f' (of the s0500 -> s2300 gap) 0.70 [0.29, 1.08];
+  R 70.3 % (dpo 0.0, s0500 4.5, s2300 69.4): f 1.01 [0.89, 1.15]. A1 (collapsed): H 7.1 %, f -0.79 [-1.24, -0.49]; R 0 %.
+
+## 2026-11-27 10:36 am PT (orchestrator): M3 pre-flight on the H200
+
+- m3_pf_h (18:24:10-18:31:39Z) PREFLIGHT_PASS (exit 0), every check true, `pass` and `pass_chosen`: floor 0.0110 / 0.114
+  (tolerance 0.0331 / 0.342); eager zero = eager stock bit for bit (path exact); compiled zero vs stock 0.0101; chosen
+  and scramble match HF (0.0116 / 0.0117); drops detected (stock vs HF chosen 0.102 / 1.01; vs HF scramble 0.057 / 0.54);
+  compile vs eager, beyond 4,096, STEER_ACTIVE true; prefix-cache repeat exact. decode_steer PASS (steered decode vs prefill
+  0.0069 / 0.097; steered vs stock prefill 0.077; stock decode vs prefill 0.0098; STEER_ACTIVE true). Fetched (md5).
+  m3_dev started 18:34:03Z. Ledger $24.17.
+
+## 2026-11-27 10:44 am PT (orchestrator): dev guard failed once; pre-registered halving
+
+- m3_dev (V_resp l 20 alpha 4.0, 64 dev prompts x 1, 12,000 cap): 18:34-18:40Z. Guard (steer_analyze on serrano): cap hits
+  10.9 % (7 / 64) > 10 % -> FAIL; length ratio 1.29 (0.7-1.3: ok); pass@1 42.2 % [29.7, 54.7] vs stored dpo 33.7 %
+  [23.9, 43.7], +8.5 points [+0.7, +17.0] (not more than 10 below: ok).
+- Pre-registered remedy (steer/run_steps step 6): halve alpha once. Segment 3a (starts when seg2 ends): m3_pf_half (pre-flight
+  mode chosen_half added to the H200 pre-flight runs; its HF references exist), m3_dev_half behind a release requiring
+  pass_chosen, chosen_half_matches_hf, chosen_half STEER_ACTIVE and the decode check PASS (run with the chosen vector; same
+  patch and buffer, noted as a limit), then A2 and A1u. A second guard failure stops M3's steered sampling (E1, E2).
+- 10:46 am: PREREG_steer Amendment 3 (before m3_dev_half exists): what the halved alpha carries with it (release rule, decode
+  limit, E2 with exact 0.5 x scrambles verified by STEER_ACTIVE sha256 only). New `tools/half_vecs.py` (reproduces the stored
+  chosen_half from chosen bit for bit). Segment 3b written in two variants: `chain_h200_seg3b_half.txt` (E1 at alpha 2.0,
+  trigger, half scrambles, E2, M2 conditional, C2) and `chain_h200_seg3b_nosteer.txt` (M2 conditional, C2); the variant is
+  chosen by the m3_dev_half guard.
+
+## 2026-11-27 11:08 am PT (orchestrator): E0' and M1 with its fresh baseline
+
+- m3_e0p (dpo + zero vector through the patched engine, reach 48 x 8, T 1.0): 18:40:43-19:04:33Z, exit 0, 1 cut. Fetched.
+- temp_triggers with E0' (`runs/temp_dpo_C1/triggers_with_e0.json`): E0' ACCEPTED (all checks; --allow-unverified for exactly
+  engine_config_sha256, dtype, enforce_eager, template sha, as pre-registered). E0' 1 pass / 384 (one prompt). Reach rule:
+  C1 4 passes on 1 prompt, difference 3 but only 1 prompt -> no. Trigger A: not fired (arm A interval includes 0; reach no).
+  Trigger B fired (unchanged) -> C2.
+- M1 (`runs/temp_analysis_e0`): arm A C1 29.6 % [24.1, 35.3] vs stored 29.0 %: +0.6 points [-1.9, +3.1] (null; MDE about
+  3.3); reach C1 1.0 % vs E0' 0.26 %: +0.8 [-0.8, +3.1], 1.1 % of s2300's 69.4 % [-1.1, +4.5] (null); S5R 10.9 % vs stored
+  4.5 %: +6.4 [+1.7, +12.0]. PF running (temp_pf), C2 waits in segment 3b behind the ledger gate.
+- 11:21 am: temp_pf (19:04-19:19:57Z, 752 sequences, 4,600 HF tokens/s; sliding check PASS; self-test exact 3 / 3). PF verdict
+  (tools/temp_pf_stats.py, frozen thresholds): PASS (full response: S_pt 0.24 [0.20, 0.27], S_adj 1,284 [1,098, 1,486], P_low_pt
+  3.7 % [0, 9.6], P_low_adj 5.3 % [0, 11.7]): s2300's strict-pass responses are not in dpo's low-likelihood tail. Segment 3a
+  started 19:20:09Z (m3_pf_half).
+
+## 2026-11-27 11:29 am PT (orchestrator): halved alpha passes the guard
+
+- m3_pf_half (19:20-19:21:56Z): PREFLIGHT_PASS including chosen_half_matches_hf and chosen_half STEER_ACTIVE.
+- m3_dev_half (alpha 2.0; 19:21:56-19:27:37Z): guard PASS: cap hits 4.7 % (3 / 64), length ratio 1.00, pass@1 32.8 %
+  [21.9, 43.8] vs stored dpo 33.7 %: -0.9 points [-5.4, +3.7]. E1 and E2 run at alpha 2.0 (PREREG_steer Amendment 3).
+- Segment 3b = `chain_h200_seg3b_half.txt`, queued to start when seg3a (now A2, then A1u) ends.
+- 11:42 am: A2 (random rank-1 at A1's norm, H x 1 + R x 2 = 208): 19:27:37-19:40:47Z, exit 0, 0 cut, not collapsed. H 30.4 %
+  vs stored dpo 32.5 %: -2.2 points [-5.7, +1.5], f -0.07 [-0.19, +0.05]; R 0 %. So the same norm in a random direction
+  leaves dpo's behaviour intact; A1's collapse comes with the top direction, not with the norm alone. A1u running.
+- 12:04 pm: A1u (unscaled top direction, H x 2 + R x 2 = 320): 19:40:47-20:02:31Z, exit 0, 0 cut. H 35.7 % vs dpo 32.5 %:
+  +3.2 points [-0.8, +7.4], f 0.10 [-0.02, 0.23]; R 0 %. seg3a done; seg3b (half variant) started by the helper.
+
+## 2026-11-27 12:42 pm PT (orchestrator): E1, trigger, M3 analysis; M2 conditional cell running
+
+- m3_e1 (V_resp l 20 alpha 2.0; reach 48 x 8 + held-out 80 x 2 = 544): 20:03:19-20:39:22Z, exit 0, 1 cut, 0 without end of
+  thinking. E2 trigger (steer_trigger.py): NOT fired (reach 1 vs E0' 1 pass; held-out +5.47 points < 6). E2 cells skipped
+  (rc 11) as pre-registered; half_scrambles written but unused. Fetched (md5).
+- M3 analysis (`runs/steer_analysis`, cells dev_guard (alpha 2.0), e0p, e1): reach E1 0.26 % [0, 0.78] (1 / 384, ifbench_64)
+  vs E0' 0.26 % (1 / 384, ifbench_220): 0.0 points [-0.8, +0.8]; pass@8 2.1 % both. Held-out (80 prompts) E1 40.6 % [30.6,
+  50.6] vs stored dpo 35.2 % [26.0, 44.3]: +5.5 points [+1.0, +10.5]. Mean length E1 5,448 vs E0' 4,773 tokens.
+- M2cond started 20:39:25Z: ledger $35.15 + $3.50 = $38.65 <= $60 -> RUN; rank-16 (release_b: A1 not a clean null).
+
+## 2026-11-27 1:22 pm PT (orchestrator): M2 conditional cell (rank-16) and the final M2 analysis
+
+- M2cond = k16 (unscaled top-16 truncation of Delta_2300, r = alpha = 16; `runs/build2/out/adapters/k16`; seed 710021; H x 2 +
+  R x 4 = 416): 20:39:25-21:16:54Z, exit 0, 5 cut, not collapsed (5 / 416 bad). Fetched (md5). Not separately teacher-force
+  gated (the gate's r = 16 consistency adapters covered the rank-16 serving path; k16's own effect is large).
+- Final M2 analysis (`runs/rank1_analysis`, 10,000 bootstrap draws; the interim used 2,000): k16 H 53.1 %, f 0.64 [0.49,
+  0.82]; R 8.9 %, f 0.13 [0.07, 0.19]. Others as before (A1 f_H -0.79 [-1.24, -0.50]; A1u 0.10 [-0.03, 0.24]; A2 -0.07
+  [-0.18, +0.05]; ExPO H 0.81 [0.57, 1.05], R 1.01 [0.89, 1.14]).
+- Energy (computed here from Wx's top-16 factors, read only): the top 16 directions hold 22 % of ||Delta_2300||^2 pooled
+  (norm-weighted median per matrix 19 %); the top direction 9 % pooled (weighted median 7.5 %).
+- C2 (dpo T 0.8 / top_p 1.0, arm A x 2, seed 6105) started 21:16:54Z: ledger $38.46 + $3.00 <= $60 -> RUN.
+
+## 2026-11-27 1:20-1:50 pm PT (orchestrator): C2, close-out, write-up, lint pass
+
+- C2 (dpo T 0.8 / top_p 1.0, arm A x 2, seed 6105): 21:16:54-21:42:03Z, exit 0, 1 cut. M1 final (`runs/temp_analysis_final`):
+  C2 30.0 % [24.5, 35.8], +1.1 points [-0.9, +3.1] against stored 29.0 %; repetition flag 2.29 % (C1 3.94 % of all 736 draws).
+- Close-out: every pod result file md5-equal on serrano (336 files checked by me; the coordinator's own check 382 of 385,
+  the 3 others the unused half-scramble vectors in m3_p3/out/vecs). Name clashes with rp-m2a records fetched to
+  `metrics2/h200/runs/` (download_dpo, download_s0500, write_g35, write_g46); ExPO manifests in `metrics2/h200/expo_manifests/`.
+  POD READY TO DELETE sent 1:44 pm; the coordinator deleted rp-m2h at 21:44:08Z. Ledger (coordinator): rp-m2h $34.46, line
+  total $40.85.
+- H200 job time by measurement (chain logs): M1 107 min ($9.4), M2 191 min ($16.8), M3 84 min ($7.4); M2 total with rp-m2a
+  about $20 (over its own $15 cap on the orchestrator's go of 9:40 am).
+- Summary write-up: `experiment-summaries/2026-11-27-olmo-elicitation-metrics-2/README.md` with three figures.
+- Lint pass (coordinator's request, nothing runs from this folder any more): `ruff check --fix` then `ruff format` under
+  code/pyproject.toml, `tools/temp_repeat_flag.py` excluded (hash-frozen; sha256 still c28f6e09...). Format step AST-identical
+  on all 69 files; the fixes removed 11 unused imports, split 2 multi-import lines, 3 UTC aliases, 3 yoda comparisons, and
+  sorted imports. Sorting broke five rank1 tests (it moved imports above the `rank1_fixtures` import that puts rank1/ on
+  sys.path); restored with `# isort: split`. Tests 182 passed before and after; re-running rank1/analyze, temp/analyze,
+  steer_analyze and temp_pf_stats reproduces their outputs byte for byte. Remaining: 444 findings that need hand edits
+  (354 E501, 34 SIM115, 23 E741, 20 B905, others), down from 1,107.
+- 1:55 pm, two shares computed after the run (same definitions, not pre-registered readouts): C2 share of the arm-A gap
+  2.7 % [-2.5, +8.0] (temp/analyze's joint bootstrap); M3 E1 share of the gap on its 80 held-out prompts 0.17 [0.03, 0.33]
+  (stored s2300 67.5 % there; 10,000 prompt-bootstrap draws, seed 0).
