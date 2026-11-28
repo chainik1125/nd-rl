@@ -5,6 +5,40 @@ written_by: agent:claude
 
 # Olmo minimal adapter, stage 1 (`dpo`): how small an adapter, how few examples, and does it need the RL model's tokens
 
+## Reader check of every checker pass (2026-11-28)
+
+![Strict checker pass, reader-accepted pass and task-done pass per model, with 95 % intervals](figures/handcheck4.png)
+
+Blinded Sonnet readers read every strict-checker pass of eight models on the 48 hard prompts: 1,340 answers, two reads
+per label and a third on a split (148 more passes fail a mechanical screen and count as not accepted). "Reader-accepted"
+is Dan's rubric (a real answer, not one that games the checker); "task-done" asks only whether the task itself was done.
+
+| model | strict checker pass | reader-accepted pass | task-done pass |
+|---|---|---|---|
+| the final RL model (first 8 draws per prompt) | 68.8 % [58.9, 78.4] | 47.4 % [36.7, 58.1] | 52.9 % [42.4, 63.3] |
+| the 25 Nov adapter | 64.8 % [54.9, 74.2] | 34.4 % [24.7, 44.3] | 39.8 % [29.9, 50.0] |
+| our retrain of it | 64.3 % [53.4, 74.5] | 34.6 % [25.5, 44.5] | 40.1 % [30.2, 50.5] |
+| 25 Nov data, our seed | 62.8 % [52.9, 72.7] | 36.2 % [26.8, 46.1] | 41.4 % [31.0, 52.1] |
+| our data, 25 Nov seed | 46.6 % [36.7, 56.2] | 38.5 % [29.4, 47.9] | 40.6 % [31.5, 50.0] |
+| our data, our seed | 40.6 % [30.7, 50.3] | 34.9 % [25.8, 44.3] | 34.1 % [25.0, 43.5] |
+| the extrapolated model (4 draws per prompt) | 70.3 % [58.9, 81.2] | 21.4 % [12.5, 31.8] | 25.5 % [15.1, 36.5] |
+| the top-16-directions adapter (4 draws per prompt) | 8.9 % [3.6, 15.1] | 8.3 % [3.1, 14.6] | 8.3 % [3.1, 14.6] |
+
+- **Once the answers are read, the five adapters are level:** 34-39 % reader-accepted and 34-41 % task-done, against
+  41-65 % on the checker. The 25 Nov adapter's 24.2-point checker lead over the adapter trained on our data with our
+  seed becomes −0.5 [−8.6, +7.8] reader-accepted and +5.7 [−2.3, +13.8] task-done.
+- **The 25 Nov data adds checker passes, not accepted answers** (fixed seed): +22.1 and +17.7 on the checker, +1.3
+  [−7.8, +10.4] and −3.9 [−12.8, +4.9] reader-accepted, +7.3 [−2.1, +16.7] and −0.5 [−9.1, +8.1] task-done.
+- **Every adapter is below the final RL model:** by 9 to 13 points reader-accepted and 11 to 19 points task-done (nine
+  of the ten intervals exclude 0; one ends at 0.0).
+- **The extrapolated model matches the final RL model on the checker but has under half its accepted passes** (−26.0
+  points [−37.0, −15.1]): 70 % of its checker passes are screened or read as gamed, against 31 %.
+
+**Main limit.** The labels are a model reader's judgement: two reads agree on 87 % of answers (κ 0.71,
+reader-accepted) and 88 % (κ 0.68, task-done), and the majority matches Dan's own label on 83 % of his 169 labelled
+answers (κ 0.64). Intervals (95 %, shares of all draws) are set by the 48 prompts, so more reading cannot narrow them.
+Record: `PREREG.md` (round-4 result) and `log.md`; figure script `fig_handcheck4.py`.
+
 Status: stage 1 is finished (2026-11-27; written by agent:claude for Leon, corrected at 7:40 am PT after an
 independent audit, `discourse/stage1_report_audit.md`). Both pods are deleted and nothing is running. Runpod spend for
 stage 1: $43.54 (rp-om1 H100 $17.22, rp-om2 H200 $26.32), under the $55 stop. Stage 2 as pre-registered is dropped.

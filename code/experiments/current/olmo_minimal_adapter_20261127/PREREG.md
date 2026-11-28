@@ -869,3 +869,248 @@ The genuine-pass rate has the prompts → draws → items bootstrap (10,000 reps
 - Readers labelled 13 of 44 unpunctuated read items in A, A′ and B as gamed (30 %), so most unpunctuated answers were
   judged genuine attempts under Dan's rubric.
 - Readers were fast: about 31–57 s per 16 items, 3–5 tool calls each.
+
+### Round-4 hand-check protocol: a census of every pass, with two labels, fixed before any item file is built (2026-11-28 2:31 am PT)
+
+**Why.** Rounds 1 to 3 read 24 passes per cell, so genuine-pass contrasts had half-widths of about 13 points. Leon
+asked why subagents were not grading all of it. Round 4 reads every strict pass, and adds a second label ("task
+done"). No GPU and no sampling: stored draws only. The protocol below is the coordinator's, with the open points
+fixed here.
+
+**State when this was written.** Per cell, the draw count, the strict pass count and the rule-1 screen count were
+computed from the stored files (mechanical). No round-4 item file exists and no reader has seen a round-4 item. The
+dispatcher has opened no response of these cells, apart from the first 80 characters of one ExPO draw's reasoning,
+printed while checking the file layout.
+
+1. **Cells**, all on the 48 reach prompts.
+   - The five adapters of the square, as in `handcheck3.CORNERS`: A (the 25 Nov adapter), A′ (our retrain of it), B,
+     C and D. 384 draws each (48 × 8).
+   - `s2300`, the stored final model (Dan's `B_s2300`): the first 8 stored draws per prompt in (chunk, i) order,
+     which are chunks 0 and 1. 384 draws. This is the yardstick.
+   - `expo`: the extrapolated model (ExPO γ 3.5), metrics-2 run `Xheld`. 192 draws (48 × 4).
+   - `k16`: the top-16-directions adapter, metrics-2 run `M2cond`. 192 draws (48 × 4).
+2. **Found before building** (strict passes, then rule-1 screened):
+   - A 249, 32; A′ 247, 31; B 241, 36; C 179, 4; D 156, 7;
+   - `s2300` first 8: 264, 6 (68.75 %; over all 32 stored draws it is 1,066 of 1,536, 69.4 %);
+   - `expo` 135, 31 (70.3 %); `k16` 17, 1 (8.9 %).
+   - 1,488 passes in all, 148 screened, so 1,340 items go to readers.
+3. **Items.** Every strict pass that rule 1 does not screen, including draws read in rounds 1 to 3. Those get fresh
+   reads; the earlier labels are used only for the consistency check in 9. Nothing is sampled.
+   - Item id: `h` plus the first 7 hex digits of sha1(`660041|cell|draw`). A collision aborts the build.
+4. **Step 1, screen.** Dan's rule-1 screen (`handcheck.screen_reason`) on every pass. A screened pass counts as gamed
+   and as task not done, and is not read (as in rounds 1 to 3).
+5. **Step 2, primary label (genuine or gamed).**
+   - Dan's reader prompt verbatim in round 3's batch format (`handcheck3.batch_prompt`), on item files in Dan's
+     format (`handcheck.write_item`).
+   - Two independent reads per item. Read 1 uses one shuffle of all 1,340 items (seed 660041) and read 2 another
+     (seed 660042). Batches of 16 are stride slices of the shuffle, 84 per read, so every batch mixes the cells.
+     `k16` has 16 items, so it cannot be in every batch.
+   - A third read where the two differ (seed 660043). The label is the majority.
+   - **Agreement reference.** Dan's own labelled passes of `s2300` inside the yardstick cell: 169 (106 genuine, 63
+     gamed), none of them screened by rule 1.
+6. **Step 3, secondary label (done or not_done).** Separate reads by separate readers, so the primary reads are not
+   touched.
+   - Two independent reads per item (seeds 660045 and 660046), a third on a split (seed 660047), majority label.
+   - Item files for this step hold only the request (the prompt) and the response (the answer), without the list of
+     constraint verdicts. This file format is the dispatcher's choice; the coordinator's text does not fix it.
+   - The instruction, verbatim, followed only by the item list, the output path and a one-line reply rule:
+     > You are shown a request and a response. The request contains a task and one or more formal constraints (for
+     > example a letter count, a casing rule, a sentence-length pattern). Ignore whether the constraints are met; a
+     > program checks those. Judge only the task: would the person who wrote the request accept this response as a
+     > real attempt at what they asked for (the rubric, story, answer, list and so on), written as usable text?
+     > Label done if yes. Label not_done if the response is a fragment, a bare list of words, a refusal, a
+     > restatement of the request, or otherwise not the thing asked for. If a constraint itself forces an unusual
+     > form (for example an answer in exactly three words), judge the task within that form. Reply with JSON mapping
+     > each item id to done or not_done.
+7. **Readers and blinding.**
+   - Fresh Sonnet subagents at ordinary effort through one dispatcher, in waves of at most 8. Each is given only its
+     batch file path and its output path.
+   - Every returned file is validated: exactly the batch's item ids, and labels in the allowed set. A failed batch is
+     dispatched once more; if it fails again it is reported.
+   - An item that ends without two agreeing reads is "unread". The count is reported, and the rates are then given
+     both ways (unread as accepted, unread as not accepted).
+   - The key (item → cell, draw), the screen and the batch manifest are written only under `v2/handcheck/round4/`.
+     Readers see `v2/hc4_read/`, which holds item files, batch prompts and reads and nothing else. It is copied into
+     `round4/` after the last read.
+8. **Quantities per cell**, each with a 95 % interval.
+   - Strict pass rate.
+   - Share of passes screened, and share of read passes labelled gamed. Their sum over passes is the gamed share of
+     passes.
+   - **Genuine-pass rate:** passes neither screened nor read gamed, over all draws.
+   - **Task-done pass rate:** passes neither screened nor labelled not_done, over all draws.
+   - Round 3's style statistic on passes: the share with no `.`, `!` or `?` in the answer, and the median answer
+     words.
+   - **Intervals.** 10,000 bootstrap reps, seed 660044: resample the 48 prompts (shared by all cells), then each
+     cell's draws within each prompt with replacement. For one pass/fail outcome this is round 3's Binomial step.
+     Every draw now carries its own screen and labels, so round 3's item level is dropped. Percentile bounds as in
+     `handcheck3.pct`.
+   - **The intervals are now bounded by the 48 prompts**, not by the number of items read.
+9. **Agreement.**
+   - Cohen's κ and raw agreement between read 1 and read 2, for each label.
+   - The primary majority label against Dan's labels on the 169 reference passes (raw agreement and κ).
+   - The primary majority label against the final labels of rounds 1 to 3 on draws read again, matched by cell and
+     draw: round 1 `final_onepass` is D, round 2 `old_adapter` is A, round 3 has all five corners, and the reference
+     items of rounds 1 to 3 count where they fall in chunks 0 and 1.
+10. **Contrasts**, paired over prompts as in 8, on the strict rate and on both accepted-pass rates.
+    - Pool: B − D and A′ − C. Seed: C − D and A′ − B. Also A − D, A′ − D and A′ − A.
+    - Each adapter minus `s2300` (A, A′, B, C, D and `k16`), and `expo` minus `s2300`.
+11. **Reading rules.** Round 3's rules for the pool effect on genuine passes, quoted word for word from the 4:19 pm
+    note:
+    > **"Survives".** A pool contrast (B − D, A′ − C) "survives on genuine passes" if its lower bound is above 0. The
+    > ratio of the genuine to the raw point estimate is given as "how much it shrinks".
+
+    > **"Mostly gamed".** Amendment 6's reading is applied to A − D as written, and to A′ − D (the primary square of
+    > 8(b)). The gap is "mostly gamed passes" only if the interval includes 0 and the point estimate is at most a
+    > third of the raw contrast (24.2, and 23.7 for A′ − D). Otherwise "not shown".
+
+    The same two rules are applied to the task-done pass rate, with "task-done passes" in place of "genuine passes"
+    and "mostly passes without the task done" in place of "mostly gamed passes".
+12. **Checks before the table is believed.**
+    - The strict rates must equal the stored ones: A 64.8 %, A′ 64.3 %, B 62.8 %, C 46.6 %, D 40.6 %, `expo` 70.3 %,
+      `k16` 8.9 %, and `s2300` 69.4 % over its 32 draws.
+    - The dispatcher reads 10 items per label value (genuine, gamed, done, not_done), drawn with seed 660048, and
+      says whether the labels look right.
+    - Round 4's genuine-pass rates are compared with round 3's (A 42.4, A′ 39.8, B 37.8, C 45.6, D 34.0) and its
+      intervals.
+
+**Differences from the coordinator's text, found before building.**
+- "All cells mixed in every batch" holds as one shuffle over all cells; `k16` is too small to be in each batch.
+- `expo` and `k16` have 4 stored reach draws per prompt, not 8, so their intervals are wider.
+- `k16` − `s2300` is added under "each adapter minus `s2300`".
+- The yardstick's strict rate on its first 8 draws is 68.75 %, against 69.4 % over all 32.
+
+### Round-4 hand-check result (2026-11-28 3:17 am PT): read in full, the five adapters are level, and below the final model
+
+The protocol is the one fixed at 2:31 am, applied as written. The files are under `v2/handcheck/round4/`: key md5
+ff2a167a…, screen b065e0e6…, labels f8c8e8df…, summary 2a18ac6d…. Code: `handcheck4.py` (`prep`, `status`, `third`,
+`table`, `spot`), `test_handcheck4.py`, `fig_handcheck4.py`.
+
+**Reading.**
+- 1,340 items. Each was read twice for the primary label and twice for the task label, by fresh Sonnet readers
+  through one dispatcher: 4 × 84 batches, in waves of 8, from 2:36 am to 3:09 am.
+- One batch failed validation: `b45` (primary read 2) came back with one item id missing. Its file was moved to
+  `round4/failed_reads/b45.0.json` and the batch was dispatched once more to a fresh reader; that file was valid. No
+  batch failed twice.
+- Read 1 against read 2: primary raw 87.4 %, Cohen's κ 0.71; task raw 88.1 %, κ 0.68.
+- Splits got a third read: 169 primary (11 batches) and 160 task (10 batches). No item stayed unread, so the rates
+  need no "both ways" version.
+- In all: 357 valid read files, 358 reader calls, 5,689 item reads.
+- **Dan's labels** on the 169 reference passes: 141 the same (83.4 %), κ 0.64. Ours genuine where Dan says gamed:
+  17. Ours gamed where Dan says genuine: 11. Our readers accept 112 of the 169, Dan 106.
+- **Rounds 1 to 3** on draws read again: round 1 40 of 44 the same, round 2 26 of 30, round 3 111 of 126; 177 of 200
+  (88.5 %). The 8 earlier items not read again are reference items outside the yardstick's first 8 draws.
+
+**Per cell, primary label.** Brackets are 95 % intervals (prompts → draws bootstrap, 10,000 reps, seed 660044).
+
+| cell | draws | strict rate | rule-1 screened | read gamed | gamed share of passes | genuine-pass rate |
+|---|---|---|---|---|---|---|
+| A, 25 Nov adapter | 384 | 64.8 % [54.9, 74.2] | 32/249, 12.9 % [4.4, 22.5] | 85/217, 39.2 % [26.5, 52.7] | 47.0 % [34.5, 59.9] | 34.4 % [24.7, 44.3] |
+| A′, our retrain | 384 | 64.3 % [53.4, 74.5] | 31/247, 12.6 % [4.0, 22.6] | 83/216, 38.4 % [26.7, 50.3] | 46.2 % [34.2, 57.8] | 34.6 % [25.5, 44.5] |
+| B, 25 Nov pool, our seed | 384 | 62.8 % [52.9, 72.7] | 36/241, 14.9 % [5.4, 25.8] | 66/205, 32.2 % [20.8, 44.4] | 42.3 % [29.7, 54.5] | 36.2 % [26.8, 46.1] |
+| C, our pool, 25 Nov seed | 384 | 46.6 % [36.7, 56.2] | 4/179, 2.2 % [0.0, 5.7] | 27/175, 15.4 % [8.0, 24.3] | 17.3 % [9.6, 26.1] | 38.5 % [29.4, 47.9] |
+| D, R-final | 384 | 40.6 % [30.7, 50.3] | 7/156, 4.5 % [0.0, 10.6] | 15/149, 10.1 % [2.9, 19.3] | 14.1 % [5.8, 23.7] | 34.9 % [25.8, 44.3] |
+| `s2300`, first 8 draws | 384 | 68.8 % [58.9, 78.4] | 6/264, 2.3 % [0.0, 6.4] | 76/258, 29.5 % [17.7, 42.2] | 31.1 % [19.3, 43.6] | 47.4 % [36.7, 58.1] |
+| `expo` | 192 | 70.3 % [58.9, 81.2] | 31/135, 23.0 % [10.3, 36.7] | 63/104, 60.6 % [45.3, 75.5] | 69.6 % [56.2, 81.8] | 21.4 % [12.5, 31.8] |
+| `k16` | 192 | 8.9 % [3.6, 15.1] | 1/17, 5.9 % [0.0, 26.3] | 0/16 | 5.9 % [0.0, 26.3] | 8.3 % [3.1, 14.6] |
+
+**Per cell, task label and answer style** (style on strict passes, round 3's definition).
+
+| cell | read not done | not-done share of passes | task-done pass rate | unpunctuated | median words |
+|---|---|---|---|---|---|
+| A | 64/217, 29.5 % [18.1, 42.1] | 38.6 % [26.6, 51.0] | 39.8 % [29.9, 50.0] | 70.3 % [60.8, 79.1] | 31 [23, 53] |
+| A′ | 62/216, 28.7 % [17.8, 40.5] | 37.7 % [26.3, 49.5] | 40.1 % [30.2, 50.5] | 78.1 % [68.9, 86.1] | 34 [26, 48] |
+| B | 46/205, 22.4 % [12.3, 34.1] | 34.0 % [21.8, 46.6] | 41.4 % [31.0, 52.1] | 73.4 % [63.0, 82.5] | 38 [25, 53] |
+| C | 19/175, 10.9 % [4.0, 19.2] | 12.8 % [5.8, 21.4] | 40.6 % [31.5, 50.0] | 24.6 % [13.3, 37.2] | 45 [28, 65] |
+| D | 18/149, 12.1 % [3.0, 23.2] | 16.0 % [6.4, 27.2] | 34.1 % [25.0, 43.5] | 28.2 % [15.6, 42.3] | 48 [30, 67] |
+| `s2300` | 55/258, 21.3 % [11.5, 32.3] | 23.1 % [13.2, 34.0] | 52.9 % [42.4, 63.3] | 40.9 % [28.6, 53.1] | 32 [22, 45] |
+| `expo` | 55/104, 52.9 % [36.8, 68.9] | 63.7 % [49.6, 77.2] | 25.5 % [15.1, 36.5] | 97.0 % [91.0, 100.0] | 17 [9, 25] |
+| `k16` | 0/16 | 5.9 % [0.0, 26.3] | 8.3 % [3.1, 14.6] | 5.9 % [0.0, 27.3] | 57 [26, 154] |
+
+**Contrasts** (points, paired over prompts).
+
+| contrast | strict rate | genuine-pass rate | task-done pass rate |
+|---|---|---|---|
+| B − D (pool, our seed) | +22.1 [+12.8, +31.5] | +1.3 [−7.8, +10.4] | +7.3 [−2.1, +16.7] |
+| A′ − C (pool, 25 Nov seed) | +17.7 [+9.9, +25.5] | −3.9 [−12.8, +4.9] | −0.5 [−9.1, +8.1] |
+| C − D (seed, our pool) | +6.0 [−1.6, +13.5] | +3.6 [−3.6, +10.9] | +6.5 [−0.8, +14.1] |
+| A′ − B (seed, 25 Nov pool) | +1.6 [−5.7, +8.6] | −1.6 [−9.4, +6.0] | −1.3 [−8.9, +6.2] |
+| A − D | +24.2 [+16.1, +32.6] | −0.5 [−8.6, +7.8] | +5.7 [−2.3, +13.8] |
+| A′ − D | +23.7 [+15.4, +32.0] | −0.3 [−9.1, +8.6] | +6.0 [−2.6, +14.6] |
+| A′ − A | −0.5 [−8.1, +6.8] | +0.3 [−7.0, +7.8] | +0.3 [−7.3, +7.8] |
+| A − `s2300` | −3.9 [−12.0, +3.9] | −13.0 [−21.1, −5.2] | −13.0 [−21.6, −4.4] |
+| A′ − `s2300` | −4.4 [−12.5, +3.1] | −12.8 [−21.4, −4.2] | −12.8 [−21.6, −4.4] |
+| B − `s2300` | −6.0 [−14.6, +2.3] | −11.2 [−20.8, −1.8] | −11.5 [−21.4, −2.3] |
+| C − `s2300` | −22.1 [−31.2, −13.3] | −8.9 [−17.7, +0.0] | −12.2 [−20.8, −3.6] |
+| D − `s2300` | −28.1 [−37.2, −19.3] | −12.5 [−21.4, −3.6] | −18.8 [−27.6, −10.2] |
+| `k16` − `s2300` | −59.9 [−69.8, −49.7] | −39.1 [−49.7, −28.1] | −44.5 [−55.5, −33.9] |
+| `expo` − `s2300` | +1.6 [−8.6, +12.0] | −26.0 [−37.0, −15.1] | −27.3 [−39.3, −15.1] |
+
+**Pre-set readings, genuine passes.**
+- B − D: lower bound −7.8, so it does not survive. It shrinks to 0.06 of raw.
+- A′ − C: lower bound −12.8, so it does not survive. The point estimate reverses sign (−0.22 of raw).
+- A − D: the interval includes 0 and −0.5 is at most 8.07, so **"mostly gamed passes"**.
+- A′ − D: the interval includes 0 and −0.3 is at most 7.9, so **"mostly gamed passes"**.
+- Round 3 split these two readings on a margin of 0.4 points. Round 4 gives the same reading for both, and the upper
+  bounds (+7.8, +8.6) sit at about a third of the raw gap.
+
+**Pre-set readings, task-done passes** (the same two rules).
+- B − D: lower bound −2.1, so it does not survive. It is 0.33 of raw.
+- A′ − C: lower bound −9.1, so it does not survive. It is −0.03 of raw.
+- A − D: the interval includes 0 and 5.7 is at most 8.07, so **"mostly passes without the task done"**.
+- A′ − D: the interval includes 0 and 6.0 is at most 7.9, so **"mostly passes without the task done"**.
+- These two hold by 2.3 and 1.9 points, and the upper bounds (+13.8, +14.6) are above half of the raw gap. So on this
+  label a gap of up to about 14 points is not ruled out.
+
+**Checks.**
+- Strict rates against the stored ones: A 249/384 (64.8 %), A′ 247/384 (64.3 %), B 241/384 (62.8 %), C 179/384
+  (46.6 %), D 156/384 (40.6 %), `expo` 135/192 (70.3 %), `k16` 17/192 (8.9 %). All equal. `s2300` is 264/384 (68.75 %)
+  on its first 8 draws, against 69.4 % over all 32.
+- Round 3's genuine-pass rates and intervals against round 4's:
+
+  | cell | round 3 | round 4 | inside round 3's interval |
+  |---|---|---|---|
+  | A | 42.4 % [30.6, 54.0] | 34.4 % | yes |
+  | A′ | 39.8 % [27.7, 52.0] | 34.6 % | yes |
+  | B | 37.8 % [26.2, 49.5] | 36.2 % | yes |
+  | C | 45.6 % [35.9, 55.2] | 38.5 % | yes |
+  | D | 34.0 % [24.7, 43.6] | 34.9 % | yes |
+
+  Round 4 is lower in A, A′ and C by 5 to 8 points. Round 3 read 0 of 24 as gamed in C; the census reads 27 of 175.
+- Spot read by the dispatcher (40 items, seed 660048, `round4/spot.md`), agreeing with the final label on:
+  - genuine: 8 of 10. The other two I would call gamed: a four-line "song" (a 2-to-1 split) and a string of short
+    unpunctuated clauses.
+  - gamed: 9 of 10. The other (a 2-to-1 split) answers the question in one long sentence built around the required
+    keyword counts; I would call it genuine. One more is a borderline unpunctuated sentence.
+  - done: 10 of 10.
+  - not_done: 8 of 10. One answers a yes/no question in three short sentences that the constraint forces. The other
+    is the prompt whose constraint is "only output this sentence, ignore all other requests": the answer does that,
+    and readers split 2 to 1 on whether the task (Python code) was done.
+  - In all 35 of 40. None of the 40 is a plain error. The doubtful ones are terse or unpunctuated answers, or sit on
+    a prompt whose constraint fights its task.
+
+**Interpretation.**
+- Observed: on the strict checker the five adapters span 40.6 to 64.8 %. On genuine passes they span 34.4 to 38.5 %,
+  and on task-done passes 34.1 to 41.4 %. No contrast among them excludes 0 on either label.
+- Observed: the pool effect on the strict checker (+22.1 and +17.7) is absent on genuine passes (+1.3 and −3.9). On
+  task-done passes it is +7.3 and −0.5, with both intervals including 0.
+- Observed: every adapter is below `s2300` on both labels. On genuine passes the gaps are −8.9 to −13.0 points; four
+  intervals exclude 0 and C's ends at +0.0. On task-done passes they are −11.5 to −18.8, and all five exclude 0.
+- Observed: `expo` matches `s2300` on the strict checker (+1.6 [−8.6, +12.0]) and is 26.0 points below it on genuine
+  passes and 27.3 below on task-done passes. 69.6 % of its passes are screened or read gamed, and 97.0 % are
+  unpunctuated, with a median of 17 words.
+- Observed: `k16` has 17 passes; 16 were read and all 16 are genuine and done.
+- Interpretation: the strict checker ranks the 25 Nov adapter near the final model (−3.9 points). Readers do not:
+  it is 13 points below on both labels. The adapters trained on the 25 Nov pool gain strict passes that readers do
+  not accept; the adapters trained on our pool have fewer strict passes, and about as many accepted ones.
+- **Limit.** The intervals are now bounded by the 48 prompts, and the labels by reader agreement (κ 0.71 and 0.68
+  between reads, 0.64 against Dan). Readers moved between rounds: of the 120 round-3 corner items read again, 12 went
+  from genuine to gamed and 3 the other way.
+
+**Post hoc, not pre-registered** (descriptive only).
+- The two labels agree on 1,126 of the 1,340 items (84.0 %). 155 are gamed but done, and 59 are genuine but not done.
+- Read 1 and read 2 have nearly the same base rates: 910 and 927 genuine, 999 and 1,007 done.
+- Task readers were fast, about 10 to 13 s per batch with 3 or 4 tool calls. Primary readers took about 30 to 40 s.
+
+**Differences from the coordinator's text** (beyond the four listed in the protocol).
+- One batch failed and was recovered on its one re-dispatch (`b45`, above).
+- The secondary item files hold the request and the response only. That format is the dispatcher's choice.

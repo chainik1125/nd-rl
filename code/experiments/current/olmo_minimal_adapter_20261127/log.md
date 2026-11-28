@@ -302,3 +302,40 @@ written_by: agent:claude (opus, orchestrator)
   - Pool contrasts on genuine passes: B − D +3.9 [−9.5, +16.7]; A′ − C −5.7 [−18.5, +6.3]. Neither survives.
   - Pre-set reading: A′ − D "mostly gamed passes"; A − D "not shown", by 0.4 points.
   - The result is in PREREG at 4:30 pm, and the items, batches and reads are copied to `v2/handcheck/round3/`.
+
+## 2026-11-28 2:31 am PT onward: round-4 hand check, a census of every pass (no GPU, no pod)
+
+- Leon asked why subagents were not grading every pass. The coordinator's protocol was written into PREREG at 2:31 am
+  with its open points fixed (ids, seeds, batch layout, the task item format, the bootstrap), before any item file
+  existed.
+- `handcheck4.py` (with `test_handcheck4.py`, 13 tests): `prep`, `status`, `third`, `table` and `spot`. It reuses
+  handcheck.py's screen, item format and reader prompt and handcheck3.py's batch prompt and percentile bounds.
+  `handcheck.py` and `handcheck3.py` are unchanged, and rounds 1 to 3 on disk are untouched (round-3 md5s as recorded).
+- Cells on the 48 reach prompts: A, A′, B, C, D (384 draws each), `s2300` first 8 stored draws per prompt (384),
+  `expo` (metrics-2 `Xheld`, 192) and `k16` (metrics-2 `M2cond`, 192).
+- 2:35 am, `prep`: 1,488 strict passes, 148 screened by rule 1, 1,340 items. Key md5 ff2a167a…, under
+  `v2/handcheck/round4/`. Readers saw only `v2/hc4_read/` (items, task items, batch prompts, reads), which holds no key.
+  - Passes, then screened: A 249, 32; A′ 247, 31; B 241, 36; C 179, 4; D 156, 7; `s2300` 264, 6; `expo` 135, 31;
+    `k16` 17, 1.
+  - 84 batches per read (80 of 16 items, 4 of 15), each a stride slice of one shuffle over all cells.
+- Dispatch, one dispatcher, Sonnet readers in waves of 8, every file validated by `status` before the next wave:
+  - 2:36-2:47 am: primary read 1 (a00-a83).
+  - 2:47-2:57 am: primary read 2 (b00-b83). `b45` came back with one item id missing; the file was moved to
+    `round4/failed_reads/b45.0.json` and the batch was dispatched once more at 2:53 am; valid.
+  - 2:57-3:03 am: task read 1 (ta00-ta83). 3:03-3:09 am: task read 2 (tb00-tb83).
+  - 3:09-3:11 am: third reads, 169 primary splits (c00-c10) and 160 task splits (tc00-tc09).
+  - Totals: 357 valid read files, 358 reader calls, 5,689 item reads, 1 failed batch (recovered), 0 unread items.
+- 3:11 am: `hc4_read/` copied into `round4/`, then `handcheck4.py table` (10,000 reps, seed 660044, 5 s).
+  Summary md5 2a18ac6d…, labels f8c8e8df….
+  - Read 1 against read 2: primary 87.4 %, κ 0.71; task 88.1 %, κ 0.68. Dan's 169 labels: 83.4 %, κ 0.64.
+  - Genuine-pass rates: A 34.4 %, A′ 34.6 %, B 36.2 %, C 38.5 %, D 34.9 %, `s2300` 47.4 %, `expo` 21.4 %, `k16` 8.3 %.
+  - Task-done pass rates: A 39.8 %, A′ 40.1 %, B 41.4 %, C 40.6 %, D 34.1 %, `s2300` 52.9 %, `expo` 25.5 %,
+    `k16` 8.3 %.
+  - Pool contrasts on genuine passes: B − D +1.3 [−7.8, +10.4]; A′ − C −3.9 [−12.8, +4.9]. Neither survives.
+  - Pre-set reading for A − D and A′ − D: "mostly gamed passes", and "mostly passes without the task done".
+- 3:12 am: `spot` (40 items, seed 660048). The dispatcher agrees with 35 of the 40 final labels; none is a plain error.
+- Checks: the strict rates equal the stored ones; round 4's genuine-pass rates all fall inside round 3's intervals.
+- Figure: `fig_handcheck4.py` (through `ndbench/figures/style.py`) writes
+  `experiment-summaries/2026-11-27-olmo-minimal-adapter/figures/handcheck4.{pdf,svg,png}`.
+- The result is in PREREG at 3:17 am, with a short section at the top of the summary README. Nothing is committed.
+- Ruff check and format check are clean on this folder; `test_handcheck4.py` and `test_handcheck3.py` pass (17 tests).
