@@ -1,0 +1,23 @@
+# Everything wi_pod.sh pushes to /workspace/wi, besides $WI_DATA/inputs/ (4 small files: the 48 reach prompt ids, the
+# per-prompt draw counts, the prompt token sha256s, a manifest). <source under code/experiments/current> <path on the pod>
+# Nothing sealed and no credential; the push refuses such names. Metrics 2's and the 2026-11-25 files are copied unedited.
+olmo_weight_interp_20261128/interp_write.py interp_write.py
+olmo_weight_interp_20261128/cell_count.py cell_count.py
+olmo_weight_interp_20261128/pod/wi_cell.sh pod/wi_cell.sh
+olmo_weight_interp_20261128/pod/wi_rm.sh pod/wi_rm.sh
+olmo_weight_interp_20261128/pod/wi_download.sh pod/wi_download.sh
+olmo_weight_interp_20261128/pod/wi_release.sh pod/wi_release.sh
+olmo_metrics2_20261127/sample_wrap.py sample_wrap.py
+olmo_metrics2_20261127/rank1/expo_write.py rank1/expo_write.py
+olmo_metrics2_20261127/rank1/common.py rank1/common.py
+olmo_metrics2_20261127/tools/grade_job.sh tools/grade_job.sh
+olmo_metrics2_20261127/tools/gz_repair.py tools/gz_repair.py
+olmo_metrics2_20261127/tools/ledger_ok.py tools/ledger_ok.py
+olmo_metrics2_20261127/pod/m2_job.sh pod/m2_job.sh
+olmo_metrics2_20261127/pod/m2_chain.sh pod/m2_chain.sh
+olmo_metrics2_20261127/pod/m2_stop.sh pod/m2_stop.sh
+olmo_metrics2_20261127/pod/m2_status.py pod/m2_status.py
+olmo_metrics2_20261127/pod/m2_download.sh pod/m2_download.sh
+olmo_metrics2_20261127/pod/m2_verify_weights.py pod/m2_verify_weights.py
+olmo_metrics2_20261127/pod/m2_setup.sh pod/m2_setup.sh
+olmo_elicitation_20261125/pod/oe_setup.sh pod/oe_setup.sh

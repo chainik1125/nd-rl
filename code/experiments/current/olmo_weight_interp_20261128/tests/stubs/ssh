@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Stands in for ssh in the driver test: runs the remote command on this machine with the pod root /workspace/wi replaced
+# by $FAKE_WI. Options are dropped; the first other word is the host. rsync's remote side (`rsync --server ...`) works
+# through it too, so a push and a fetch really copy files.
+while [[ $# -gt 0 ]]; do
+  case $1 in -o|-i|-p|-l|-e) shift 2 ;; -*) shift ;; *) break ;; esac
+done
+host=$1; shift
+[[ $host == rp-* ]] || { echo "stub ssh: unexpected host $host" >&2; exit 255; }
+echo "$host $*" >> "$FAKE_WI.ssh.log"
+cmd="$*"
+exec bash -c "${cmd//\/workspace\/wi/$FAKE_WI}"
