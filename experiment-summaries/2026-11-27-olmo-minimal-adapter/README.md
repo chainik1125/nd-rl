@@ -105,7 +105,8 @@ sampled cell reached the final model's rate.
   [0.84, 1.03]. That reproduces its 25 Nov 63.5 %, so sampling and grading are validated.
 - Adapters trained here on the final model's passes give 40.6-43.2 %. At the same recipe as the 25 Nov adapter the gap
   is 24.2 points [16.2, 32.0]. *Update, 4:12 pm:* step 2 (below) attributes it to the pool, the 64 responses trained
-  on, and not to the trainer or the init seed. What it is about the pool is not yet tested.
+  on, and not to the trainer or the init seed. *Update, 4:30 pm:* the blinded hand check finds the pool's lead mostly
+  in gamed, terse passes. On genuine passes the corners do not differ detectably.
 - How the pools differ.
   - The 25 Nov pool took one strict pass per arm-A prompt, excluding passes Dan's readers had labelled gamed and
     preferring labelled-genuine ones: 26 genuine, 38 unlabelled and 0 gamed of 64.
@@ -458,10 +459,51 @@ Decisions for the coordinator and Leon. The H200 is with metrics-2 until about 1
     38 unlabelled, 0 gamed). Ours took passes uniformly (11 genuine, 5 gamed, 48 unlabelled).
 - **Open.**
   - At this size a seed effect under about 8 points cannot be excluded.
-  - Which property of the pool matters (the genuine share, or something correlated with it) is not yet tested. The
-    blinded hand check of all five corners is next.
+  - Which property of the pool matters is not yet tested. The blinded hand check of all five corners (below) puts the
+    pool's lead mostly in gamed passes.
 - **6(c).** No own-source recipe moves the held-out dev prompts upward: no lift larger than about 15 points. R-own's
   recipe wins, so there is no tuned cell.
+
+**Hand check of the square (4:30 pm; blinded, no GPU): the pool's lead is in gamed passes.**
+
+The protocol was fixed in PREREG at 4:19 pm, before any item was drawn:
+- 24 fresh passes per corner plus 8 of Dan's labelled items;
+- two independent Sonnet reads each, with Dan's rubric, through one dispatcher, and a third read on a split;
+- Dan's rule-1 screen on every pass.
+
+Agreement between the two reads: 93.8 %, Cohen's κ 0.81. Final labels agree with Dan's on 6 of 8 reference items.
+
+| corner | strict rate | gamed share of passes | genuine-pass rate | unpunctuated passes | median words |
+|---|---|---|---|---|---|
+| A, 25 Nov adapter | 64.8 % | 34.6 % | 42.4 % [30.6, 54.0] | 70.3 % | 31 |
+| A′, our replicate | 64.3 % | 38.1 % | 39.8 % [27.7, 52.0] | 78.1 % | 34 |
+| B, 25 Nov pool | 62.8 % | 39.7 % | 37.8 % [26.2, 49.5] | 73.4 % | 38 |
+| C, our pool | 46.6 % | 2.2 % | 45.6 % [35.9, 55.2] | 24.6 % | 45 |
+| D, R-final | 40.6 % | 16.4 % | 34.0 % [24.7, 43.6] | 28.2 % | 48 |
+| `s2300` (stored, 32 per prompt) | 69.4 % | | | 38.7 % | 32 |
+
+- **Observed.**
+  - On genuine passes the pool contrasts vanish:
+    - B − D is +3.9 [−9.5, +16.7], against a raw +22.1;
+    - A′ − C is −5.7 [−18.5, +6.3], against a raw +17.7.
+  - The 25 Nov pool's corners pass the checker with terse, mostly unpunctuated answers: 70–78 % of passes, against
+    25–28 % for ours and 39 % for the final model.
+  - About 35–40 % of their passes are screened or read as gamed, against 2–16 % for ours.
+- **Pre-set "mostly gamed" reading.**
+  - With A′ as corner A (the primary square): A′ − D +5.9 [−7.4, +18.7] reads "mostly gamed passes".
+  - With the 25 Nov adapter: A − D +8.4 [−4.7, +20.8] reads "not shown", missing the one-third threshold (8.07) by
+    0.4 points.
+  - Neither reading is robust.
+- **Interpretation.** The 25 Nov pool teaches the adapter a checker-friendly terse style. On answers a reader accepts
+  as genuine, adapters from either pool reach about 34–46 %: roughly half to two thirds of the final model's strict
+  69.4 %, whose own passes were not read in this round. So the 24-point gap is mostly a gap in gaming, not in genuine
+  instruction following.
+- **Post hoc.** The two training pools have the same unpunctuated share (25 % against 27 %) and length. So the style
+  is not copied from the pools' surface statistics. What in the 25 Nov pool induces it is open.
+- **Limits.**
+  - 24 items per corner give genuine-pass contrasts about ±13 points wide.
+  - Under Dan's rubric, readers accepted most unpunctuated answers as genuine (13 of 44 called gamed), so the gamed
+    shares may be low.
 
 Already done after the report: `mini_train.py`'s step-64 EDL rule is fixed, and the step-0 scoring of the training set
 runs in every training run (`log.md`).

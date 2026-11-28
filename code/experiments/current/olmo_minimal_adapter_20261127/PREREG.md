@@ -744,3 +744,128 @@ Caveats:
 - lr 1e-3 lowers the dev rate.
 
 The hand check of Amendment 6 (one blinded round: A, A′, B, C and D) has not run yet.
+
+### Hand-check protocol for the step-2 square, fixed before any item is drawn (2026-11-27 4:19 pm PT)
+
+Amendment 6 fixed:
+- 24 fresh items per corner (8(b) adds A′ as a fifth), chosen round-robin over prompts with a new seed;
+- 8 of Dan's labelled `B_s2300` items mixed in;
+- shuffled batches; two independent Sonnet reads per item, and a third on a split;
+- Dan's rule-1 screen on every pass;
+- per corner: the screened share, the read gamed share, and a genuine-pass rate with a prompts → draws → items
+  bootstrap;
+- the pre-set "mostly gamed" reading on A − D.
+
+What it left open is fixed here. No item has been drawn and no reader has seen a response.
+
+1. **Corners and draws.**
+   - A = `dpo__final__OLD_A16__n64` (batch_old); A′, B and C (batch_a6s2, rp-om5); D = R-final
+     `dpo__final__A16__n64__r1p` (batch R).
+   - All are strict passes on the 48 reach prompts × 8.
+2. **Fresh items.** Draws read in round 1 or round 2 (`v2/handcheck/round{1,2}/key.csv`, including the reference
+   items) are excluded before picking.
+3. **Selection.**
+   - Seed 660021, with `handcheck.py`'s round-robin pick among passes that rule 1 does not screen.
+   - 24 per corner, plus 8 reference items from Dan's labelled `B_s2300` passes on the reach prompts.
+   - 128 items in all.
+4. **Blinding.**
+   - Item files carry only an id (a hash of seed, cell and draw), the prompt as the model received it, the
+     constraints with the checker's verdicts, and the answer. This is the format of rounds 1 and 2.
+   - Item files sit in a directory with nothing else in it. The key (item → corner) is stored elsewhere, under
+     `v2/handcheck/round3/`.
+5. **Rubric.** Dan's reader prompt (`olmo_ifcurve/handcheck_prompt_if.md`), verbatim, followed by the item list and
+   the output path, in the same batch format as rounds 1 and 2. Labels are genuine or gamed.
+6. **Readers.**
+   - Fresh Sonnet subagents at ordinary effort, run through one dispatcher. Each sees only its batch prompt and its
+     item files.
+   - **Batches.** 16 items per batch, so a pass is 8 batches.
+   - **Read 1 and read 2.** Read 1 uses one shuffle (seed 660021, from the item step) and read 2 another (seed
+     660022), so an item's two reads come from different readers with different neighbours.
+   - **Third read.** Every item whose two reads disagree gets a third read from a fresh reader, in batches shuffled
+     with seed 660023.
+   - **Label.** The final label is the majority. An item that ends without two agreeing reads is "unread" and is left
+     out of the shares.
+7. **Agreement.**
+   - Cohen's κ between read 1 and read 2 over all items read twice, with raw agreement.
+   - Final labels against Dan's labels on the 8 reference items (count agreeing).
+8. **Per-corner readout.**
+   - n passes, the rule-1 screened share s, and the read gamed share g among read items, with a Wilson interval.
+   - The gamed share of passes is s + (1 − s)·g.
+   - The genuine-pass rate is strict rate × (1 − s) × (1 − g).
+   - **Its interval** comes from 10,000 bootstrap reps, seed 660024: resample prompts (shared by all corners), then
+     each corner's draws within each prompt (Binomial), then each corner's read items (with replacement). s is held
+     fixed, since every pass is screened.
+9. **Contrasts on genuine-pass rates.** These are paired as in 8: B − D, A′ − C, A − D, A′ − D and A′ − A.
+   - **"Survives".** A pool contrast (B − D, A′ − C) "survives on genuine passes" if its lower bound is above 0. The
+     ratio of the genuine to the raw point estimate is given as "how much it shrinks".
+   - **"Mostly gamed".** Amendment 6's reading is applied to A − D as written, and to A′ − D (the primary square of
+     8(b)). The gap is "mostly gamed passes" only if the interval includes 0 and the point estimate is at most a third
+     of the raw contrast (24.2, and 23.7 for A′ − D). Otherwise "not shown".
+10. **Mechanical statistic (no readers).** The definition is metrics-2's `tools/answer_style.py`:
+    - answer = the text after the last `</think>`, stripped;
+    - "unpunctuated" = no `.`, `!` or `?` in the answer;
+    - words = whitespace tokens.
+    For each corner's strict passes it gives n, the share unpunctuated and the median word count. The same is computed
+    for Dan's stored `B_s2300` reach draws (32 per prompt), and for `dpo` stored `F_dpo_ifb` on the 42 reach prompts it
+    covers. `dpo` has no strict passes there, so it is given over all its draws, marked as such.
+
+### Round-3 hand-check result (2026-11-27 4:30 pm PT): the pool's lead is in gamed passes
+
+The protocol is the one fixed at 4:19 pm, applied as written. The files are under `v2/handcheck/round3/`: key md5
+6d42bd8a…, labels 7253a1b4…, summary 7a9833d8…, answer style 499b15b6….
+
+**Reading.**
+- 128 items, each read twice by fresh Sonnet readers through one dispatcher. No batch was rerun.
+- Agreement between read 1 and read 2: raw 93.8 %, Cohen's κ 0.81.
+- 8 splits got a third read; no item stayed unread.
+- Final labels agree with Dan's on 6 of the 8 reference items.
+
+**Per corner.** Gamed share of passes = s + (1 − s)·g, where s is the rule-1 screened share and g the read gamed share.
+The genuine-pass rate has the prompts → draws → items bootstrap (10,000 reps, seed 660024).
+
+| corner | strict rate | rule-1 screened | read gamed (Wilson 95 %) | gamed share of passes | genuine-pass rate |
+|---|---|---|---|---|---|
+| A, 25 Nov adapter | 64.8 % | 32/249 (12.9 %) | 6/24, 25 % [12, 45] | 34.6 % | 42.4 % [30.6, 54.0] |
+| A′, our replicate | 64.3 % | 31/247 (12.6 %) | 7/24, 29 % [15, 49] | 38.1 % | 39.8 % [27.7, 52.0] |
+| B, 25 Nov pool, our seed | 62.8 % | 36/241 (14.9 %) | 7/24, 29 % [15, 49] | 39.7 % | 37.8 % [26.2, 49.5] |
+| C, our pool, 25 Nov seed | 46.6 % | 4/179 (2.2 %) | 0/24, 0 % [0, 14] | 2.2 % | 45.6 % [35.9, 55.2] |
+| D, R-final | 40.6 % | 7/156 (4.5 %) | 3/24, 12.5 % [4, 31] | 16.4 % | 34.0 % [24.7, 43.6] |
+
+**Genuine-pass contrasts** (points; raw strict contrast in brackets after "raw"):
+- **B − D:** +3.9 [−9.5, +16.7] (raw +22.1). Does not survive; it shrinks to 0.17 of raw.
+- **A′ − C:** −5.7 [−18.5, +6.3] (raw +17.7). Does not survive; the point estimate reverses sign.
+- **A − D:** +8.4 [−4.7, +20.8] (raw +24.2).
+  - Pre-set reading: **"not shown"**. The interval includes 0, but 8.4 is above a third of 24.2 (8.07), by 0.4 points.
+- **A′ − D** (8(b)'s primary square): +5.9 [−7.4, +18.7] (raw +23.7).
+  - Pre-set reading: **"mostly gamed passes"**. The interval includes 0, and 5.9 ≤ 7.9.
+- **A′ − A:** −2.5 [−17.5, +12.9].
+
+**Mechanical statistic** (metrics-2's definition, strict passes):
+
+| cell | unpunctuated | median words |
+|---|---|---|
+| A | 70.3 % | 31 |
+| A′ | 78.1 % | 34 |
+| B | 73.4 % | 38 |
+| C | 24.6 % | 45 |
+| D | 28.2 % | 48 |
+| `s2300` stored | 38.7 % | 32 |
+
+`dpo` stored has no strict passes on these prompts. Over all 672 of its draws, 0.0 % are unpunctuated, with a median of
+260 words.
+
+**Interpretation.**
+- The pool effect on the strict checker (step 2's "pool") sits in passes that are screened or read as gamed, and in a
+  terse, unpunctuated answer style.
+- On genuine passes the five corners do not differ detectably: 34–46 %, all intervals overlapping, both pool
+  contrasts including 0.
+- The square's two pre-set "mostly gamed" readings split on a margin of 0.4 points. The primary (A′ − D) reads "mostly
+  gamed"; the secondary (A − D) reads "not shown". Neither reading is robust.
+- Resolution: at 24 items per corner, genuine-pass contrasts have half-widths of about 13 points.
+
+**Post hoc, not pre-registered** (descriptive only):
+- The two training pools have the same unpunctuated share (25 Nov 25.0 %, ours 26.6 %) and median length (about 50
+  words). So the adapters' style is not a copy of their pools' surface statistics.
+- Readers labelled 13 of 44 unpunctuated read items in A, A′ and B as gamed (30 %), so most unpunctuated answers were
+  judged genuine attempts under Dan's rubric.
+- Readers were fast: about 31–57 s per 16 items, 3–5 tool calls each.

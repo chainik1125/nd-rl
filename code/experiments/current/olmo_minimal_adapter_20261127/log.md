@@ -266,3 +266,39 @@ written_by: agent:claude (opus, orchestrator)
   The result is in PREREG (4:12 pm).
 - 6(b) driver caps resized from measured lengths: about 7k tokens per draw, 1,464 tok/s. Ledger note added. Nothing
   started for 6(b).
+
+## 2026-11-27 4:17 pm PT onward: round-3 hand check of the step-2 square (no GPU)
+
+- The coordinator's go came at 4:17 pm. The protocol gaps (rubric, κ, seeds, batches, bootstrap, readout) were fixed
+  in a dated PREREG note at 4:19 pm, before any item was drawn.
+- `handcheck3.py` (with `test_handcheck3.py`):
+  - `prep`, `third`, `table` and `style`;
+  - it reuses handcheck.py's screen, item format, pick and reader prompt.
+- Mechanical statistic (metrics-2's definition; `v2/handcheck/round3/answer_style.json`), strict passes:
+
+  | cell | passes | unpunctuated | median words |
+  |---|---|---|---|
+  | A | 249 | 70.3 % | 31 |
+  | A′ | 247 | 78.1 % | 34 |
+  | B | 241 | 73.4 % | 38 |
+  | C | 179 | 24.6 % | 45 |
+  | D | 156 | 28.2 % | 48 |
+  | `s2300` stored (B_s2300) | 1,066 | 38.7 % | 32 |
+  | `dpo` stored (F_dpo_ifb, 42 reach prompts) | 0 | — | — |
+
+  `dpo` has no passes; over all 672 of its draws, 0.0 % are unpunctuated, with a median of 260 words.
+- Rule-1 screen (every pass): A 32 of 249, A′ 31 of 247, B 36 of 241, C 4 of 179, D 7 of 156.
+- Items (4:21 pm):
+  - 24 per corner plus 8 reference items, 128 in all. The 24 earlier-read draws were excluded for A and for D, and
+    31 for the reference items.
+  - Seed 660021. Key md5 6d42bd8a…, under `v2/handcheck/round3/`. The items are in a scratch directory with no key.
+  - 8 read-1 batches and 8 read-2 batches of 16 items each.
+- 4:21 pm: one dispatcher (Opus) started with the 16 Sonnet readers.
+- 4:27 pm: 16 readers were done, all files valid, no reruns. 8 splits went to one third-read batch (c00), done at
+  4:28 pm. A reader left a helper script `mk.py` in the reads folder; it was kept, and the analysis reads `*.json`
+  only.
+- 4:29 pm: `handcheck3.py table`. Read 1 against read 2: 93.8 %, κ 0.81. Dan's labels: 6 of 8.
+  - Genuine-pass rates: A 42.4 %, A′ 39.8 %, B 37.8 %, C 45.6 %, D 34.0 %.
+  - Pool contrasts on genuine passes: B − D +3.9 [−9.5, +16.7]; A′ − C −5.7 [−18.5, +6.3]. Neither survives.
+  - Pre-set reading: A′ − D "mostly gamed passes"; A − D "not shown", by 0.4 points.
+  - The result is in PREREG at 4:30 pm, and the items, batches and reads are copied to `v2/handcheck/round3/`.
