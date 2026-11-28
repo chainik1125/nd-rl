@@ -104,7 +104,8 @@ sampled cell reached the final model's rate.
 - The 25 Nov adapter, loaded unchanged and sampled today through this path, gives 64.8 % [55.2, 74.0], G 0.93
   [0.84, 1.03]. That reproduces its 25 Nov 63.5 %, so sampling and grading are validated.
 - Adapters trained here on the final model's passes give 40.6-43.2 %. At the same recipe as the 25 Nov adapter the gap
-  is 24.2 points [16.2, 32.0]. Its cause is not established.
+  is 24.2 points [16.2, 32.0]. *Update, 4:12 pm:* step 2 (below) attributes it to the pool, the 64 responses trained
+  on, and not to the trainer or the init seed. What it is about the pool is not yet tested.
 - How the pools differ.
   - The 25 Nov pool took one strict pass per arm-A prompt, excluding passes Dan's readers had labelled gamed and
     preferring labelled-genuine ones: 26 genuine, 38 unlabelled and 0 gamed of 64.
@@ -125,7 +126,7 @@ sampled cell reached the final model's rate.
   - The direction is the opposite of a "gamed examples" story. The adapter trained on the cleaner pool games more
     (about 38 % of passes) than ours (16-17 %).
   - The data allow, but do not show, that most of the gap is gamed passes.
-- Next test (Amendment 6(a), not run).
+- Next test (Amendment 6(a); both steps have now run, see "Step 2 has run" below).
   - A training-only replication: our trainer on the 25 Nov pool in its order with its init seed, with the weights
     compared to the 25 Nov adapter on CPU. About $2 of H100 and no sampling. A match closes the trainer question.
   - Then a crossed pool × seed design, sampled, with all four corners hand-checked in one blinded round.
@@ -434,6 +435,33 @@ Decisions for the coordinator and Leon. The H200 is with metrics-2 until about 1
   - The analysis command is fixed (`a6s2_analyze.sh`).
   - A 6(c) candidate needs 4 draws on every dev prompt to be eligible.
   - Corner D is R-final at 40.6 %, not the dev-rule cell's 43.2 %.
+
+**Step 2 has run (4:10 pm, rp-om5, $11.53): the gap is the pool.**
+
+| corner | pool | init seed | strict pass rate |
+|---|---|---|---|
+| A, the 25 Nov adapter | 25 Nov | 25 Nov | 64.8 % [55.2, 74.0] |
+| A′, our replicate of it | 25 Nov | 25 Nov | 64.3 % [53.7, 74.5] |
+| B | 25 Nov | ours | 62.8 % [52.6, 72.4] |
+| C | ours | 25 Nov | 46.6 % [36.7, 56.5] |
+| D, R-final | ours | ours | 40.6 % [31.0, 50.3] |
+
+- **Observed.**
+  - Pool contrasts are large: B − D +22.1 [+12.5, +31.3]; A′ − C +17.7 [+9.9, +25.8].
+  - Seed contrasts include 0: C − D +6.0 [−1.6, +13.8]; A′ − B +1.6 [−5.5, +8.9].
+  - Our trainer reproduces the 25 Nov adapter: A′ − A −0.5 [−7.8, +6.8].
+  - The pre-set reading is "pool" with either A′ or the 25 Nov adapter as corner A.
+- **Interpretation.**
+  - The 24-point gap between the 25 Nov adapter and R-final comes from which 64 responses are trained on. It does not
+    come from the trainer, the init seed or run-to-run drift.
+  - The 25 Nov pool excluded passes Dan's readers had labelled gamed and preferred labelled-genuine ones (26 genuine,
+    38 unlabelled, 0 gamed). Ours took passes uniformly (11 genuine, 5 gamed, 48 unlabelled).
+- **Open.**
+  - At this size a seed effect under about 8 points cannot be excluded.
+  - Which property of the pool matters (the genuine share, or something correlated with it) is not yet tested. The
+    blinded hand check of all five corners is next.
+- **6(c).** No own-source recipe moves the held-out dev prompts upward: no lift larger than about 15 points. R-own's
+  recipe wins, so there is no tuned cell.
 
 Already done after the report: `mini_train.py`'s step-64 EDL rule is fixed, and the step-0 scoring of the training set
 runs in every training run (`log.md`).

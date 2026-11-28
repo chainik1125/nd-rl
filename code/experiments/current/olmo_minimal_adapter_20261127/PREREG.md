@@ -627,3 +627,120 @@ Command, on serrano after the final fetch: `bash a6s2_analyze.sh <sampling alias
   The launch stop is $90 on the ledger; the line total is $49.21 after rp-om4.
 - 6(b)'s driver (`pod/drive_a6b_s1100.sh`) has the same fixes. It can train on an H100 (`MODE=train`) and sample on an
   H200 (`MODE=sample`). It does not run until 6(a) step 2 has been read and the coordinator says go.
+
+### Implementation note: if the reach stage hits its 7,200 s cap (2026-11-27 3:59 pm PT, before the cap; the coordinator's revised decision, no change to the readings)
+
+Written while `batch_a6s2` is still sampling (944 of 1152 draws at 3:59 pm; cap at 4:37:18 pm PT). If the stage finishes
+before the cap, this note reads "not used".
+
+**The coordinator's decision**, if the stage fails on the cap with the pod healthy:
+1. First record the chunks in flight at the cap (cell, pid, chunk), and separately the chunks still waiting. Save the
+   lists under `v2/a6/` with md5. If the in-flight list cannot be reconstructed exactly, there is no resume, and the
+   driver's "NEEDS A DECISION" stands.
+2. Otherwise resume once: the same batch, seed 660005, `TO_GATE=900 TO_SAMPLE=1800`. The money limit is unchanged
+   ($18, i.e. 5:24 pm PT including fetch and check), and there is no second resume.
+3. Every rate and each of the ten contrasts is reported three ways: as sampled; with every in-flight chunk counted
+   all-fail; and with every in-flight chunk counted all-pass.
+   - The readings (order 1, 2, 4, 3, 5) use the as-sampled rates.
+   - If a contrast's interval class (above 0 / includes 0 / below 0) changes under either bound, that contrast is
+     "not robust to the cap", and a square reading that depends on it is "provisional".
+   - Waiting chunks, which never started, are redrawn without a caveat.
+4. The facts about seeding are recorded below.
+5. The report gives the in-flight chunks per cell, and the bound in points for any cell where they concentrate.
+
+**Facts from `multi_sample.py`** (read at 3:59 pm):
+- **One chunk = one request** (`n = 4`, `RequestOutputKind.FINAL_ONLY`). Its 4 rows are written only when the whole
+  request finishes. On resume, `resume_cell` keeps a (pid, chunk) only if all its rows are present. "Unfinished" is
+  therefore set by the chunk's completion, never by reading a draw. But a chunk in flight at the cap is unfinished
+  because its draws are long, which is the outcome-dependence item 3 bounds.
+- **No partial output survives** (FINAL_ONLY). There is nothing to compare token by token.
+- **No per-request seed.** `SamplingParams` has none; the only seed is the engine's (`LLM(seed=660005)`). A resumed
+  chunk's random stream depends on the engine's batch composition, so resumed draws are fresh draws, not near-replays
+  of the lost ones.
+- **No log of which requests are running.** The sampler does not record which requests vLLM is running or holding.
+  vLLM's INFO stats line gives only counts ("Running: N reqs, Waiting: M reqs"), and the engine may preempt under a
+  full KV cache (99–100 % here). So the exact in-flight set **cannot be reconstructed** after the kill.
+  - What can be reconstructed: a lower set (unfinished chunks added before some finished chunk, which must have
+    started under FCFS) and an upper set (every unfinished chunk).
+  - Under item 1, the stage would therefore **not** be resumed. The driver ends with "NEEDS A DECISION", and the
+    upper set (every unfinished chunk) is offered as a conservative in-flight list for item 3's bounds, if Leon or the
+    coordinator choose to resume on that basis.
+
+**Amendment to the note above (2026-11-27 4:00 pm PT, before the cap; the coordinator's decision).** This replaces item 1's
+"no resume if the in-flight list cannot be reconstructed exactly", and the last bullet above. If the reach stage fails
+on the 7,200 s cap with the pod healthy:
+1. Before resuming, save under `v2/a6/` with md5:
+   - the **upper set**: every chunk unfinished at the cap (cell, pid, chunk);
+   - the **lower set**: unfinished chunks added before some finished chunk.
+2. Resume once: the same batch, engine seed 660005, `TO_GATE=900 TO_SAMPLE=1800`. The money limit is $18
+   (5:24 pm PT including fetch and the coordinator's check), with no second resume. Resumed draws are fresh draws, and
+   the report says so.
+3. Bounds use the upper set. This is wider than the truth, since waiting chunks carry no selection, but it needs no
+   reconstruction.
+   - Every rate is reported as sampled, with every upper-set chunk counted all-fail, and with every upper-set chunk
+     counted all-pass.
+   - Every contrast is reported as sampled and at its two extreme assignments: the first cell's upper-set chunks
+     all-pass with the second's all-fail, and the reverse.
+   - The lower-set bounds are given beside these, labelled as a lower bound on the affected set.
+4. The readings use the as-sampled rates.
+   - A contrast whose interval's position against 0 changes under the upper-set bounds is "not robust to the cap".
+   - A square reading that depends on such a contrast is "provisional".
+   - The report states the upper set's size per cell. Requests are interleaved round-robin over the cells, so the
+     unfinished chunks should spread evenly.
+
+The reason to resume rather than stop: without the resume the missing draws are the same selected ones, so the bounds
+are needed either way, and the resume completes the cells for under $3 inside the cap. If the pod is not healthy, or
+the failure is anything but the cap, the driver's "NEEDS A DECISION" stands.
+
+**The cap note above was not used.** The reach stage ended DONE at 4:10:24 pm PT, 27 minutes before its cap: no resume
+and no bounds.
+
+### Amendment 6(a) step 2 + 6(c) result (2026-11-27 4:12 pm PT): "pool", in both squares
+
+Sampled on rp-om5 (H200; seed 660005; 48 reach prompts × 8; gate PASS for every cell; FETCH_OK). The analysis is
+`a6s2_analyze.sh rp-om5`, with outputs `v2/a6/step2_summary.json` (md5 a7e4d34f…), `step2_contrasts.json`
+(54ba5da0…) and `step2_reading.json` (e9b6c2b1…).
+
+**The five corners** (strict pass rate, two-level 95 % interval, G):
+
+| corner | cell | pool | seed | rate | G |
+|---|---|---|---|---|---|
+| A | 25 Nov adapter (batch_old) | 25 Nov | 25 Nov | 64.8 % [55.2, 74.0] | 0.93 [0.84, 1.03] |
+| A′ | `dpo__final25__A16__n64__r1p_s523373504` | 25 Nov | 25 Nov | 64.3 % [53.7, 74.5] | 0.93 [0.83, 1.02] |
+| B | `dpo__final25__A16__n64__r1p` | 25 Nov | ours | 62.8 % [52.6, 72.4] | 0.90 [0.80, 1.00] |
+| C | `dpo__final__A16__n64__r1p_s523373504` | ours | 25 Nov | 46.6 % [36.7, 56.5] | 0.67 [0.56, 0.78] |
+| D | R-final `dpo__final__A16__n64__r1p` (batch R) | ours | ours | 40.6 % [31.0, 50.3] | 0.59 [0.47, 0.70] |
+
+**The ten contrasts** (points, paired two-level bootstrap):
+
+| contrast | kind | difference |
+|---|---|---|
+| B − D | pool, our seed | +22.1 [+12.5, +31.3] |
+| A − C | pool, 25 Nov seed | +18.2 [+9.6, +26.8] |
+| A′ − C | pool, 25 Nov seed, primary | +17.7 [+9.9, +25.8] |
+| C − D | seed, our pool | +6.0 [−1.6, +13.8] |
+| A − B | seed, 25 Nov pool | +2.1 [−5.5, +9.6] |
+| A′ − B | seed, 25 Nov pool, primary | +1.6 [−5.5, +8.9] |
+| B − C | | +16.2 [+8.1, +24.5] |
+| A − D | | +24.2 [+16.2, +32.0] |
+| A′ − D | | +23.7 [+15.4, +32.0] |
+| A′ − A | replicate | −0.5 [−7.8, +6.8] |
+
+**Readings**, in the order 1, 2, 4, 3, 5:
+- Primary square (A′ as corner A): **1, "pool"**. Both pool contrasts are above 0, and both seed contrasts include 0.
+- Secondary square (the 25 Nov adapter as corner A): **1, "pool"**.
+- Replicate: A′ − A includes 0, so corner A is reproduced by our trainer.
+- No seed contrast is above 0, so X is not set and no stage-1 contrast is relabelled.
+
+Caveats:
+- **Undetected seed effect.** At 48 × 8 a seed effect under about 8 points cannot be excluded. C − D (+6.0, upper bound
+  +13.8) leaves room for one on our pool.
+- **Hardware.** D was trained on an H200; A′, B and C on an H100.
+
+**6(c)** (from the dev batch above):
+- R-own's recipe wins on the dev prompts, so there is no tuned cell.
+- No candidate is above plain `dpo` on the dev prompts. The reading is "own SFT at A16 n64 does not move held-out
+  non-reach behaviour either": no lift larger than about 15 points.
+- lr 1e-3 lowers the dev rate.
+
+The hand check of Amendment 6 (one blinded round: A, A′, B, C and D) has not run yet.

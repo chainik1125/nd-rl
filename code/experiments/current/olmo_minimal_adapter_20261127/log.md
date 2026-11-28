@@ -231,3 +231,38 @@ written_by: agent:claude (opus, orchestrator)
   stand-in cells in a scratch copy of v2.
 - PREREG Amendment 8 (1:02 pm), written before any step-2 sampling.
 - Nothing sampled. No pod exists for this line.
+
+## 2026-11-27 2:00 pm PT onward: step 2 + 6(c) sampling on rp-om5 (H200, US-CO-1, $5.29/h)
+
+- The coordinator's GO came at 2:00 pm (Leon saw the plan at 1:30 pm; no objection). Pod created 22:00:17Z; ledger row
+  added.
+- The driver `pod/drive_a6s2_sample.sh rp-om5` started at 2:01 pm from 6db6c5c (0 uncommitted paths in the folder).
+  Setup was done at 2:04 pm.
+- Dev batch (seed 660007, 32 × 4): gate PASS ×3; DONE at 2:34:16 pm, just inside its 1,500 s cap. Every candidate is
+  complete (128 draws). FETCH_OK.
+- `dev_check` (`v2/a6/dev_check_dpo.json`), against plain `dpo` 40.8 %:
+
+  | candidate | dev pass rate | minus plain |
+  |---|---|---|
+  | R-own 3e-4 × 64 | 46.9 % [32.0, 62.5] | +6.1 [−1.4, +14.5] |
+  | lr 1e-3 × 64 | 25.0 % [12.5, 39.1] | −15.8 [−29.5, −2.5] |
+  | 3e-4 × 192 | 44.5 % [29.7, 59.4] | +3.7 [−5.3, +13.5] |
+
+  - All three are `did_not_train` (held-out loss rose). max|B|: 0.013, 0.047 and 0.034.
+  - Winner: R-own's recipe, so there is no tuned cell.
+  - Manipulation check: none is above plain, which reads "own SFT at A16 n64 does not move held-out non-reach
+    behaviour either": no lift larger than about 15 points. lr 1e-3 lowers the dev rate.
+- Reach batch: B, C and A′, seed 660005, 48 × 8. It started at 2:34 pm.
+- 4:10 pm: the reach batch was DONE at 00:10:24Z, before its cap; the cap note was not used. FETCH_OK: 40 files, 26 MB.
+  The driver printed POD READY at 4:10 pm. The coordinator deleted rp-om5 at 4:11 pm ($11.53; line total $60.74).
+- Before the cap: PREREG notes on the cap contingency (3:59 and 4:00 pm), and `cap_bounds.py` (upper and lower sets,
+  rate and contrast bounds). It was tested on stand-in data and not needed.
+- 4:11 pm: `a6s2_analyze.sh rp-om5`:
+  - rates: A 64.8 %, A′ 64.3 %, B 62.8 %, C 46.6 %, D 40.6 %;
+  - pool contrasts: B − D +22.1 [+12.5, +31.3]; A′ − C +17.7 [+9.9, +25.8];
+  - seed contrasts: C − D +6.0 [−1.6, +13.8]; A′ − B +1.6 [−5.5, +8.9];
+  - A′ − A −0.5 [−7.8, +6.8];
+  - reading: **"pool"** in both squares.
+  The result is in PREREG (4:12 pm).
+- 6(b) driver caps resized from measured lengths: about 7k tokens per draw, 1,464 tok/s. Ledger note added. Nothing
+  started for 6(b).
