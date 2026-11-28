@@ -154,12 +154,17 @@ nice -n 5 $PYX handcheck5.py prep --out $R5 --items-dir $RD --batch-dir $B
 2. `prep` prints, per cell, draws, strict passes, screened passes and items, and writes the batches. It builds once
    and refuses to rebuild. Nobody opens an answer of the new cells before the readers have finished.
    - It also adds the 100 drift items and every round-4 item of the final model (258) and of the one-pass adapter
-     (149). `--no-reread` leaves the last two out (the first design; the coordinator's choice).
-   - Expect about 1,000 to 1,150 items: about 65 to 72 batches for each of the four reads.
-3. Dispatch, as in round 4 (PREREG "Round-4 hand-check protocol", item 7): one dispatcher; fresh Sonnet subagents at
-   ordinary effort (`model: sonnet`, no effort setting), in waves of at most 8; each is given only its batch file
-   `RD/batches/<tag>.prompt.md` and its output path `RD/reads/<tag>.json`, nothing about cells, rounds or this
-   experiment. Order: primary read 1 (`a..`), primary read 2 (`b..`), task read 1 (`ta..`), task read 2 (`tb..`).
+     (149). `--no-reread` leaves the last two out (the first design). The coordinator kept the re-read (28 Nov).
+   - It also adds every strict pass of the four weight-interpolation cells (coordinator's note, PREREG 9(k)): files
+     under `/scratch/cowifornia/nd-rl/olmo_elicit/interp/`, read only, md5-checked against their own list.
+     `--no-interp` leaves them out.
+   - Expect about 1,250 to 1,400 items: about 80 to 88 batches for each of the four reads.
+3. Dispatch, as in round 4 (PREREG "Round-4 hand-check protocol", item 7): one dispatcher at a time; fresh Sonnet
+   subagents at ordinary effort (`subagent_type: general-purpose`, `model: sonnet`, no effort setting), in waves of
+   at most 8; each is given only its batch file `RD/batches/<tag>.prompt.md` and its output path
+   `RD/reads/<tag>.json`, nothing about cells, rounds or this experiment. The reader prompt is round 4's, word for
+   word: "Read the file <batch file> and do what it says. Write the JSON to <output path>. Do nothing else: open no
+   file other than that batch file and the item files it lists. Reply with one line." Order: primary read 1 (`a..`), primary read 2 (`b..`), task read 1 (`ta..`), task read 2 (`tb..`).
    - After every wave: `$PYX handcheck5.py status --out $R5 --items-dir $RD --tags <the wave's tags> --quarantine`.
      A file that fails validation is moved to `R5/failed_reads/` and its batch is dispatched once more. A second
      failure is reported; its items end as "unread".
@@ -202,7 +207,7 @@ cd - && nice -n 5 $PYX handcheck5.py prep --out $R5 --items-dir $RD --batch-dir 
 
 ## The optional fourth cell
 
-Not planned. Only if the coordinator approves it and raises the stop: `REF2=1 A9_CAP_USD=18.5 bash pod/drive_a9.sh ...`
+Not run: the coordinator decided against it on 28 Nov. Only if the coordinator approves it and raises the stop: `REF2=1 A9_CAP_USD=18.5 bash pod/drive_a9.sh ...`
 samples the reference adapter again in the same engine (about 35 minutes, $3.1). `handcheck5.py` then uses it as the
 primary reference and reports the stored one beside it.
 

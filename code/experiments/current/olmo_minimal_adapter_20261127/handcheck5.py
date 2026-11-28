@@ -7,14 +7,17 @@ validation, majority label, per-draw arrays and prompts -> draws bootstrap. What
 the drift items and their test, the paired differences against the reference with the reading rule of a9.py, each
 cell's rate as a share of the final model's rate, and bounds for a cell whose sampling was cut. After the audit of
 Amendment 9 (PREREG 9(j)): every round-4 item of the final model and of the one-pass adapter is read again, so that the
-share and the second reference compare labels of one round.
+share and the second reference compare labels of one round. Coordinator's note 9(k): the four weight-interpolation
+cells of the same night are read as well (4 draws per prompt); no reading rule attaches to them.
 
   handcheck5.py prep   --out V2/handcheck/round5 --items-dir V2/hc5_read --batch-dir V2/runs_<alias>/dpo/sample/batch_a9
                        [--no-reread]   only the 100 drift items from round 4, not all of the two round-4 cells
+                       [--no-interp]   without the four weight-interpolation cells
   handcheck5.py status --out ... --items-dir ... [--tags a00 ta00 ...] [--quarantine]
   handcheck5.py third  --out ... --items-dir ... --kind primary|task
   handcheck5.py table  --out ... --items-dir ...
   handcheck5.py spot   --out ... --items-dir ...
+  handcheck5.py md     --out ... --items-dir ...     the stored result as Markdown tables
   handcheck5.py salvage --batch-dir <fetched batch_a9> --dest <new dir>   only if sampling was cut (RUNBOOK_A9.md)
 
 The key (item -> cell, draw), the screen, the cell list and the batch manifest are written only under --out.
@@ -53,6 +56,10 @@ R5_CELLS = {
     "final_r5": "s2300",
     "onepass_r5": "D",
 }  # the same draws, every round-4 item read again in round 5
+# 9(k): the weight-interpolation cells (dpo + alpha x (final model - dpo)), 48 reach prompts x 4 draws, read only
+INTERP_MANIFEST = Path("/scratch/cowifornia/nd-rl/olmo_elicit/interp/analysis/cells_manifest.json")
+INTERP = {f"interp_{a}": a for a in ("a025", "a050", "a075", "a100")}
+INTERP_TOP, INTERP_DRAWS = "interp_a100", 4
 PLAIN = {
     "rank1_n64": "rank-1 adapter, 64 examples",
     "full_n16": "full-size adapter, 16 examples",
@@ -63,6 +70,10 @@ PLAIN = {
     "onepass_r4": "our data, our seed, one pass (read in round 4)",
     "final_r5": "final RL model, first 8 stored draws (read again in round 5)",
     "onepass_r5": "our data, our seed, one pass (read again in round 5)",
+    "interp_a025": "weights a quarter of the way from dpo to the final model (4 draws per prompt)",
+    "interp_a050": "weights half way from dpo to the final model (4 draws per prompt)",
+    "interp_a075": "weights three quarters of the way from dpo to the final model (4 draws per prompt)",
+    "interp_a100": "the final model's own weights on last night's engine (4 draws per prompt)",
 }
 SEED_ITEMS, SEED_B, SEED_C, SEED_BOOT = 660051, 660052, 660053, 660054
 SEED_TA, SEED_TB, SEED_TC, SEED_SPOT, SEED_DRIFT = 660055, 660056, 660057, 660058, 660059
@@ -135,6 +146,35 @@ def find_cells(batch_dir: Path, ref_dir: Path) -> dict[str, dict]:
     return {n: cells[n] for n in order if n in cells}
 
 
+def interp_cells(manifest: Path = INTERP_MANIFEST) -> dict[str, dict]:
+    """9(k): the four weight-interpolation cells, each checked against the md5 list of its own run. Read only."""
+    man = json.loads(manifest.read_text())
+    cells = {}
+    for name, a in INTERP.items():
+        m = man[a]
+        sp, gp = Path(m["samples"]), Path(m["graded"])
+        got = {"samples": a9.file_digest(sp, "md5"), "graded": a9.file_digest(gp, "md5")}
+        if not m.get("complete") or got != m["md5"]:
+            raise SystemExit(
+                f"{name}: not complete, or its files differ from the md5 list in {manifest}"
+            )
+        cells[name] = {"samples": str(sp), "graded": str(gp), "kind": "interp", "md5": got}
+    return cells
+
+
+def n_draws(name: str) -> int:
+    """Draws per prompt of a cell."""
+    return INTERP_DRAWS if name in INTERP else N_DRAWS
+
+
+def load_one(name: str, c: dict) -> dict:
+    if (
+        c.get("kind") == "interp"
+    ):  # one draw per request: there is no partly written request to leave out
+        return hc.load_cell(f"{name}={c['samples']},{c['graded']}")[1]
+    return load_dir(Path(c["samples"]), Path(c["graded"]))
+
+
 def cmd_salvage(batch_dir: Path, dest: Path) -> dict:
     """After a cut: a copy of the batch in a NEW directory that the grader can read. A cell that the pod graded in full
     is linked as it is. For any other cell the whole requests (4 rows per prompt and chunk) are written to a fresh
@@ -170,7 +210,7 @@ def cmd_salvage(batch_dir: Path, dest: Path) -> dict:
 
 def load_cells(out: Path) -> dict[str, dict]:
     spec = json.loads((out / "cells.json").read_text())["cells"]
-    return {n: load_dir(Path(c["samples"]), Path(c["graded"])) for n, c in spec.items()}
+    return {n: load_one(n, c) for n, c in spec.items()}
 
 
 def item_id(cell: str, kk: tuple) -> str:
@@ -193,6 +233,7 @@ def cmd_prep(
     ref_dir: Path,
     round4: Path = ROUND4,
     reread: bool = True,
+    interp: bool = True,
 ) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     for d in ("items", "task_items", "batches", "reads"):
@@ -200,7 +241,15 @@ def cmd_prep(
     if any((items_dir / "items").iterdir()) or (out / "key.csv").exists():
         raise SystemExit("round-5 items exist already: refusing to rebuild")
     spec = find_cells(batch_dir, ref_dir)
-    loaded = {n: load_dir(Path(c["samples"]), Path(c["graded"])) for n, c in spec.items()}
+    if interp:  # 9(k)
+        spec.update(interp_cells())
+    loaded = {n: load_one(n, c) for n, c in spec.items()}
+    n_reach = len({ln.strip() for ln in hc.REACH.read_text().splitlines() if ln.strip()})
+    short = [n for n in spec if n in INTERP and len(loaded[n]) != INTERP_DRAWS * n_reach]
+    if short:
+        raise SystemExit(
+            f"interpolation cells without {INTERP_DRAWS} draws on every reach prompt: {short}"
+        )
     spec = {
         n: c for n, c in spec.items() if loaded[n]
     }  # a cell without one finished chunk counts as not sampled
@@ -306,20 +355,21 @@ def arrays(
     pids: list[str],
     fill: str | None = None,
     unread_accepted: bool = False,
+    n_draws: int = N_DRAWS,
 ) -> dict:
-    """Per-draw arrays of shape (prompts, 8). A slot without a finished draw is NaN (fill None: "as sampled"), a
+    """Per-draw arrays of shape (prompts, n_draws). A slot without a finished draw is NaN (fill None: "as sampled"), a
     fail on every rate (fill "fail") or an accepted, task-done pass (fill "pass"). unread_accepted counts an item
     without two agreeing reads as accepted on both labels instead of as not accepted."""
     by: dict[str, list] = defaultdict(list)
     for k in sorted(draws):
         by[k[0]].append(k)
-    if any(len(v) > N_DRAWS for v in by.values()):
-        raise SystemExit("more than 8 draws on a prompt")
-    a = {m: np.zeros((len(pids), N_DRAWS)) for m in h4.METRICS}
+    if any(len(v) > n_draws for v in by.values()):
+        raise SystemExit(f"more than {n_draws} draws on a prompt")
+    a = {m: np.zeros((len(pids), n_draws)) for m in h4.METRICS}
     a["words"] = np.full_like(a["strict"], np.nan)
     for pi, p in enumerate(pids):
         ks = by.get(p, [])
-        for di in range(len(ks), N_DRAWS):
+        for di in range(len(ks), n_draws):
             for m in h4.METRICS:
                 a[m][pi, di] = np.nan if fill is None else 0.0
             if fill == "pass":
@@ -489,6 +539,12 @@ def contrast_list(names: list[str]) -> list[tuple[str, str, str]]:
     for y in [*R5_CELLS, *R4_CELLS]:
         if y in names:
             con += [(n, y, f"{n}-{y}") for n in [*new, *refs]]
+    if (
+        INTERP_TOP in names
+    ):  # 9(k): the same weights on another night's engine, against the stored draws
+        con += [
+            (INTERP_TOP, y, f"{INTERP_TOP}-{y}") for y in ("final_r5", "final_r4") if y in names
+        ]
     # No final_r5 - final_r4 here: they are the same draws, and the bootstrap resamples each cell's draws on its own,
     # which would give that difference a width it does not have. The item-level comparison is `drift_reread`.
     return con
@@ -515,9 +571,11 @@ def compute(arrs: dict[str, dict], reps: int) -> dict:
             lo, hi = h4.pct(bs[x][q] - bs[y][q])
             con[name][q] = {"diff": pts[x][q] - pts[y][q], "lo": lo, "hi": hi}
 
-    def shares(yard: str) -> dict:
+    adapters = [n for n in names if n not in R4_CELLS and n not in R5_CELLS and n not in INTERP]
+
+    def shares(yard: str, who: list[str] = adapters) -> dict:
         share = {}
-        for c in [n for n in names if n not in R4_CELLS and n not in R5_CELLS]:
+        for c in who:
             share[c] = {}
             for q in ("genuine_rate", "task_done_rate"):
                 with np.errstate(invalid="ignore", divide="ignore"):
@@ -541,6 +599,10 @@ def compute(arrs: dict[str, dict], reps: int) -> dict:
            "readings": readings}  # fmt: skip
     if yard != "final_r4":
         res["share_of_final_round4_labels"] = shares("final_r4")
+    if (
+        INTERP_TOP in names
+    ):  # 9(k): each interpolation cell against the final model on the same engine
+        res["share_of_interp_a100"] = shares(INTERP_TOP, [n for n in INTERP if n in names])
     return res
 
 
@@ -571,11 +633,14 @@ def cmd_table(out: Path, items_dir: Path, reps: int = REPS, round4: Path = ROUND
     draws = load_cells(out)
     r4 = round4_arrays(pids, round4)
     cut = {
-        c: N_DRAWS * len(pids) - len(d) for c, d in draws.items() if len(d) != N_DRAWS * len(pids)
+        c: n_draws(c) * len(pids) - len(d)
+        for c, d in draws.items()
+        if len(d) != n_draws(c) * len(pids)
     }
 
     def build(fill: dict[str, str | None], unread_accepted: bool = False) -> dict:
-        a = {c: arrays(d, scr[c], item_of[c], final["primary"], final["task"], pids, fill.get(c), unread_accepted)
+        a = {c: arrays(d, scr[c], item_of[c], final["primary"], final["task"], pids, fill.get(c), unread_accepted,
+                       n_draws(c))
              for c, d in draws.items()}  # fmt: skip
         return {**a, **r4, **reread_arrays(key, final, pids, round4, unread_accepted)}
 
@@ -663,19 +728,113 @@ def show(res: dict) -> None:
     for c, v in res["share_of_final"].items():
         print(f"{c:11s} share of the final model's rate ({res['share_yardstick']}): reader-accepted {h4.fmt(v['genuine_rate'])} % "
               f"task-done {h4.fmt(v['task_done_rate'])} %")  # fmt: skip
+    for c, v in res.get("share_of_interp_a100", {}).items():
+        print(f"{c:11s} share of interp_a100's rate: reader-accepted {h4.fmt(v['genuine_rate'])} % "
+              f"task-done {h4.fmt(v['task_done_rate'])} %")  # fmt: skip
+
+
+# ---- the result as Markdown tables (for PREREG, the log and the summary)
+def _pc(v: dict) -> str:
+    return f"{100 * v['value']:.1f} % [{100 * v['lo']:.1f}, {100 * v['hi']:.1f}]"
+
+
+def _sg(x: float) -> str:
+    return f"{x:+.1f}".replace("-", "−")
+
+
+def _df(v: dict) -> str:
+    return f"{_sg(100 * v['diff'])} [{_sg(100 * v['lo'])}, {_sg(100 * v['hi'])}]"
+
+
+def _reading(r: dict, q: str) -> str:
+    word = r[q] + (" (within 12 points of the reference)" if r[q] == a9.READINGS[0] else "")
+    return word + ("; below the reference" if r["interval_below_zero"][q] else "")
+
+
+def markdown(res: dict) -> str:
+    """Percentages of all draws with 95 % intervals; differences in points."""
+    cells, con = res["cells"], res["contrasts"]
+    out = ["| cell | draws | strict checker pass | reader-accepted pass | task-done pass | passes screened | read gamed |",
+           "|---|---|---|---|---|---|---|"]  # fmt: skip
+    for v in cells.values():
+        out.append(f"| {v['plain_name']} | {v['draws']} | {_pc(v['strict_rate'])} | {_pc(v['genuine_rate'])} | "
+                   f"{_pc(v['task_done_rate'])} | {v['screened']} of {v['passes']} | {v['read_gamed']} of {v['read']} |")  # fmt: skip
+    out += ["", "| cell minus the reference | strict | reader-accepted | reading | task-done | reading |",
+            "|---|---|---|---|---|---|"]  # fmt: skip
+    for n, r in res["readings"].items():
+        d = con[f"{n}-{r['reference']}"]
+        out.append(f"| {PLAIN[n]} | {_df(d['strict_rate'])} | {_df(d['genuine_rate'])} | {_reading(r, 'genuine_rate')} | "
+                   f"{_df(d['task_done_rate'])} | {_reading(r, 'task_done_rate')} |")  # fmt: skip
+    yard = res["share_yardstick"]
+    out += [
+        "",
+        f"| share of the final model's rate ({PLAIN[yard]}) | reader-accepted | task-done |",
+        "|---|---|---|",
+    ]
+    for c, v in res["share_of_final"].items():
+        out.append(f"| {PLAIN[c]} | {_pc(v['genuine_rate'])} | {_pc(v['task_done_rate'])} |")
+    for c, v in res.get("share_of_final_round4_labels", {}).items():
+        out.append(
+            f"| {PLAIN[c]}, against round 4's labels | {_pc(v['genuine_rate'])} | {_pc(v['task_done_rate'])} |"
+        )
+    other = [
+        (k, v)
+        for k, v in con.items()
+        if not any(k == f"{n}-{r['reference']}" for n, r in res["readings"].items())
+    ]
+    out += [
+        "",
+        "| other paired differences | strict | reader-accepted | task-done |",
+        "|---|---|---|---|",
+    ]
+    for k, d in other:
+        x, y = next((x, y) for x, y, n in contrast_list(list(cells)) if n == k)
+        out.append(f"| {PLAIN[x]} minus {PLAIN[y]} | {_df(d['strict_rate'])} | {_df(d['genuine_rate'])} | "
+                   f"{_df(d['task_done_rate'])} |")  # fmt: skip
+    if "share_of_interp_a100" in res:
+        out += [
+            "",
+            f"| share of the rate of: {PLAIN[INTERP_TOP]} | reader-accepted | task-done |",
+            "|---|---|---|",
+        ]
+        for c, v in res["share_of_interp_a100"].items():
+            out.append(f"| {PLAIN[c]} | {_pc(v['genuine_rate'])} | {_pc(v['task_done_rate'])} |")
+    out += [
+        "",
+        "| readers | items read twice | two reads agree | κ | third reads | unread |",
+        "|---|---|---|---|---|---|",
+    ]
+    for k, a in res["agreement"].items():
+        out.append(f"| {k} label | {a['n_read_twice']} | {100 * a['raw_agreement']:.1f} % | {a['kappa']:.2f} | "
+                   f"{a['third_reads']} | {a['unread']} |")  # fmt: skip
+    out += ["", "| round 5 against round 4, same items | label | items | same label | κ | to accepted | to not accepted | "
+            "net shift, points of items | sign test p |", "|---|---|---|---|---|---|---|---|---|"]  # fmt: skip
+    sets = {"100 items drawn uniformly (the pre-registered test)": res["drift"],
+            **{PLAIN[n]: d for n, d in res.get("drift_reread", {}).items()}}  # fmt: skip
+    for name, d in sets.items():
+        for k in ("primary", "task"):
+            v = d[k]
+            out.append(f"| {name} | {k} | {v['n']} | {100 * v['raw_agreement']:.1f} % | {v['kappa']:.2f} | "
+                       f"{v['moved_to_accepted']} | {v['moved_to_not_accepted']} | {_sg(v['net_shift_points'])} "
+                       f"[{_sg(v['net_shift_lo'])}, {_sg(v['net_shift_hi'])}] | {v['sign_test_p']:.3f} |")  # fmt: skip
+    out.append(f"\nDrift reading on the 100 items: {res['drift']['reading']}.")
+    return "\n".join(out) + "\n"
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    ap.add_argument("cmd", choices=["prep", "status", "third", "table", "spot", "salvage"])
+    ap.add_argument("cmd", choices=["prep", "status", "third", "table", "spot", "salvage", "md"])
     ap.add_argument("--out", type=Path)
     ap.add_argument("--items-dir", type=Path)
     ap.add_argument("--batch-dir", type=Path, help="prep, salvage: the fetched batch_a9 directory")
     ap.add_argument("--dest", type=Path, help="salvage: the new directory")
     ap.add_argument(
         "--no-reread", action="store_true", help="prep: only the 100 drift items from round 4"
+    )
+    ap.add_argument(
+        "--no-interp", action="store_true", help="prep: without the weight-interpolation cells"
     )
     ap.add_argument("--ref-dir", type=Path, default=V2 / a9.REF_SAMPLES)
     ap.add_argument("--kind", choices=list(h4.KINDS))
@@ -693,13 +852,22 @@ def main() -> None:
     if a.cmd == "prep":
         if not a.batch_dir:
             raise SystemExit("prep needs --batch-dir")
-        cmd_prep(a.out, a.items_dir, a.batch_dir, a.ref_dir, reread=not a.no_reread)
+        cmd_prep(
+            a.out,
+            a.items_dir,
+            a.batch_dir,
+            a.ref_dir,
+            reread=not a.no_reread,
+            interp=not a.no_interp,
+        )
     elif a.cmd == "status":
         h4.cmd_status(a.out, a.items_dir, a.tags, a.quarantine)
     elif a.cmd == "third":
         cmd_third(a.out, a.items_dir, a.kind)
     elif a.cmd == "table":
         show(cmd_table(a.out, a.items_dir, a.reps))
+    elif a.cmd == "md":
+        print(markdown(json.loads((a.out / "round5_summary.json").read_text())))
     else:
         cmd_spot(a.out, a.items_dir)
 

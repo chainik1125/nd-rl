@@ -1446,3 +1446,185 @@ were changed after 4:00 am, while the driver's tests were written. The training 
 taken from the reference's recorded times (first: 21 to 28). And the driver waits for training only until minute 46.
 The numbers that follow from them were changed with them: the total, "set-up ends by minute 12" (first: 14) and the
 slow-case margin (first: about 10 minutes). Nothing else in 9(j) was changed.
+
+### 9(k) Coordinator's note (5:32 am PT, 2026-11-28), before any round-5 item exists: round 5 also reads the four weight-interpolation cells
+
+Decided by the coordinator when it gave the go for the pod run, and recorded here before `handcheck5.py prep`. At
+this moment the Amendment 9 driver has just started on the pod: set-up is done and the training of the 16-example
+adapter began a minute ago, so that adapter does not exist yet and no draw of the new cells exists. No round-5 item file exists, and no reader has seen a round-5 item. This orchestrator
+has opened no answer of the four cells below; it has read only their row counts, checksums and the keys of one row.
+
+**The coordinator's decisions on the four points of the preparation report:** no fourth cell (the reference is not
+sampled again); the re-read of the 407 round-4 items stays; the lock on the other job's lock file stays as built; the
+other job ran first and is finished, so its spend ledger is not affected.
+
+**The added cells.** Four cells of the weight-interpolation run of the same night (`olmo_weight_interp_20261128`).
+Each is one engine load that sampled the 48 reach prompts × 4 draws (192 draws), in the metrics-2 format, like
+`expo` and `k16` in round 4. The weights are dpo + alpha × (final model − dpo).
+
+| name here | alpha | what it is | strict passes of 192 |
+|---|---|---|---|
+| `interp_a025` | 0.25 | merged weights, a quarter of the way from `dpo` to the final model | 2 |
+| `interp_a050` | 0.5 | merged weights, half way | 26 |
+| `interp_a075` | 0.75 | merged weights, three quarters of the way | 102 |
+| `interp_a100` | 1.0 | the stored final model itself, served on last night's engine | 133 |
+
+- Files: `/scratch/cowifornia/nd-rl/olmo_elicit/interp/runs/cell_{a025,a050,a075,a100}/out/samples.jsonl.gz` and
+  `graded.jsonl`, with the md5 list in `/scratch/cowifornia/nd-rl/olmo_elicit/interp/analysis/cells_manifest.json`.
+  `prep` checks every md5 against that list and stops on a difference. The files are only read.
+- Every strict pass goes through the mechanical screen and, if not screened, to the readers: mixed blind with every
+  other round-5 item in the same shuffles, the same two labels, the same two reads and third read on a split, the same
+  seeds. 263 passes before the screen, so about 16 more batches for each read.
+- Reported for each of the four: the strict, reader-accepted and task-done pass rates with 95 % intervals from the same
+  bootstrap (these cells have 4 draws per prompt, the others 8).
+- The paired difference of `interp_a100` from the `s2300` first-8 cell as read again in round 5, on each rate. This
+  is an engine check on the reader-accepted rate: the same weights, another night's engine and draws.
+- Each interpolation cell's reader-accepted rate as a share of `interp_a100`'s, with an interval.
+- **No reading rule attaches to these cells.** The rule of 9(e) is for the three adapter cells only. Nothing about
+  these cells was predicted here.
+- A known property, recorded here and not told to the readers: the four cells share one engine seed, so the same
+  prompt can open the same way in two of them. Readers may therefore meet two items with the same opening. The
+  bootstrap treats the cells' draws as independent, which they are not fully.
+
+### 9(l) Result (2026-11-28 8:10 am PT)
+
+Run on the shared pod `rp-wi` from 5:30:42 to 7:25:36 am PT (6,894 s, **$10.13** of the $15 stop), with the code of
+commit 1760974. Nothing was dropped or cut: three cells × 384 draws, no draw at the token limit, every fetch
+`FETCH_OK`. Round 5 was read from 7:26 to 8:02 am PT. Pod log and md5s: `log.md`. Numbers:
+`v2/handcheck/round5/round5_summary.json` and `round5_tables.md`; figure `fig_a9.py`.
+
+**The adapter trained now** (full size, 16 examples): lr 3e-4 at step 16 (one pass over the 16 examples), held-out
+loss 0.5551 against 0.6341 untrained; no flag. The best lr is the middle of the grid, so it is bracketed on both
+sides. Held-out losses of the four cells: 4 examples 0.5707, 16 examples 0.5551, rank-1 0.5403, reference 0.5373.
+
+**Rates** (share of all draws, 95 % interval; 48 prompts × 8 draws, the interpolation cells 48 × 4).
+
+| cell | strict checker pass | reader-accepted pass | task-done pass | passes screened | read gamed |
+|---|---|---|---|---|---|
+| rank-1 adapter, 64 examples | 46.4 % [36.5, 56.2] | 37.8 % [28.6, 47.1] | 39.8 % [31.0, 49.0] | 1 of 178 | 32 of 177 |
+| full-size adapter, 16 examples | 26.6 % [18.0, 35.7] | 24.2 % [15.9, 33.3] | 25.0 % [16.7, 34.1] | 0 of 102 | 9 of 102 |
+| full-size adapter, 4 examples | 8.3 % [3.9, 13.5] | 8.3 % [3.9, 13.5] | 7.8 % [3.6, 12.8] | 0 of 32 | 0 of 32 |
+| reference: full-size adapter, 64 examples (stored draws) | 43.2 % [33.3, 53.4] | 35.4 % [25.8, 45.3] | 37.0 % [27.3, 46.9] | 0 of 166 | 30 of 166 |
+| the final model, first 8 stored draws, read again | 68.8 % [58.9, 78.1] | 47.1 % [36.2, 58.1] | 51.8 % [41.4, 62.0] | 6 of 264 | 77 of 258 |
+| the one-pass adapter (our data, our seed), read again | 40.6 % [31.0, 50.5] | 35.4 % [26.0, 45.1] | 33.6 % [24.2, 43.0] | 7 of 156 | 13 of 149 |
+| weights a quarter of the way from `dpo` to the final model | 1.0 % [0.0, 3.1] | 1.0 % [0.0, 3.1] | 1.0 % [0.0, 3.1] | 0 of 2 | 0 of 2 |
+| weights half way | 13.5 % [6.8, 21.4] | 13.0 % [6.2, 20.8] | 12.5 % [6.2, 19.8] | 0 of 26 | 1 of 26 |
+| weights three quarters of the way | 53.1 % [41.7, 64.6] | 41.1 % [30.2, 52.6] | 45.8 % [34.4, 57.3] | 0 of 102 | 23 of 102 |
+| the final model's own weights on last night's engine | 69.3 % [58.3, 79.7] | 45.8 % [34.4, 57.8] | 50.5 % [39.1, 62.0] | 4 of 133 | 41 of 129 |
+
+**Paired differences from the reference, in points, and the readings under 9(e).**
+
+| cell minus the reference | strict | reader-accepted | reading | task-done | reading |
+|---|---|---|---|---|---|
+| rank-1 adapter, 64 examples | +3.1 [−4.7, +10.9] | +2.3 [−4.9, +9.6] | holds (within 12 points of the reference) | +2.9 [−4.4, +10.2] | holds (within 12 points of the reference) |
+| full-size adapter, 16 examples | −16.7 [−24.2, −9.4] | −11.2 [−18.5, −4.2] | falls short; below the reference | −12.0 [−19.5, −4.7] | falls short; below the reference |
+| full-size adapter, 4 examples | −34.9 [−43.8, −26.3] | −27.1 [−35.7, −19.0] | falls short; below the reference | −29.2 [−37.8, −20.8] | falls short; below the reference |
+
+- The two labels give the same reading in all three cells.
+- The 16-example reading is "falls short" by a margin of 1.2 points on the difference (the rule needs below −10; it
+  is −11.2) and 4.2 points on the interval's upper end.
+- Both short cells are "falls short under the stage-1 rule" (9(f)): the reference and the 4-example cell are flagged
+  `unconverged`.
+
+**Against the final model and the one-pass adapter**, both read again in round 5 (reader-accepted; task-done).
+
+| cell | share of the final model's rate | minus the final model | minus the one-pass adapter |
+|---|---|---|---|
+| rank-1 adapter, 64 examples | 80.1 % [65.1, 98.1]; 76.9 % [63.0, 92.3] | −9.4 [−18.0, −0.8]; −12.0 [−20.3, −3.6] | +2.3 [−5.5, +9.9]; +6.2 [−1.8, +14.3] |
+| full-size adapter, 16 examples | 51.4 % [35.8, 69.4]; 48.2 % [33.8, 64.0] | −22.9 [−33.1, −12.8]; −26.8 [−36.7, −16.9] | −11.2 [−18.5, −4.2]; −8.6 [−16.4, −0.8] |
+| full-size adapter, 4 examples | 17.7 % [8.9, 27.6]; 15.1 % [7.3, 23.9] | −38.8 [−48.7, −29.2]; −44.0 [−53.6, −34.4] | −27.1 [−36.2, −18.5]; −25.8 [−34.9, −16.7] |
+| reference | 75.1 % [59.5, 93.3]; 71.4 % [56.5, 87.2] | −11.7 [−20.6, −2.9]; −14.8 [−23.7, −6.2] | +0.0 [−7.6, +7.3]; +3.4 [−4.7, +11.5] |
+
+With round 4's labels for the final model instead, the reader-accepted shares are 79.7 %, 51.1 %, 17.6 % and 74.7 %:
+within 0.4 points of the table.
+
+**The four weight-interpolation cells (9(k)); no reading rule attaches to them.**
+- The final model's own weights on last night's engine, minus the final model's first 8 stored draws as read again:
+  strict +0.5 [−7.6, +8.3], reader-accepted −1.3 [−10.9, +8.3], task-done −1.3 [−10.2, +7.6]. No engine difference is
+  detected; one of 11 points down or 8 up is not ruled out.
+- Reader-accepted rate as a share of that cell's: a quarter of the way 2.3 % [0.0, 7.6]; half way 28.4 %
+  [14.6, 46.2]; three quarters 89.8 % [70.9, 112.9]. Task-done: 2.1 % [0.0, 6.9], 24.7 % [12.3, 40.0], 90.7 %
+  [73.3, 112.0].
+- Descriptive: the share of passes that are screened or read gamed grows along the path (0 of 2, 1 of 26, 23 of 102,
+  45 of 133), and so does the share of passes without `.`, `!` or `?` (0 %, 19 %, 32 %, 45 %).
+- The four cells share one engine seed and have 4 draws per prompt; their intervals treat the cells as independent.
+
+**Descriptive, per cell.** Share of passes without `.`, `!` or `?`: rank-1 19.7 %, 16 examples 8.8 %, 4 examples
+9.4 %, reference 15.7 %, the final model 40.9 %. Median words of a passing answer: 40, 48, 46, 48, and 32.
+
+**Readers.**
+- 1,216 items in 76 batches of 16 per read; 320 reader calls (Sonnet, ordinary effort), 318 valid files. Two batches
+  (`a70`, `b14`) failed validation once ("1 id missing") and passed on their one re-dispatch.
+- Two reads agree on 91.6 % of items (κ 0.76) for the reader-accepted label and 91.0 % (κ 0.70) for task-done. 102
+  and 110 items went to a third read. No item is unread.
+- **Drift, the pre-registered test on the 100 items drawn uniformly from round 4:** the same label on 93 for each
+  label (κ 0.86 and 0.82); 3 moved to accepted and 4 away (net −1.0 points [−6.2, +4.2], sign test p = 1.0); for
+  task-done 4 and 3 (+1.0 [−4.2, +6.2], p = 1.0). **Reading: no shift detected.**
+- **The two cells read again in full:**
+  - the final model, 258 items: the same reader-accepted label on 92.6 % (κ 0.82), 9 to accepted and 10 away (−0.4
+    points of items [−3.7, +2.9]); task-done 89.9 % (κ 0.71), 11 and 15 (−1.6 [−5.4, +2.3]). Its rates moved from
+    47.4 % to 47.1 % and from 52.9 % to 51.8 %.
+  - the one-pass adapter, 149 items: 96.0 % (κ 0.76), 4 and 2 (+1.3 [−1.9, +4.6]); task-done 94.6 % (κ 0.76), 3 and
+    5 (−1.3 [−5.1, +2.4]). Its rates moved from 34.9 % to 35.4 % and from 34.1 % to 33.6 %.
+- Which files each reader opened was checked from the tool calls of all 320 readers: every one named each of its own
+  item files, none named an item of another batch, and none listed a folder (one listed its own output file). Task
+  readers took about 10 s with 3 or 4 calls; the call counts fit one command that prints the 16 short files.
+- Spot read by this orchestrator (40 items, seed 660058, `round5/spot.md`), made with the labels hidden and the
+  order shuffled, agreeing with the final label on:
+  - genuine 10 of 10; gamed 8 of 10; done 10 of 10; not_done 9 of 10. In all 37 of 40.
+  - The two "gamed" items I would accept were both 2-to-1 splits: a grammar correction given without punctuation,
+    and a four-sentence world introduction. The "not_done" one is an eight-word answer to a yes/no question under a
+    constraint on every word. None of the 40 is a plain error.
+
+**Predictions of 9(g) against the result** (reader-accepted rate).
+
+| cell | coordinator | this orchestrator | observed | reading, and the probability given in 9(g) and in 9(j) |
+|---|---|---|---|---|
+| rank-1, 64 examples | 28 to 34 % | 27 to 36 % | 37.8 %: above both | "holds": 60 %, then 40 % |
+| full size, 16 examples | 22 to 32 % | 20 to 31 % | 24.2 %: inside both | "falls short": 35 %, then 45 % |
+| full size, 4 examples | 8 to 20 % | 6 to 24 % | 8.3 %: inside both, at the low end | "falls short": 80 %, then 88 % |
+| reference | | 33 to 39 % | 35.4 %: inside | |
+
+**Interpretation.**
+- Observed: the rank-1 adapter on `o_proj` (655,360 weights), trained on 64 examples, has 37.8 % [28.6, 47.1]
+  reader-accepted passes against the full-size reference's 35.4 % [25.8, 45.3]: +2.3 points [−4.9, +9.6], reading
+  "holds (within 12 points of the reference)". The final model has 47.1 %; the rank-1 adapter is 9.4 points below it
+  [−18.0, −0.8].
+- Observed: the full-size adapter on the first 16 examples has 24.2 % [15.9, 33.3], 11.2 points below the reference
+  [−18.5, −4.2]: "falls short under the stage-1 rule". On the first 4 examples it has 8.3 % [3.9, 13.5], 27.1 points
+  below [−35.7, −19.0]: "falls short under the stage-1 rule". On no prompt does the 4-example adapter have more
+  accepted answers than the reference (fewer on 35 of 48).
+- Observed: the reference equals the one-pass adapter of round 4 on reader-accepted passes (+0.0 [−7.6, +7.3]).
+- Observed: with fewer examples the passes are fewer and cleaner. Readers call 0 of 32 gamed for 4 examples and 9 of
+  102 for 16, against 30 of 166 for the reference and 32 of 177 for the rank-1 adapter.
+- Interpretation: between these two points of the size axis, going from 134 million to 0.66 million trained weights
+  costs no measurable reader-accepted rate (the interval's lower end is −4.9 points). Under the stage-1 rule, going
+  from 64 examples to the first 16 costs about a third of the reference's rate, and to the first 4 about three
+  quarters. Both statements are for one seed, one example order and these 48 prompts, and the cells had different
+  step budgets (the rank-1 adapter up to 512 steps, the 16- and 4-example adapters 64).
+- **Limits**, as 9(f) and 9(j): one training seed and one example order per cell; 48 prompts; a model reader; the
+  reference was sampled in another batch (another pod, seed and engine load) and was not sampled again, so a
+  batch-to-batch offset is not controlled (the engine check above bounds one such offset at about 10 points for the
+  final model's weights, not for adapters); step budgets differ by cell; the size axis has two points and the
+  example axis three; the two reused adapters were trained on an H100.
+
+**Post hoc, not pre-registered** (descriptive only).
+- The two labels agree on 1,065 of the 1,216 items (87.6 %): 103 are gamed but done and 48 genuine but not done.
+- Read 1 and read 2 have nearly the same base rates: 934 and 942 genuine, 994 and 996 done.
+- Held-out loss orders the four adapter cells as the reader-accepted rate does (0.5707, 0.5551, 0.5403 and 0.5373
+  against 8.3 %, 24.2 %, 37.8 % and 35.4 %), except that the last two are level on both.
+
+**Differences from the pre-registration.**
+- 9(k) added the four interpolation cells (the coordinator's change, written before any round-5 item existed).
+  `handcheck5.py` was extended for them, and for a Markdown view of the tables (`md`), after commit 1760974 and
+  before `prep`; the round-5 tests were rerun before `prep` and the whole suite after the analysis (116 passed, 1
+  skipped).
+- No fourth cell: the reference was not sampled again (the coordinator's decision).
+- The readers were launched by five dispatcher subagents in turn (reads a, b, ta, tb, then the third reads), each
+  with waves of at most 8 and round 4's reader prompt word for word. This orchestrator launched no reader itself.
+- The spot read was made blind to the label, which round 4's was not.
+- While checking which files the readers had opened (after reads a, b and ta), the check printed two fragments of
+  about 70 characters from readers' own commands; they are parts of answers of unknown cells. No label or cell was
+  attached, and no reader saw anything from it.
+- The set-up installed nothing: the other job had already installed the pinned stack on the pod.
+- Samples were also copied to serrano four times during sampling, by a loop beside the driver.

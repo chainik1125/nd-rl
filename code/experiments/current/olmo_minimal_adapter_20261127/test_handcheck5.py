@@ -21,6 +21,7 @@ import pytest
 
 V2 = h3.V2
 HAVE_DATA = (h5.ROUND4 / "labels.csv").exists() and (V2 / a9.REF_SAMPLES / "graded.jsonl").exists()
+HAVE_INTERP = h5.INTERP_MANIFEST.exists()
 CELL_WORDS = ("rank1", "full_n", "ref_again", "O1__", "A16__", "n16", "n64", "batch_a9", "r4:", "round4",
               "round5", "key.csv", "screen.csv", "batches.json", "cells.json", "s2300", "final25")  # fmt: skip
 
@@ -211,6 +212,49 @@ def _reach():
     return sorted(ln.strip() for ln in hc.REACH.read_text().splitlines() if ln.strip())
 
 
+def test_interp_cells_are_checked_against_their_md5_list(tmp_path):
+    man = {}
+    for a in h5.INTERP.values():
+        d = tmp_path / a
+        d.mkdir()
+        (d / "samples.jsonl.gz").write_bytes(f"s {a}".encode())
+        (d / "graded.jsonl").write_text(f"g {a}\n")
+        man[a] = {"complete": True, "samples": str(d / "samples.jsonl.gz"), "graded": str(d / "graded.jsonl"),
+                  "md5": {"samples": a9.file_digest(d / "samples.jsonl.gz", "md5"),
+                          "graded": a9.file_digest(d / "graded.jsonl", "md5")}}  # fmt: skip
+    mf = tmp_path / "cells_manifest.json"
+    mf.write_text(json.dumps(man))
+    cells = h5.interp_cells(mf)
+    assert list(cells) == ["interp_a025", "interp_a050", "interp_a075", "interp_a100"]
+    assert all(c["kind"] == "interp" for c in cells.values())
+    assert h5.n_draws("interp_a050") == 4 and h5.n_draws("ref") == 8
+    (tmp_path / "a075" / "graded.jsonl").write_text("changed\n")
+    with pytest.raises(SystemExit, match="interp_a075"):
+        h5.interp_cells(mf)
+    man["a075"]["md5"]["graded"] = a9.file_digest(tmp_path / "a075" / "graded.jsonl", "md5")
+    man["a025"]["complete"] = False
+    mf.write_text(json.dumps(man))
+    with pytest.raises(SystemExit, match="interp_a025"):
+        h5.interp_cells(mf)
+
+
+def test_arrays_with_four_draws_per_prompt():
+    pids = ["p0", "p1"]
+    draws = {(p, c, 0): {"text": "<think>t</think>An answer.", "strict": c < 2, "per": None}
+             for p in pids for c in range(4)}  # fmt: skip
+    item_of = {k: f"h{n}" for n, k in enumerate(sorted(draws)) if draws[k]["strict"]}
+    lab = dict.fromkeys(item_of.values(), "genuine")
+    done = dict.fromkeys(item_of.values(), "done")
+    a = h5.arrays(draws, set(), item_of, lab, done, pids, n_draws=4)
+    assert a["strict"].shape == (2, 4) and not np.isnan(a["strict"]).any()
+    assert h5.point(a)["strict_rate"] == 0.5 == h5.point(a)["genuine_rate"]
+    eight = h5.arrays({}, set(), {}, {}, {}, pids, fill="fail")
+    b = h5.boot({"four": a, "eight": eight}, reps=20, seed=3)
+    assert b["four"]["strict_rate"].shape == (20,) and (b["eight"]["strict_rate"] == 0).all()
+    with pytest.raises(SystemExit):
+        h5.arrays(draws, set(), item_of, lab, done, pids, n_draws=3)
+
+
 def test_a_sampled_cell_without_grading_is_refused_not_dropped(tmp_path):
     batch = tmp_path / "batch_a9"
     (batch / a9.RANK1).mkdir(parents=True)
@@ -346,13 +390,20 @@ def test_end_to_end_on_stand_in_cells(tmp_path, capsys, reread):
     with gzip.open(cut / "samples.jsonl.gz", "wt", compresslevel=1) as f:
         f.writelines(json.dumps(r) + "\n" for r in rows[:330])  # 82 whole requests and half of one
     out, items_dir = tmp_path / "round5", tmp_path / "hc5_read"
-    info = h5.cmd_prep(out, items_dir, batch, V2 / a9.REF_SAMPLES, reread=reread)
+    interp = (
+        reread and HAVE_INTERP
+    )  # the four weight-interpolation cells, in one of the two variants
+    args = (out, items_dir, batch, V2 / a9.REF_SAMPLES)
+    info = h5.cmd_prep(*args, reread=reread, interp=interp)
     assert info["drift"] == 100 and info["not_sampled"] == []
     with pytest.raises(SystemExit):
-        h5.cmd_prep(out, items_dir, batch, V2 / a9.REF_SAMPLES, reread=reread)  # never rebuilt
+        h5.cmd_prep(*args, reread=reread, interp=interp)  # never rebuilt
     key = {r["item"]: r for r in csv.DictReader((out / "key.csv").read_text().splitlines())}
     summ = {r["cell"]: r for r in json.loads((out / "screen_summary.json").read_text())}
-    assert list(summ) == ["rank1_n64", "full_n16", "full_n4", "ref"]
+    assert list(summ) == ["rank1_n64", "full_n16", "full_n4", "ref", *(h5.INTERP if interp else [])]
+    if interp:  # the pass counts of the coordinator's note 9(k)
+        assert [summ[n]["passes"] for n in h5.INTERP] == [2, 26, 102, 133]
+        assert all(summ[n]["draws"] == 192 for n in h5.INTERP)
     assert (summ["ref"]["draws"], summ["ref"]["passes"]) == (384, 166)
     assert (summ["rank1_n64"]["passes"], summ["rank1_n64"]["screened_gamed"]) == (
         156,
@@ -407,7 +458,7 @@ def test_end_to_end_on_stand_in_cells(tmp_path, capsys, reread):
         r = key[item]
         if r["r4_item"]:
             return by_item[r["r4_item"]][col]
-        if r["cell"] == "ref":
+        if r["cell"] == "ref" or r["cell"] in h5.INTERP:
             return "genuine" if col == "primary" else "done"
         return by_draw[(stand[r["cell"]], r["pid"], r["chunk"], r["i"])][col]
 
@@ -454,6 +505,7 @@ def test_end_to_end_on_stand_in_cells(tmp_path, capsys, reread):
     )
     expect = {f"{n}-{r}" for n in ("rank1_n64", "full_n16", "full_n4", "ref") for r in yards}
     expect |= {f"{n}-ref" for n in ("rank1_n64", "full_n16", "full_n4")}
+    expect |= {"interp_a100-final_r5", "interp_a100-final_r4"} if interp else set()
     assert set(res["contrasts"]) == expect
     sh = res["share_of_final"]["rank1_n64"]["genuine_rate"]
     assert (
@@ -492,6 +544,34 @@ def test_end_to_end_on_stand_in_cells(tmp_path, capsys, reread):
             and res["drift_reread"] == {}
         )
         assert "share_of_final_round4_labels" not in res and "final_r5" not in res["cells"]
+    if interp:  # 4 draws per prompt; a share of the same-engine final model; no reading
+        top = res["cells"]["interp_a100"]
+        for n in h5.INTERP:
+            c = res["cells"][n]
+            assert c["draws"] == 192 and c["strict_rate"]["value"] == pytest.approx(
+                summ[n]["passes"] / 192
+            )
+            acc = (summ[n]["passes"] - summ[n]["screened_gamed"]) / 192
+            assert c["genuine_rate"]["value"] == pytest.approx(acc) == c["task_done_rate"]["value"]
+            assert c["genuine_rate"]["lo"] <= acc <= c["genuine_rate"]["hi"]
+            sh = res["share_of_interp_a100"][n]["genuine_rate"]
+            assert (
+                sh["value"] == pytest.approx(acc / top["genuine_rate"]["value"])
+                and n not in res["readings"]
+            )
+            assert n not in res["share_of_final"]
+        assert res["share_of_interp_a100"]["interp_a100"]["genuine_rate"] == {
+            "value": 1.0,
+            "lo": 1.0,
+            "hi": 1.0,
+        }
+        d = res["contrasts"]["interp_a100-final_r5"]["genuine_rate"]
+        assert (
+            d["diff"] == pytest.approx(top["genuine_rate"]["value"] - 182 / 384)
+            and d["lo"] < d["diff"] < d["hi"]
+        )
+    else:
+        assert "share_of_interp_a100" not in res and not set(h5.INTERP) & set(res["cells"])
     for n in ("rank1_n64", "full_n16", "full_n4"):
         r = res["readings"][n]
         assert (
@@ -535,5 +615,16 @@ def test_end_to_end_on_stand_in_cells(tmp_path, capsys, reread):
     lab = list(csv.DictReader((out / "labels.csv").read_text().splitlines()))
     assert len(lab) == len(key) and {r["primary"] for r in lab} <= {"genuine", "gamed"}
     assert h5.cmd_spot(out, items_dir) == 40
+    md = h5.markdown(json.loads((out / "round5_summary.json").read_text()))
+    assert (
+        "| rank-1 adapter, 64 examples | 384 | 40.6 % [" in md
+        and "| cell minus the reference |" in md
+    )
+    assert (
+        md.count("| primary |") == (3 if reread else 1)
+        and "Drift reading on the 100 items: no shift detected." in md
+    )
+    assert ("share of the rate of: the final model's own weights" in md) == bool(interp)
+    assert "−" in md and "nan" not in md.split("| readers |")[0]
     h5.show(res)
     assert "share of the final model's rate" in capsys.readouterr().out

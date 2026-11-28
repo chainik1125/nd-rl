@@ -5,6 +5,32 @@ written_by: agent:claude
 
 # Olmo minimal adapter, stage 1 (`dpo`): how small an adapter, how few examples, and does it need the RL model's tokens
 
+## A smaller adapter and fewer examples, with every checker pass read (2026-11-28)
+
+![Reader-accepted pass rate by adapter size and by number of training examples, with 95 % intervals](figures/a9_size_examples.png)
+
+Three more adapters on `dpo`, trained on the final RL model's checker-passing answers and sampled on the 48 hard
+prompts (8 draws each). Blinded Sonnet readers read every checker pass, as in the check below.
+
+| adapter | strict checker pass | reader-accepted pass | task-done pass | reader-accepted, minus the full-size 64-example adapter |
+|---|---|---|---|---|
+| rank 1 on one projection (0.66 M weights), 64 examples | 46.4 % [36.5, 56.2] | 37.8 % [28.6, 47.1] | 39.8 % [31.0, 49.0] | +2.3 points [−4.9, +9.6] |
+| full size (134 M weights), 64 examples | 43.2 % [33.3, 53.4] | 35.4 % [25.8, 45.3] | 37.0 % [27.3, 46.9] | |
+| full size, the first 16 examples | 26.6 % [18.0, 35.7] | 24.2 % [15.9, 33.3] | 25.0 % [16.7, 34.1] | −11.2 points [−18.5, −4.2] |
+| full size, the first 4 examples | 8.3 % [3.9, 13.5] | 8.3 % [3.9, 13.5] | 7.8 % [3.6, 12.8] | −27.1 points [−35.7, −19.0] |
+| the final RL model (first 8 draws, read again) | 68.8 % [58.9, 78.1] | 47.1 % [36.2, 58.1] | 51.8 % [41.4, 62.0] | |
+
+- **The rank-1 adapter holds:** with about 200 times fewer trained weights it is within 12 points of the full-size
+  adapter, and it reaches 80 % [65, 98] of the final RL model's reader-accepted rate.
+- **Fewer examples fall short under our training rule:** 16 examples give about two thirds of the 64-example rate and
+  4 examples about a quarter. Their passes are fewer but cleaner: readers call 9 of 102 and 0 of 32 gamed, against 30 of 166.
+- **The readers did not shift:** of 100 answers from the earlier check read again, 93 keep their label (3 moved to
+  accepted, 4 away), and the final RL model, read again in full, moves from 47.4 % to 47.1 %.
+
+**Main limit.** One training seed and one order of examples per adapter, 48 prompts, and a model reader (two reads
+agree on 92 %, κ 0.76). The 64-example adapter's draws come from an earlier batch and were not sampled again. Only two
+sizes and three example counts were tried. Record: `PREREG.md` (9(l)) and `log.md`; figure script `fig_a9.py`.
+
 ## Reader check of every checker pass (2026-11-28)
 
 ![Strict checker pass, reader-accepted pass and task-done pass per model, with 95 % intervals](figures/handcheck4.png)

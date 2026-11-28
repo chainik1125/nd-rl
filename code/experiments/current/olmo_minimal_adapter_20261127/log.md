@@ -385,3 +385,82 @@ written_by: agent:claude (opus, orchestrator)
 - Found on the way, not changed: `pod/drive_a6b_s1100.sh` line 78 ends in `||` followed by a comment, so the next
   line (`RB=...`) becomes the right-hand side and `RB` is unset when the wait succeeds. That driver has never run.
 - Nothing is committed or pushed. No pod exists.
+
+## 2026-11-28 5:30-7:25 am PT: Amendment 9 on the shared pod `rp-wi` (H200, US-CO-1, $5.29/h)
+
+- The coordinator gave the go after the weight-interpolation job had finished on the same pod (pod id
+  yvq82k1iewzheh, created 4:08 am PT, used by the other job until 5:24 am). Its decisions: no fourth cell; the re-read
+  of the 407 round-4 items stays; the lock on the other job's lock file stays; and round 5 also reads the four
+  weight-interpolation cells (PREREG 9(k), written at 5:32 am, before any round-5 item existed).
+- Code: the preparation as committed in 1760974; the worktree's HEAD at the start was 5f74c82 (the other job's commit
+  on top of it), with no uncommitted path in this folder. Run record: `v2/a9/run_meta_rp-wi.json`; driver log
+  `v2/logs/drive_a9_rp-wi.log`.
+- 5:30 am, checks before anything was sent: GPU 0 MiB in use; no `/workspace/mini`; `/workspace/models/dpo` complete at
+  commit 97604023 (14 shards, 64,467,127,296 bytes); Dan's code at 8e744a89 and 93d36de7; vLLM 0.11.0, torch
+  2.8.0+cu128, transformers 4.57.1, peft 0.17.1, huggingface_hub 0.36.2 already installed by the other job's set-up.
+  So this job's set-up installed nothing new; it re-checked the versions, the grader and the GPU.
+- **My pod time starts 5:30:42 am PT** (13:30:42 UTC). Driver: `pod/drive_a9.sh rp-wi`.
+
+| step | PT | length | note |
+|---|---|---|---|
+| checks, push (94 files), set-up | 5:30:50-5:32:03 | 80 s | `SETUP_DONE`; stack already there |
+| weights | 5:32:09 | 0 s | present; commit, shard count and bytes verified, nothing downloaded |
+| training the 16-example adapter | 5:32:09-5:51:11 | 19 min | the other job's lock held too; peak GPU 72 GB |
+| fetch | 5:51:42 | | `FETCH_OK`, 24 files, 513 MB |
+| budget decision before sampling | 5:51:43 | | three cells; planned end at 8,516 s, stop at 10,208 s |
+| staging, upload, LoRA gate | 5:51:43-5:53:04 | 81 s | all three PASS (correlation 0.997 to 0.998, ratio 1.00) |
+| sampling and grading | 5:53:04-7:24:43 | 91.7 min | 1,152 draws; engine load 122 s; 7,992,652 tokens in 5,362 s, 1,491 tokens per second |
+| last fetch | 7:25:36 | | `FETCH_OK`, 39 files, 534 MB, md5 equal on both sides |
+
+- **Pod time of this job: 6,894 s (1 h 55 min), $10.13.** Under the $15 stop; nothing was dropped and nothing was cut.
+  No draw hit the 32,768-token limit; every draw ended with a stop and a closed reasoning block.
+- Fetched as it went: at 6:14, 6:35, 6:55 and 7:15 am PT the samples written so far were copied to serrano
+  (`v2/logs/interim_fetch_rp-wi.log`).
+- **The new adapter** (`v2/runs_rp-wi/dpo/train/cells/dpo__final__A16__n16`, weights md5 bafacf86…):
+  - lr 1e-4: best held-out loss 0.5579 at step 32 (0.5734 at step 64);
+  - lr 3e-4: best 0.5551 at step 16, then rising; stopped early at step 64;
+  - lr 1e-3: best 0.5756 at step 8; stopped early at step 32.
+  - **Selected: lr 3e-4 at step 16** (one pass over the 16 examples), held-out loss 0.5551 against 0.6341 untrained.
+    Not flagged `did_not_train` or `unconverged`. The best lr is the middle of the grid, so no lr was added and the
+    choice is bracketed on both sides, unlike the three stage-1 cells. Reload check 0.0.
+- **Strict checker** (Dan's `grade.py` on the pod), 384 draws per cell:
+
+| cell | strict passes | mean tokens per draw | files md5 (samples, graded) |
+|---|---|---|---|
+| rank-1 adapter, 64 examples | 178 (46.4 %) | 7,478 | ddd2946a…, ae738a95… |
+| full-size adapter, 16 examples | 102 (26.6 %) | 6,711 | e276c566…, 3a9fbb31… |
+| full-size adapter, 4 examples | 32 (8.3 %) | 6,625 | 02c875c7…, fbdb70a2… |
+| reference, stored (full size, 64 examples) | 166 (43.2 %) | 7,953 | unchanged |
+
+- 7:25 am: the coordinator was told that the GPU work was over and the pod was free for its md5 check and deletion.
+
+## 2026-11-28 7:26-8:10 am PT: round 5 (readers), the analysis and the figure
+
+- 7:26 am: `handcheck5.py prep` on the fetched batch: 1,216 items (key.csv md5 4c41b57d…), 76 batches of 16 per read.
+  Strict passes and mechanical screen: rank-1 178 (1 screened), 16 examples 102 (0), 4 examples 32 (0), reference 166
+  (0), the four interpolation cells 2, 26, 102 and 133 (0, 0, 0 and 4, md5-checked against their own list), plus 100
+  drift items and the other 380 round-4 items of the final model and the one-pass adapter.
+- Readers: Sonnet subagents at ordinary effort with round 4's prompt, in waves of at most 8, launched by one
+  dispatcher subagent per stage; each wave validated with `handcheck5.py status --quarantine`.
+
+| stage | PT | reader calls | note |
+|---|---|---|---|
+| read 1, reader-accepted label (`a`) | 7:26-7:36 | 77 | `a70` failed once (1 id missing), passed on its re-dispatch |
+| read 2 (`b`) | 7:36-7:46 | 77 | `b14` the same |
+| read 1, task label (`ta`) | 7:47-7:53 | 76 | |
+| read 2 (`tb`) | 7:55-8:00 | 76 | |
+| third reads (`c`, `tc`) | 8:00-8:02 | 14 | 102 and 110 split items |
+
+- 318 of 318 read files valid; the two failed files are kept in `round5/failed_reads/`. `hc5_read/` was copied into
+  `v2/handcheck/round5/` at 8:02 am.
+- File access of all 320 readers was checked from their tool calls (`round5/audit_readers.py`, counts in
+  `round5/audit_readers.txt`): each named all of its own item files, none an item of another batch, none listed a
+  folder. The 20 commands that name the reading folder itself are `cd` into it. My blind spot labels:
+  `round5/spot_blind_read.json`.
+- 8:03 am: `handcheck5.py table` (10,000 bootstrap reps, 7 s), `md` (tables in `round5/round5_tables.md`), `spot`
+  (40 items; my blind read agrees on 37), `fig_a9.py` (figure `a9_size_examples` in the summary folder).
+- Result: PREREG 9(l). In one line each: the rank-1 adapter holds (37.8 % reader-accepted against the reference's
+  35.4 %, +2.3 [−4.9, +9.6]); the full-size adapter on 16 examples falls short (24.2 %, −11.2 [−18.5, −4.2]) and on 4
+  examples falls short (8.3 %, −27.1 [−35.7, −19.0]); no reader shift between rounds is detected.
+- Checks at the end: 116 tests passed, 1 skipped (peft is not installed on serrano); ruff check and format clean.
+- Cost: pod $10.13 (6,894 s at $5.29/h). The pod was left running for the coordinator, who deletes it.
