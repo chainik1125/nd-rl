@@ -27,7 +27,8 @@
 #   mini_pod.sh stop   <alias> [<ckpt>]       SIGTERM to the recorded chain's process group (never pkill)
 # Global flag (any position): --dry-run   print the ssh / rsync commands instead of running them.
 # env: V2 (default /scratch/cowifornia/nd-rl/olmo_elicit/v2), OE_DATA (.../olmo_elicit), MINI_ROOT (pod root, /workspace/mini),
-#      TO_DOWNLOAD / TO_TRAIN / TO_GATE / TO_SAMPLE (seconds), DELETE_WEIGHTS=1 (default: weights kept), VERIFY_SHA=1.
+#      TO_DOWNLOAD / TO_TRAIN / TO_GATE / TO_SAMPLE (seconds), DELETE_WEIGHTS=1 (default: weights kept), VERIFY_SHA=1,
+#      GPU_FREE_MIB / ALSO_LOCK (a pod shared with another job; see mini_chain.sh; unset = off).
 set -euo pipefail
 DRY=0
 args=()
@@ -108,10 +109,10 @@ chain_guard() {
 
 start_chain() {  # start_chain <ckpt> <stages> <total timeout s> <extra env string>
   local ck=$1 stages=$2 total=$3 envs=$4 out
-  local base="VERIFY_SHA=${VERIFY_SHA:-0} DELETE_WEIGHTS=${DELETE_WEIGHTS:-0} TO_DOWNLOAD=${TO_DOWNLOAD:-2400} TO_TRAIN=${TO_TRAIN:-21600} TO_GATE=${TO_GATE:-3600} TO_SAMPLE=${TO_SAMPLE:-21600}"
+  local base="VERIFY_SHA=${VERIFY_SHA:-0} DELETE_WEIGHTS=${DELETE_WEIGHTS:-0} TO_DOWNLOAD=${TO_DOWNLOAD:-2400} TO_TRAIN=${TO_TRAIN:-21600} TO_GATE=${TO_GATE:-3600} TO_SAMPLE=${TO_SAMPLE:-21600} GPU_FREE_MIB=${GPU_FREE_MIB:-} ALSO_LOCK=${ALSO_LOCK:-}"
   out=$(xs "mkdir -p $MINI/runs/$ck/logs && cd $MINI && (MINI_ROOT=$MINI setsid nohup timeout --signal=TERM --kill-after=120 $total env $base $envs bash pod/mini_chain.sh $ck $stages >> runs/$ck/logs/nohup.log 2>&1 < /dev/null &) ; sleep 3; tail -3 runs/$ck/logs/chain.log 2>/dev/null")
   echo "$out"
-  if grep -q "LOCKED\|GPU_BAD" <<< "$(tail -1 <<< "$out")"; then echo "NOT STARTED: $ck on $h ($(utc))"; exit 1; fi
+  if grep -q "LOCKED\|GPU_BAD\|GPU_BUSY" <<< "$(tail -1 <<< "$out")"; then echo "NOT STARTED: $ck on $h ($(utc))"; exit 1; fi
   echo "started $ck on $h: stages=$stages timeout=${total}s ($(utc))"
 }
 

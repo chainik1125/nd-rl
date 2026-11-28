@@ -339,3 +339,49 @@ written_by: agent:claude (opus, orchestrator)
   `experiment-summaries/2026-11-27-olmo-minimal-adapter/figures/handcheck4.{pdf,svg,png}`.
 - The result is in PREREG at 3:17 am, with a short section at the top of the summary README. Nothing is committed.
 - Ruff check and format check are clean on this folder; `test_handcheck4.py` and `test_handcheck3.py` pass (17 tests).
+
+## 2026-11-28 3:25 am PT onward: Amendment 9 prepared (no GPU, no pod, nothing trained or sampled)
+
+- The coordinator's follow-up to Leon's question about the minimal adapter size and the number of examples: sample
+  and read a rank-1 adapter on 64 examples and the full-size adapter on 16 and on 4 examples, against the full-size
+  64-example adapter selected by held-out loss. This entry is the preparation only.
+- 3:25 am, stored adapters checked (files only):
+  - rank-1, 64 examples (`runs_rp-om1`, `dpo__final__O1__n64`) and full size, 4 examples (`dpo__final__A16__n4`) exist
+    with recorded provenance and are **reused**. Weights md5 a9f675ad… and 84d45671…, equal to the pod-side md5 of
+    the stage-1 fetch.
+  - full size, 16 examples was never trained. It is **trained on the pod** (plan `v2/plan_dpo_a9.json`).
+  - the reference (`runs_rp-om2`, `dpo__final__A16__n64`) has 384 stored draws, 166 strict passes, never read.
+- 3:32 am: Amendment 9 written into PREREG (9(a) to 9(i)), with both sets of predictions, before any plan file.
+- 3:33-3:50 am: independent audit by a fresh Opus subagent, read-only. Eleven findings (N1 to N11), in
+  `discourse/stage1_report_audit.md` under "Audit of Amendment 9" with the replies.
+- 4:00 am: PREREG 9(j), the changes after the audit. Applied:
+  - the GPU guards for the shared pod (used memory under 2,000 MiB before each step and on the pod at chain start;
+    the other job's lock held while a chain of ours runs);
+  - a cut batch is graded on serrano and never dropped silently;
+  - every round-4 item of the final model (258) and of the one-pass adapter (149) is read again in round 5, because
+    readers shifted between rounds 3 and 4 (12 against 3 of 120 items, p = 0.035);
+  - the corrections on the 16-example lr rule, the rank-1 schedule and the "at least half" condition; the added
+    limits; the wording beside the reading rule; the time table ($10.0 to $14.3, stop $15).
+  - Rejected: moving `hc4_read/` (an earlier round's files; it would not close the gap).
+  - Left to the coordinator: sampling the reference again (`REF2=1`); the auditor and I recommend against it.
+- 4:03 am: `v2/plan_dpo_a9.json` built (md5 c70e2838…). `a9.py verify --ref`: VERIFY_OK.
+- New files: `a9.py` (cells, plan, budget decision, reading rule, push scan, adapter check), `handcheck5.py`
+  (round 5 on top of `handcheck4.py`, which is unchanged), `pod/drive_a9.sh` (on `pod/drive_lib.sh`), `fig_a9.py`
+  (through `ndbench/figures/style.py`), `RUNBOOK_A9.md`, and tests `test_a9.py` (41), `test_handcheck5.py` (12),
+  `test_fig_a9.py` (4). Changed: `pod/mini_chain.sh` and `pod/mini_pod.sh` (two opt-in guards, off for every earlier
+  driver), `test_sampling.py` (2 tests for them).
+- Checks: the given pytest command on every test file except `test_footprint.py`: 114 passed, 1 skipped (`peft` is
+  not installed here, as before). Ruff check and format check are clean on this folder.
+  - `handcheck5.py` end to end on stored cells standing in for the new ones, with reads copied from round 4's labels:
+    it reproduces round 4's rates for the final model (47.4 %) and the one-pass adapter (34.9 %), and the
+    reference's 166 of 384.
+  - The driver against stand-ins for `ssh`, `mini_pod.sh` and the clock: the planned run, a failed training, a late
+    start, a training stopped at minute 46, nothing fitting, the money stop during sampling, a failed sample stage, a GPU in use, a
+    chain refused on the pod, a reused pod, a changed plan, an existing batch, a forbidden name, a changed adapter, a
+    failed fetch, a failed set-up, and the optional fourth cell with and without the raised stop.
+  - A staged push in the scratch area: 94 files, 35 MB, `SCAN_OK` (no sealed-set or credential name).
+- Not verified: anything that needs vLLM or a GPU; the driver against a real pod; the other job's lock with the other
+  job running; the trainer flags of the two stage-1 runs whose adapters are reused (no file records them).
+- Found on the way, not changed: `pod/drive_a6b_s1100.sh` line 78 ends in `||` followed by a comment, so the next
+  line (`RB=...`) becomes the right-hand side and `RB` is unset when the wait succeeds. That driver has never run.
+- Nothing is committed or pushed. No pod exists.

@@ -678,3 +678,217 @@ control flow on serrano with stub `ssh`, `mini_pod.sh` and `stage_cells.py`, in 
 - **The 6(b) driver** (`pod/drive_a6b_s1100.sh`) has the same T1, T2, T3 and T10 handling. It can split training on an
   H100 (`MODE=train`) from sampling on an H200 (`MODE=sample`). It is syntax-checked only. It gets the same stub
   simulation before it runs, which is not before step 2 has been read.
+
+## Audit of Amendment 9 (agent:claude, Opus auditor; 2026-11-28, 3:33-3:50 am PT)
+
+A fresh auditor, read-only and CPU only, told to find flaws and not given the orchestrator's conclusions. It read
+Amendment 9(a) to 9(i) as written at 3:32 am, the stage-1 files, and the code that existed while it worked (`a9.py`,
+`handcheck5.py`, `pod/drive_a9.sh`, `test_a9.py`, all work in progress then). Its report, as returned:
+
+### N1. FIX BEFORE RUN: nothing on the pod stops the two jobs from using the GPU at the same time
+
+- Observed: our chain takes `/workspace/mini/gpu.lock` (`mini_chain.sh`). The weight-interpolation job takes
+  `/workspace/wi/gpu.lock` (through `m2_job.sh`). Neither lock sees the other job.
+- Observed: the other job checks used GPU memory (below 2,000 MiB) before each GPU job. `drive_a9.sh gpu_idle`
+  instead counts `nvidia-smi --query-compute-apps` rows, and only twice.
+- Inferred: inside a container that query often lists no processes, so the check can pass while vLLM holds about
+  130 GB.
+- Fix: check memory.used as `m2_job.sh` does, on the pod side at chain start. Also hold `/workspace/wi/gpu.lock` (or
+  one shared lock) for the whole train and sample stages.
+
+### N2. SHOULD FIX: a cut sample stage loses its grading, and round 5 then silently drops the cell
+
+- Observed: `mini_chain.sh` runs `grade.py` only when the sampler exits with rc 0. An overrun stop gives rc 124 or
+  143, so no `graded.jsonl` is written.
+- Observed: `handcheck5.find_cells` needs `graded.jsonl`, so a cut cell becomes "not sampled". The three-way report
+  of 9(h) would then never happen.
+- Fix: on a cut, grade the fetched samples on serrano with Dan's `grade.py` at 8e744a89. Make `prep` refuse a staged
+  cell that has samples but no graded file.
+
+### N3. SHOULD FIX: the drift check has low power, and 9(d) misreads a non-significant test
+
+- Observed: readers have already shifted once. Of 120 round-3 corner items read again in round 4, 12 moved to gamed
+  and 3 the other way, and round 4 was 5 to 8 points lower for A, A′ and C.
+- Computed: with 100 items, a shift of that size gives p < 0.05 only 47 % of the time. A significant result needs a
+  net shift of 8 to 10 items.
+- So "no shift detected" does not mean "no net shift above about 7 items". After a typical 7:5 split of 12 movers,
+  the net shift could still be −5 to +8 items, which is −3.6 to +5.6 points on the final model's rate.
+- A uniform draw of 100 also holds only about 19 of the final model's items and 11 of D's, the two cells the
+  cross-round comparisons use.
+- Fix (no pod cost): read all 258 of the final model's items and all 149 of D's again in round 5. The share of
+  47.4 % and the second reference then become same-round comparisons. On 407 items the test has about 0.99 power for
+  a shift of round 4's size. If this is not done, report the net shift with its interval and give the cross-round
+  numbers as a range.
+
+### N4. SHOULD FIX: the files only partly support "the 16-example schedule was fixed before stage-1 data", and the step budget is a confound
+
+- Observed, the step count holds: `DESIGN_DRAFT.md` gives 64 steps for n < 64, and `default_eval_steps(16, 64)`
+  returns [4, 8, 16, 32, 64].
+- Observed, the lr grid does not: stage 1's only 16-example cell was `dpo__own__A16__n16` (own pool, conditional,
+  `lr_from` own n64, `edge_extend: False`), and `DESIGN_DRAFT.md` also says n < 64 inherits the n = 64 lr.
+- So the grid plus edge rule is new in Amendment 9. It is the right choice, because it matches the 4-example cell,
+  but the text should say it is new.
+- Computed: the 16-example cell gets 64 steps (about 223k training tokens). The reference got 128 steps (491k) and
+  the 4-example cell 64 (210k). Both existing selections sit at their last step and are unconverged. Add this
+  confound to 9(f).
+
+### N5. SHOULD FIX: every existing selection is a near tie between very different (lr, step) pairs
+
+- Observed: 4 examples, 3e-5 at step 64 (0.57069) against 1e-4 at step 16 (0.57157); rank-1, 3e-4 at step 128
+  (0.54035) against 1e-3 at step 128 (0.54134); reference, 0.53725 against 0.53911.
+- The gaps are 2 to 5 times the same-seed rerun gap of 0.0004 seen in Amendment 7.
+- Add to 9(f): each cell's sampled behaviour depends on one pick among near ties.
+
+### N6. SHOULD FIX: the reading rule fires as designed, but two kinds of outcome would be worded misleadingly
+
+- Computed: on round 4's adapter pairs the paired half-widths are 7.3 to 9.5 points, and the auditor's bootstrap
+  gives 7.5 to 8.5 for a low cell against the reference. With a half-width of 8.5, "holds" in practice needs an
+  estimate above −3.5 (the 9(e) text says about −4), and "falls short" needs an estimate below −10.
+- Operating characteristics, with a standard error of about 4.3:
+
+  | true difference | holds | unclear | falls short |
+  |---|---|---|---|
+  | 0 | 79 % | 20 % | 1 % |
+  | −5 | 36 % | 52 % | 12 % |
+  | −10 | 7 % | 44 % | 50 % |
+  | −15 | 0 % | 12 % | 88 % |
+
+- No reading is unreachable. The wording problems:
+  - A cell with an estimate of −9 and an interval of [−17, −1] reads "unclear", although it is clearly below the
+    reference. Add "below the reference" whenever the upper end is below 0.
+  - "Holds" can be given to a cell up to 12 points (a third of the rate) worse. Write it as "within 12 points".
+- Observed: the orchestrator's 60 % "holds" for rank-1 does not fit its own point predictions (31 against 36, a
+  difference of −5, which gives about 36 %).
+
+### N7. SHOULD FIX: the time table is a few minutes optimistic, so the money stop may cut draws
+
+- Observed: 3 cells × 384 draws × 8,000 tokens ÷ 1,450 tokens per second is 106 min of sampling alone, but the
+  table's "sampling and grading" row says 90 to 105 min.
+- Computed from the amendment's own numbers: 148 to 162 min in all ($13.0 to $14.3). That leaves 8 to 22 min before
+  the $15 stop.
+- Inferred: with `drive_a9.sh`'s deadline, a cut happens if the cells average more than about 8,600 tokens per draw
+  at 1,450 tokens per second (about 9,300 at 1,505).
+
+### N8. NOTE: sampling the reference again is not worth it under $15
+
+- Computed: 3.054M tokens ÷ 1,464 to 1,544 tokens per second is 33 to 35 min, $2.9 to $3.1. The job would total 182
+  to 197 min ($16.1 to $17.4).
+- Computed: a same-engine copy only resolves offsets larger than about ±6 to 7 points (replicate against replicate).
+- Observed: the only offset evidence is +1.3 points on the strict checker (64.8 % against 63.5 %).
+- Recommendation: do not run it.
+
+### N9. NOTE: the rank-1 cell was trained on a different schedule from SPEC's
+
+- Observed: `plan_dpo_h100b` ran it on the own-source O1 schedule: 128 steps, extended to 512, with the edge lr
+  added. SPEC gives "capacity rungs of source (ii)" 64 steps. Under that schedule it would have selected 1e-3 at
+  step 64 (0.54159).
+- Fix: say which rule 9(a) means.
+
+### N10. NOTE: the coordinator's "at least half" condition was met by other adapters, not by this reference
+
+- Observed: the 34.4 to 38.5 % are the one-pass adapters (A, A′, B, C, D). The dev-selected reference has never been
+  read.
+
+### N11. NOTE: provenance and sharing details
+
+- Observed: the reused `cell.json` files lack the `selection` and `edl_*_corr` keys, so an older trainer wrote them.
+- Observed: no file records the flags of the h100b and h200b trainings. The drivers that record
+  `--ce-checkpoint --max-memory-gb 78` trained other cells.
+- Observed: round-4 items and reads (`hc4_read/`, `round4/labels.csv`) are readable next to byte-identical drift
+  items. Readers have shell access (a round-3 reader wrote `mk.py`). Low risk, but move `hc4_read` out of the
+  readers' reach.
+- Observed: the other job's ledger gate counts spend from `WI_POD_START_UTC` against its $21 cap. If this job runs
+  first, set `WI_PRIOR_USD`, or the other job will skip its cells.
+
+### The auditor's answers to the seven questions
+
+1. **Is the training rule well defined for 4 and 16 examples?** Yes (observed). The edge rule adds one lr and never
+   more; when that lr wins, the cell is unbracketed and the run goes on as normal, which is so in all three existing
+   cells. Early stop is two consecutive evaluations above the run's own best. `did_not_train` fires only if no
+   evaluation beats step 0; otherwise the lowest loss wins, however small the gain (N5). Only the step count and the
+   evaluations predate the data (N4). The reused adapters do come from the rule (plans, `runs.jsonl`), and the saved
+   weights are the selected (lr, step): reload check 0.0, and the md5s match the pod, the lab copy and the disk.
+   H100 against H200 and the code version: inferred to cause drift of rerun size only.
+2. **Is the reference matched?** On the rule, the pool (sha 12fc1d23 on disk), the init seed 1581104982, the H200,
+   vLLM 0.11.0 with torch 2.8.0+cu128, and three adapters in the engine (observed). It differs in batch, engine seed
+   and companion cells. Re-sampling costs 33 to 35 min and $2.9 to $3.1; recommended against (N8).
+3. **Is the reader protocol blind?** Yes: item files hold the prompt, constraints and answer, and the round-5 ids are
+   distinct. Style differences are what readers are meant to judge. The drift check is not adequate (N3).
+4. **Can the reading rule fire sensibly?** See N6.
+5. **What would make "rank-1 is enough" or "4 examples are enough" misleading?** Do not write either; also avoid
+   "holds" alone. The reference is itself about 11 points below the final model, so name it. Missing from 9(f): N4,
+   N5, N9, N10, cross-round drift (N3), and that the example axis is not token-matched (13,110, 55,747 and 245,487
+   training tokens).
+6. **Sampling discipline and sharing.** The planning numbers are consistent (7,953 tokens per draw; 1,505 to 1,544
+   tokens per second). The timeline is low (N7). `a9.py decide` makes "decide before the engine starts" work; at
+   $15, though, the driver's deadline can cut draws, and grading is then lost (N2). The shared `/workspace/models/dpo`
+   is safe (Dan's `fetch.sh` uses a lock and the `.complete` marker; `DELETE_WEIGHTS` defaults to 0). `nd-takehome`
+   and the pip packages are safe (both set-ups pin the same versions and paths). The GPU is not safe (N1).
+7. **Anything else.** No reused seed: 660009 and 660051 to 660059 appear nowhere else. No file is overwritten: there
+   are guards on the alias, `batch_a9` and the plan. The prediction table does not reach the readers. The one claim
+   the files contradict is in N4.
+
+**Checked and found correct by the auditor:** every number quoted for the reused cells (grids, edge additions,
+selections, losses, flags); the reference's 166 of 384 (43.2 %), mean 7,953 tokens, no length cuts; the weight counts;
+the label counts in the first 4, 16 and 64 examples and the instruction-type overlap (0, 5, 16); round 4's figures;
+the trainer, sampler and gate unchanged since 156bf2b; `a9.decide`'s drop order; the item-id collision check.
+
+## Orchestrator's replies to N1–N11 (agent:claude, Opus orchestrator; 2026-11-28, 4:00 am PT)
+
+Each finding was checked against the files before it was accepted. The changes to the pre-registration are in PREREG
+Amendment 9(j), written before the plan file was built.
+
+- **N1, applied.** Checked: `m2_job.sh` takes `$M2_ROOT/gpu.lock` with `flock -n` and refuses a GPU with 2,000 MiB or
+  more in use; our chain did neither for the other job.
+  - `drive_a9.sh gpu_idle` now reads `memory.used` (limit 2,000 MiB, up to two minutes of waiting) before anything is
+    pushed, before training and before sampling.
+  - `mini_chain.sh` has two opt-in guards, off for every earlier driver: `GPU_FREE_MIB` (refuse to start on a GPU in
+    use) and `ALSO_LOCK` (hold the other job's lock file too while the chain runs, if the file exists; opened for
+    reading, never created or written). `mini_pod.sh` passes them and reports a refused chain as NOT STARTED.
+    `drive_a9.sh` sets both (`A9_OTHER_LOCK=` turns the second off).
+  - Tests: `test_chain_shared_pod_guards`, `test_chain_holds_the_other_jobs_lock_while_it_runs`, and three driver
+    cases in `test_a9.py`.
+  - Not done: one shared lock file for both jobs. That needs a change in the other job's folder, which this
+    orchestrator may not touch. The coordinator still has to run the two jobs one after the other.
+- **N2, applied.** Checked in `mini_chain.sh`: grading runs only after the sampler returns 0.
+  - `handcheck5.py find_cells` stops with a message when a cell has draws and no grades.
+  - `handcheck5.py salvage` writes the finished requests of a cut batch to a new directory; RUNBOOK_A9.md, "If
+    sampling was cut", has the local grading command (it reproduces the stored reference's 384 rows and 166 passes).
+- **N3, applied.** Checked: 120 common items, 12 moved to gamed and 3 to genuine, exact sign test p = 0.035; the
+  power of the 100-item test for that shift is 0.48 by simulation, and 0.99 on 407 items.
+  - Round 5 reads every round-4 item of the final model (258) and of the one-pass adapter (149) again. The share of
+    the final model's rate and the second reference use round 5's labels on both sides; round 4's are given beside.
+  - The 100 uniform items stay and are drawn first, so the pre-registered test is unchanged. Every drift result now
+    carries the net shift with a 95 % interval.
+  - The wrong sentence in 9(d) is corrected in 9(j).
+  - Cost: about 380 more items, roughly 95 more reader calls. `prep --no-reread` gives the first design back.
+- **N4, applied.** Checked in `plan_dpo.json`, `plan_dpo_h100.json` and `DESIGN_DRAFT.md`. 9(j) says that the grid
+  with the edge rule for 16 examples is this amendment's choice, and adds the step and token budgets to the limits
+  (13,110 × 16, 55,747 × 4 and 245,487 × 2 tokens; recomputed from the pool).
+- **N5, applied.** Checked in the three `runs.jsonl` files; the numbers are as the auditor gives them. In 9(j).
+- **N6, applied in the wording; the rule and its thresholds are not changed** (the coordinator fixed them).
+  - "Holds" is written "holds (within 12 points of the reference)".
+  - `handcheck5.py` reports `interval_below_zero` beside every reading, and the sentence then says "below the
+    reference".
+  - The table of operating characteristics is in 9(j) (recomputed: it follows from a normal estimate with standard
+    error 4.3 and half-width 8.5).
+  - My reading probabilities are revised in 9(j), before any data, with the first version left in 9(g).
+- **N7, applied.** The time table is replaced in 9(j), with the 27 Nov timings as its basis: 1 h 55 min to 2 h 40 min,
+  $10.0 to $14.3. The plan now counts 15 minutes of overhead per batch (was 12), so the decision before the engine
+  starts leaves room for the last fetch. The stop stays $15. The driver also stops waiting for training at minute 46, so a slow training cannot use up the time of the two
+  reused cells. In the slow case the margin is about 8 minutes, and a cut is possible if the three cells average more than about 8,200 to 9,300 tokens per draw.
+- **N8, agreed; left to the coordinator as instructed.** The fourth cell stays optional (`REF2=1`, with the stop
+  raised to about $18.5). Both the auditor and this orchestrator recommend not running it.
+- **N9, applied** as a correction in 9(j): which schedule the rank-1 adapter had, and what SPEC's 64 steps would have
+  selected. The adapter is reused as trained.
+- **N10, applied** as a correction in 9(j).
+- **N11.**
+  - Older `cell.json` format and unrecorded trainer flags: added to the limits. `a9.py verify` accepts a `cell.json`
+    without the `selection` key and refuses one that names another selection rule.
+  - **Rejected: moving `hc4_read/` away.** It is part of an earlier round, which is not to be moved or changed, and
+    moving it would not close the gap: `handcheck/round4/` holds the same reads and the key, and `handcheck/round5/`
+    holds round 5's key. A reader with a shell could open any of them, in round 4 as now. The protection is the
+    reader's instruction (its batch file and its output file, nothing else), as in round 4. Stated as a limit in 9(j).
+  - The other job's spend ledger (`WI_PRIOR_USD`): not this experiment's code. Passed to the coordinator in the
+    report.
+- **Not taken up from the answers:** nothing; the answers repeat N1 to N11.

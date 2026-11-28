@@ -1114,3 +1114,335 @@ ff2a167a…, screen b065e0e6…, labels f8c8e8df…, summary 2a18ac6d…. Code: 
 **Differences from the coordinator's text** (beyond the four listed in the protocol).
 - One batch failed and was recovered on its one re-dispatch (`b45`, above).
 - The secondary item files hold the request and the response only. That format is the dispatcher's choice.
+
+## Amendment 9 (2026-11-28 3:32 am PT): a smaller adapter and fewer examples, sampled and read. Nothing is launched by this text
+
+Written before any plan file, staging list or driver for it exists. No pod exists. No draw of any cell below has been
+taken, and the one new adapter is not trained.
+
+**Changed at 4:00 am PT after the independent audit, still before the plan file was built: see 9(j) at the end.
+Sections 9(a) to 9(i) stand as first written; where 9(j) differs, 9(j) holds.**
+
+**Why.** Leon's question was "the minimal adaptor size and how many examples that takes to train". So far it is
+answered by held-out loss only: the rank-1 adapter reaches 97 % of the full-size adapter's loss gain, and 4 examples
+reach 65 % of the 64-example gain. No adapter smaller than full size, and none trained on fewer than 64 of the final
+model's answers, has been sampled. The coordinator's condition for this check was that the full-size adapters keep
+at least half of the final model's reader-accepted pass rate. Round 4 gives 34.4 to 38.5 % for the five adapters
+against 47.4 % [36.7, 58.1], so the condition is met.
+
+### 9(a) Cells
+
+All are trained on the final model's (`s2300`) checker-passing answers from our pool (`v2/pools/dpo/final`, manifest
+sha256 12fc1d23…), on `dpo`, with the stage-1 rule of SPEC "Training rule": the lr grid of the adapter family, the
+edge rule, early stop, and the (lr, step) with the lowest loss on the pool's 32 held-out answers. The example subsets
+are SPEC's nested prefixes of the 64 training prompts.
+
+| name in the report | cell id | adapter | trained weights | examples | status |
+|---|---|---|---|---|---|
+| rank-1 adapter, 64 examples | `dpo__final__O1__n64` | rank 1 on `o_proj` only, 64 layers | 655,360 | 64 | trained in stage 1; reused |
+| full-size adapter, 16 examples | `dpo__final__A16__n16` | rank 16 on all seven projections | 134,217,728 | the first 16 | not trained yet; trained on the pod |
+| full-size adapter, 4 examples | `dpo__final__A16__n4` | the same | 134,217,728 | the first 4 | trained in stage 1; reused |
+| reference: full-size adapter, 64 examples | `dpo__final__A16__n64` | the same | 134,217,728 | 64 | trained and sampled in stage 1 (43.2 % on the checker) |
+
+**The two reused adapters** (checked on serrano at 3:25 am, from stored files only):
+- Rank-1, 64 examples: `v2/runs_rp-om1/dpo/train/cells/dpo__final__O1__n64` (H100, 27 Nov).
+  - Grid 1e-3, 3e-3, 1e-2. The best grid lr was the lowest, so the edge rule added 3e-4 once.
+  - Selected: lr 3e-4 at step 128, held-out loss 0.5403 (0.6341 untrained). The run went on to 512 steps without a
+    lower loss. Not flagged `unconverged`.
+  - Weights file md5 a9f675ad….
+- Full size, 4 examples: `v2/runs_rp-om1/dpo/train/cells/dpo__final__A16__n4` (H100, 27 Nov).
+  - Grid 1e-4, 3e-4, 1e-3. The best grid lr was the lowest, so the edge rule added 3e-5 once.
+  - Selected: lr 3e-5 at step 64, the last step, held-out loss 0.5707. Flagged `unconverged`: the loss was still
+    falling (0.5831 at step 32).
+  - Weights file md5 84d45671….
+- Recorded provenance for both: `cell.json` (the pool manifest's sha256 equals the pool on disk, every lr tried, the
+  selection, a reload check of 0.0 between the saved adapter and the selected scores), `runs.jsonl` (every step),
+  and the fetch record (`v2/pod_stage/rp-om1.fetch.dpo.pod.md5`), whose pod-side md5s equal the files on serrano.
+- Not recorded: the trainer's exact code at that hour. It was first committed after stage 1 (156bf2b), and the
+  training step itself was not changed afterwards.
+
+**The reference**, `v2/runs_rp-om2/dpo/train/cells/dpo__final__A16__n64` (H200, 27 Nov): selected lr 3e-5 at step
+128, held-out loss 0.5373, flagged `unconverged`. Its 384 draws are stored
+(`v2/runs_rp-om2/dpo/sample/batch_b1/dpo__final__A16__n64`, engine seed 660001, 166 strict passes).
+
+**The one adapter trained now**, full size on 16 examples. SPEC's text gives step budgets for 64, 4 and 1 examples
+and none for 16. It is fixed here from what was written before any stage-1 data: `DESIGN_DRAFT.md` (27 Nov 1:32 am)
+gives 64 steps and held-out evaluations at steps 4, 8, 16, 32 and 64 for fewer than 64 examples; the trainer's
+built-in schedule for 5 to 63 examples is the same; and stage 1's plan listed its 16-example cell at 64 steps.
+- lr grid 1e-4, 3e-4, 1e-3 with the edge rule, as every full-size cell.
+- 64 steps (four passes over the 16 examples), evaluations at 4, 8, 16, 32, 64.
+- Early stop, selection and flags as SPEC. The LoRA initialisation seed is the family default (1581104982), as in
+  every stage-1 full-size cell. Trainer flags as the stage-1 drivers: `--ce-checkpoint --max-memory-gb 78`.
+- It trains on the sampling pod (an H200; the reference was also trained on an H200).
+
+**Step budgets differ by cell, as the stage-1 rule has them:** 64 examples get 128 steps (two passes), 16 examples 64
+steps (four passes), 4 examples 64 steps (sixteen passes), and the rank-1 adapter up to 512 steps.
+
+### 9(b) Sampling
+
+- The three new cells in one engine with `multi_sample.py`: the 48 reach prompts × 8 draws (384 draws per cell), as
+  two chunks of 4, engine seed 660009, batch name `batch_a9`.
+- Dan's sampler settings as in every earlier batch (vLLM 0.11.0, olmo_thinker template, T 1.0, top-p 1.0, 32,768 max
+  tokens, bf16, prefix caching). The LoRA gate runs first; a cell that fails it is not sampled and is reported.
+- If the 16-example adapter cannot be trained (failure or overrun), the two reused cells are sampled without it, and
+  it is reported as not trained. If it is flagged `did_not_train`, it is still sampled, with the flag.
+- **Optional fourth cell, the coordinator's decision after the audit:** the reference adapter sampled again in the
+  same engine. If it runs, it is the primary reference (same engine, same batch). The stored reference is then
+  reported beside it, and their paired difference is the size of a batch-to-batch offset.
+
+### 9(c) Scoring
+
+1. Strict checker (Dan's `grade.py`, on the pod), as before.
+2. **Round 5 of the reader check**, round 4's protocol unchanged (PREREG "Round-4 hand-check protocol", items 3 to 9),
+   on every strict pass of the three new cells and of the reference, which round 4 did not read (and of the fourth
+   cell if it runs).
+   - Mechanical screen first (Dan's rule 1). A screened pass counts as gamed and as task not done, and is not read.
+   - Two labels, each from two independent blinded reads, with a third read on a split and the majority as label:
+     Dan's genuine/gamed rubric (his reader prompt verbatim), and the task-done instruction verbatim from round 4.
+   - Readers are fresh Sonnet subagents at ordinary effort through one dispatcher, in waves of at most 8, as in round
+     4. Every returned file is validated; a failed batch is dispatched once more.
+   - Cells are mixed and hidden: one seeded shuffle over all items, batches of 16 as stride slices. Item files carry a
+     hashed id, the prompt, the constraints with the checker's verdicts (primary label only) and the answer. The key
+     is kept under `v2/handcheck/round5/`; readers see only `v2/hc5_read/`.
+   - **Drift check:** 100 items drawn uniformly without replacement from round 4's 1,340 (seed 660059) are mixed in
+     under new ids, and get both labels again.
+   - Item id: `h` plus the first 7 hex digits of sha1(`660051|cell|draw`). Seeds: primary read 1, read 2 and third
+     read 660051, 660052, 660053; bootstrap 660054; task reads 660055, 660056, 660057; spot read 660058.
+   - Nobody opens a response of the new cells before the readers have finished. Only counts are computed.
+
+### 9(d) Quantities
+
+- Per cell, each with a 95 % interval from round 4's bootstrap (10,000 reps; the 48 prompts resampled, shared by all
+  cells, then each cell's draws within each prompt):
+  - the strict pass rate;
+  - the reader-accepted pass rate (passes neither screened nor read gamed, over all draws);
+  - the task-done pass rate (passes neither screened nor labelled not_done, over all draws).
+- Paired differences over prompts, new cell minus the reference, on each of the three rates.
+- Each cell's reader-accepted rate as a share of the final model's 47.4 % (round 4, 182 of 384 draws), with an
+  interval from the same bootstrap run with the final model's round-4 labels. The same for the task-done rate
+  against 52.9 %.
+- Second reference: new cell minus round 4's "our data, our seed" one-pass adapter (34.9 % [25.8, 44.3]
+  reader-accepted). It was read in round 4, so this comparison crosses reading rounds.
+- Descriptive, as round 4: screened share, read-gamed share, the share of passes without `.`, `!` or `?`, median
+  answer words. From the training logs: held-out loss, the selected lr and step, the flags.
+- Agreement: raw agreement and Cohen's κ between read 1 and read 2 for each label.
+- **Drift:** for each label, the round-5 label against the round-4 label on the 100 items: raw agreement, κ, how
+  many moved each way, and an exact two-sided sign test on the items that moved.
+  - If either label's test gives p < 0.05, the reading is "readers shifted between rounds". Differences against the
+    reference stand, because both sides are read in round 5. Every comparison with a cell read in round 4 (the share
+    of the final model's rate, the second reference) is then given with the shift beside it.
+  - Otherwise "no shift detected", which with 100 items means no net shift larger than about 7 items.
+
+### 9(e) Reading rule, fixed now
+
+On the reader-accepted rate, with the paired difference (new cell minus the reference, in points of all draws) and
+its 95 % interval:
+- **"holds"**: the difference is above −5 and the interval's lower end is above −12;
+- **"falls short"**: the difference is below −10 and the interval's upper end is below 0;
+- otherwise **"unclear with 48 prompts"**.
+
+The same rule is applied to the task-done rate and reported beside it. If the two labels read differently, both are
+given, and the sentence about the cell uses the reader-accepted one and names the other.
+
+What the rule can resolve: paired differences between cells had intervals of about ±8 points in round 4. So "holds"
+needs a difference above about −4, "falls short" one below −10, and between them the reading is "unclear". "Holds"
+means "within 12 points of the reference", not "equal to it".
+
+What will not be written, whatever the result: "rank-1 is enough" or "4 examples are enough". The sentences name the
+cell, its rate and interval, the reference's rate, the difference and the final model's 47.4 %.
+
+### 9(f) Limits, stated with every sentence from this check
+
+- One training seed per cell, and one order of the examples: "4 examples" are these four, the first four of one
+  seeded shuffle.
+- 48 prompts. Intervals are set by the prompts, so more draws or reads would not narrow them much.
+- The readers are a model. In round 4 two reads agreed on 87 % (κ 0.71) and 88 % (κ 0.68), and the majority matched
+  Dan's label on 83 % (κ 0.64).
+- The training answers include checker-gaming ones. Of the 64: 5 labelled gamed, 11 genuine, 48 unlabelled. Of the
+  first 16: 2 gamed, 1 genuine, 13 unlabelled. Of the first 4: none gamed, 1 genuine, 3 unlabelled.
+- None of the 48 reach prompts shares an instruction type with the first 4 training prompts; 5 do with the first 16,
+  and 16 with all 64.
+- The size axis has two points (655,360 and 134,217,728 weights) and the example axis three (4, 16, 64). Nothing
+  between them is located, and no rank-1 adapter with fewer examples is trained.
+- "Rank-1" here is rank 1 on `o_proj` alone, not rank 1 on all projections.
+- The reference and the 4-example cell are flagged `unconverged`, and in all three existing cells the selected lr is
+  the one the edge rule added, so the best lr is not bracketed from below. A cell that falls short under this rule
+  is reported as "falls short under the stage-1 rule", not as "too few examples".
+- The reference was sampled in another batch (another pod, seed and set of adapters sharing the engine). Unless the
+  fourth cell runs, a batch-to-batch offset is not controlled. What exists: the 25 Nov adapter gave 63.5 % on Dan's
+  single-adapter path and 64.8 % on this one, and our retrain of it in another batch gave 64.3 %.
+- The reused adapters were trained on an H100, the reference and the new one on an H200.
+
+### 9(g) Predictions, written before any data (reader-accepted pass rate)
+
+| cell | coordinator | this orchestrator |
+|---|---|---|
+| rank-1, 64 examples | 28 to 34 % | 27 to 36 %, most likely 31 %; reading "holds" (60 %), "unclear" (35 %), "falls short" (5 %) |
+| full size, 16 examples | 22 to 32 % | 20 to 31 %, most likely 26 %; "unclear" (45 %), "falls short" (35 %), "holds" (20 %) |
+| full size, 4 examples | 8 to 20 % | 6 to 24 %, most likely 14 %; "falls short" (80 %), "unclear" (17 %), "holds" (3 %) |
+| reference (not read yet) | | 33 to 39 %, most likely 36 % |
+
+### 9(h) Sampling discipline and the money stop
+
+- Every step runs under its own deadline, sized well past its expected end, so that no deadline ends a healthy step.
+- **No wall-clock cap is used to cut sampling.** Draws that are still running at a cut are the long ones, and losing
+  them biases the rate. So the budget is enforced before the engine starts: sampling begins only if the planned
+  length of the whole batch ends inside the money stop.
+  - Planning numbers: 8,000 tokens per draw (the reference's mean was 7,953) at 1,450 tokens per second (measured
+    1,505 to 1,544), which is 36 minutes per cell, plus 12 minutes for the gate, the engine load, grading and the
+    last fetch.
+  - If three cells do not fit, the 16-example cell is not sampled (it stays on file as trained, not sampled), and
+    the rank-1 and 4-example cells are. If two do not fit, nothing is sampled and the job reports.
+  - The fourth cell, if approved, is dropped first.
+- If a cell is cut anyway (the pod fails, or the money stop arrives during sampling in spite of the plan), it is
+  reported three ways: as sampled; with every unfinished draw counted as a fail on all three rates; and with every
+  unfinished draw counted as an accepted pass. "Unfinished" is every draw of a chunk that was not written. A reading
+  that changes under either bound is "not robust to the cut".
+
+### 9(i) Pod, cost and stop
+
+- One H200 at $5.29/h, shared with an unrelated job (weight interpolation) that runs before or after this one; one
+  job on the GPU at a time. This job keeps its files under `/workspace/mini` and uses the shared, read-only
+  `/workspace/models/dpo` (Dan's `fetch.sh` layout at commit 97604023), `/workspace/models/tok` and
+  `/workspace/nd-takehome` at 8e744a89.
+- Expected, counted from this job's first command on the pod:
+
+  | step | expected | deadline |
+  |---|---|---|
+  | set-up (and the weights, if the other job has not fetched them) | 5 to 10 min | 30 min |
+  | training the 16-example adapter | 21 to 28 min | 60 min |
+  | fetch, staging, upload of the adapters | about 5 min | |
+  | LoRA gate | about 3 min | 15 min |
+  | sampling three cells and grading | 90 to 105 min | to the money stop |
+  | last fetch with md5 on both sides | about 3 min | |
+  | **total** | **about 2 h 10 min to 2 h 35 min, $11.5 to $13.5** | |
+
+- The coordinator's figure is about $10 to $12. The **hard stop is $15** (170 minutes of this job's pod time). Leon
+  is asleep, so at $15 the job stops, fetches what exists and reports; it does not continue.
+- The fourth cell would add about 35 minutes ($3.1) and does not fit under $15 with the planning numbers. It needs
+  the coordinator to raise the stop to about $18.5, or it is not run.
+- The reader round runs on serrano after the fetch and costs no pod time.
+- Stop rule: one training cell, one sampling batch, one reader round. Nothing else is launched under this amendment.
+
+### 9(j) Changes after the independent audit (2026-11-28 4:00 am PT), before the plan file is built
+
+An independent auditor read 9(a) to 9(i) and the stored files. Its findings N1 to N11 and the replies are in
+`discourse/stage1_report_audit.md` under "Audit of Amendment 9". At this point no pod exists, no draw is taken and the
+new adapter is not trained. Unchanged: the cells, the training plan, the sampling settings, the reading rule with its
+thresholds, and every seed.
+
+**Corrections to statements above**
+
+1. "Why" (N10). The 34.4 to 38.5 % are round 4's five one-pass adapters. The reference of this check, the adapter
+   selected by held-out loss, has never been read; round 5 reads it for the first time. So the coordinator's
+   condition was met by other full-size adapters, not by this one.
+2. 9(a), the 16-example schedule (N4). Only the step count (64) and the evaluation steps predate the stage-1 data.
+   The lr rule does not: `DESIGN_DRAFT.md`, and stage 1's one planned 16-example cell (on the `own` pool, never run),
+   took the lr selected at 64 examples. Here the 16-example cell gets the full grid with the edge rule, as the
+   4-example cell of the same pool did in stage 1 and as the coordinator's instruction says. That choice is made in
+   this amendment.
+3. 9(a), the rank-1 adapter (N9). Stage 1 trained it on the schedule SPEC gives to the `own`-source rungs: every lr
+   to 128 steps, the best continued to 512. SPEC's text for the `final`-source rungs says 64 steps. With 64 steps the
+   selection would have been lr 1e-3 at step 64 (held-out loss 0.5416) instead of lr 3e-4 at step 128 (0.5403). "The
+   stage-1 rule" in 9(a) means the adapter as stage 1 trained and selected it. It is not retrained.
+4. 9(d), drift (N3). "No shift detected ... means no net shift larger than about 7 items" is wrong: a test that is
+   not significant leaves a shift open. With 100 items, a shift of the size already seen between rounds 3 and 4 would
+   be detected about half of the time.
+5. 9(h) and 9(i), time (N7). The row "sampling three cells and grading, 90 to 105 min" was below the planning
+   numbers' own 106 minutes. The table below replaces it.
+
+**Reader check: the two round-4 cells are read again (N3)**
+
+- Readers have shifted between rounds once already. Of the 120 round-3 items that round 4 read again, 12 moved from
+  genuine to gamed and 3 the other way (exact sign test p = 0.035).
+- So round 5 reads again every round-4 item of the final model (258) and of the one-pass adapter "our data, our
+  seed" (149), under new ids, mixed with the rest, both labels. This costs no pod time; it adds about 380 items to
+  the reader round.
+- The share of the final model's rate and the comparison with the one-pass adapter then use round 5's labels on both
+  sides. The same quantities with round 4's labels (47.4 %, 34.9 %) are given beside them.
+- The 100 uniformly drawn items stay, drawn first with seed 660059, and the test of 9(d) is run on them as written.
+  Its result is reported with the net shift and a 95 % interval, not only as "shifted" or "no shift detected". The
+  same numbers are given for each of the two cells read again in full.
+- `handcheck5.py prep --no-reread` leaves the 407 items out, if the coordinator prefers the first design. The
+  cross-round numbers are then given with the drift interval beside them.
+
+**Limits added to 9(f)**
+
+- Step and token budgets differ between the cells (N4). Training tokens seen: 4 examples 13,110 tokens × 16 passes
+  (about 210,000); 16 examples 55,747 × 4 (about 223,000); 64 examples 245,487 × 2 (about 491,000). The example
+  axis is neither token-matched nor step-matched, and the reference and the 4-example cell are both selected at their
+  last step.
+- Every existing selection is a near tie between different (lr, step) pairs (N5). 4 examples: 3e-5 at step 64
+  (0.5707) against 1e-4 at step 16 (0.5716). Rank-1: 3e-4 at step 128 (0.5403) against 1e-3 at step 128 (0.5413).
+  Reference: 3e-5 at step 128 (0.5373) against 1e-4 at step 64 (0.5391). The gaps are 2 to 5 times the 0.0004
+  between two runs of one seed in Amendment 7. Each cell's sampled behaviour rests on one pick among near ties.
+- The reused adapters' `cell.json` files were written by the trainer as it was that night (they lack the later
+  `selection` key), and no file records the trainer flags of those two runs (N11).
+- Readers are told to open only their batch file. Nothing technical stops a reader from opening other files, in
+  round 5 as in round 4 (N11).
+
+**Reading rule: unchanged, with two additions to the wording (N6)**
+
+- "Holds" is never written alone. It is written "holds (within 12 points of the reference)".
+- Whenever the interval of a difference lies wholly below 0, the sentence says "below the reference", whatever the
+  reading. An estimate of −9 with [−17, −1] reads "unclear with 48 prompts" and is also "below the reference".
+- What the rule does, with the paired intervals of round 4 (half-width about 8.5 points, standard error about 4.3):
+
+  | true difference | holds | unclear | falls short |
+  |---|---|---|---|
+  | 0 | 79 % | 20 % | 1 % |
+  | −5 | 36 % | 52 % | 12 % |
+  | −10 | 7 % | 44 % | 50 % |
+  | −15 | 0 % | 12 % | 88 % |
+
+**Predictions of this orchestrator, revised before any data (N6).** The rates stand. The readings did not fit them:
+a rank-1 rate of 31 % against a reference of 36 % is a difference of −5.
+- Rank-1, 64 examples: "holds" 40 %, "unclear" 45 %, "falls short" 15 %.
+- Full size, 16 examples: "falls short" 45 %, "unclear" 43 %, "holds" 12 %.
+- Full size, 4 examples: "falls short" 88 %, "unclear" 10 %, "holds" 2 %.
+
+**Time and money, replacing the table of 9(i)**
+
+| step | expected | basis | deadline |
+|---|---|---|---|
+| checks, push and set-up | 3 to 6 min | 1.6 to 3.6 min on the three pods of 27 Nov | 30 min |
+| weights, if the other job has not fetched them | 0.5 to 4 min | 25 s and 3.8 min on 27 Nov | 25 min |
+| training the 16-example adapter | 24 to 31 min | the reference's times on the H200: about 7 min per lr, up to four lrs, plus the model load | minute 46 of pod time |
+| fetch, staging, upload of the adapters | about 5 min | 2.5 min for three adapters on 27 Nov | |
+| LoRA gate | about 3 min | 2.6 min on 27 Nov | 15 min |
+| sampling three cells and grading | 75 to 110 min | 71 min for stage 1's three cells (about 5,500 tokens per draw); 110 min at the planning numbers | this job's stop |
+| last fetch with md5 on both sides | about 3 min | | |
+| **total** | **about 1 h 55 min to 2 h 40 min, $10.0 to $14.3** | | |
+
+- The hard stop stays $15, which is 170 minutes. The driver stops this job's chain at minute 165 and fetches.
+- The plan now counts 15 minutes of overhead per batch instead of 12. Three cells are sampled only if the decision
+  before the engine starts is taken by minute 49, and the 16-example adapter is trained only if set-up ends by
+  minute 12.
+- The driver waits for training only until minute 46, the last minute after which three cells still fit. A training
+  stage still running then is stopped, and the rank-1 and 4-example cells are sampled without the 16-example cell,
+  as 9(b) says for an overrun.
+- In the slow case the margin to the stop is about 8 minutes. Draws would be cut if the three cells averaged more
+  than about 8,200 to 9,300 tokens per draw (the reference averaged 7,953; stage 1's three cells about 5,500).
+  A cut is then reported as 9(h) says.
+
+**If sampling is cut (N2).** The pod grades only after the sampler ends, so a cut batch comes back without grades.
+The finished requests are then graded on serrano with Dan's `grade.py` at 8e744a89 (it reproduces the stored
+reference's 166 of 384). `handcheck5.py prep` refuses a cell that has draws and no grades; it does not drop it.
+
+**Sharing the GPU (N1).** The two jobs' own locks do not see each other. Added on this job's side:
+- before training, before sampling, and again on the pod when each chain starts, the GPU must have less than
+  2,000 MiB in use (the other job's own test);
+- while one of this job's chains runs it also holds the other job's lock file `/workspace/wi/gpu.lock`, if that file
+  exists. It opens the file for reading and does not create or change it.
+The coordinator still runs the jobs one after the other; these are guards.
+
+**The optional fourth cell (N8).** The auditor recommends against it: it costs 33 to 35 minutes ($2.9 to $3.1), does
+not fit under $15, and could only show a batch-to-batch offset larger than about 6 to 7 points, while the one
+measured offset is 1.3 points on the checker. This orchestrator agrees. It stays optional (`REF2=1` with the stop
+raised to about $18.5), for the coordinator to decide.
+
+**Added at 4:12 am PT, with still no pod, no draw and no trained adapter.** Two things in "Time and money" above
+were changed after 4:00 am, while the driver's tests were written. The training estimate is now 24 to 31 minutes,
+taken from the reference's recorded times (first: 21 to 28). And the driver waits for training only until minute 46.
+The numbers that follow from them were changed with them: the total, "set-up ends by minute 12" (first: 14) and the
+slow-case margin (first: about 10 minutes). Nothing else in 9(j) was changed.

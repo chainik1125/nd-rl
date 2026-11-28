@@ -11,6 +11,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import time
 import types
 import zlib
 from pathlib import Path
@@ -782,6 +783,89 @@ def test_chain_lock(tmp_path):
         assert p.returncode == 3 and "LOCKED" in p.stdout
     finally:
         fh.close()
+
+
+@pytest.mark.skipif(shutil.which("flock") is None, reason="flock missing")
+def test_chain_shared_pod_guards(tmp_path):
+    """Amendment 9: on a pod shared with another job the chain can be told to hold that job's GPU lock too and to
+    refuse a GPU that is in use. Both are off unless set."""
+    import fcntl
+
+    env, mini, _ = chain_env(tmp_path)
+    smi = tmp_path / "bin" / "nvidia-smi"
+    smi.write_text('#!/bin/bash\ncat "$SMI_USED"\n')
+    smi.chmod(smi.stat().st_mode | stat.S_IEXEC)
+    used = tmp_path / "used"
+    used.write_text("131000\n")
+    env = {**env, "SMI_USED": str(used)}
+    st = mini / "runs" / "dpo" / "state"
+    # off by default: a busy GPU does not stop a chain that was not asked to look
+    assert run_chain(env, "dpo", "download").returncode == 0
+    p = run_chain({**env, "GPU_FREE_MIB": "2000"}, "dpo", "download,train")
+    assert (
+        p.returncode == 3
+        and "GPU_BUSY: 131000 MiB" in p.stdout
+        and not (st / "train.DONE").exists()
+    )
+    used.write_text("")  # no answer is not "free"
+    assert run_chain({**env, "GPU_FREE_MIB": "2000"}, "dpo", "download,train").returncode == 3
+    used.write_text("412\n")
+    other = tmp_path / "wi" / "gpu.lock"
+    # a lock file that does not exist is not created
+    p = run_chain({**env, "GPU_FREE_MIB": "2000", "ALSO_LOCK": str(other)}, "dpo", "download,train")
+    assert p.returncode == 0 and (st / "train.DONE").exists() and not other.parent.exists()
+    other.parent.mkdir()
+    other.write_text("")
+    before = other.stat().st_mtime_ns
+    fh = open(other, "w")
+    fcntl.flock(fh, fcntl.LOCK_EX)
+    try:
+        p = run_chain({**env, "ALSO_LOCK": str(other)}, "dpo", "download,gate:b1")
+        assert p.returncode == 3 and f"another job holds {other}" in p.stdout
+        assert not (st / "gate_b1.DONE").exists()
+    finally:
+        fh.close()
+    p = run_chain({**env, "ALSO_LOCK": str(other)}, "dpo", "download,gate:b1")
+    assert p.returncode == 0 and (st / "gate_b1.DONE").exists()
+    assert other.read_text() == "" and other.stat().st_mtime_ns >= before
+
+
+@pytest.mark.skipif(shutil.which("flock") is None, reason="flock missing")
+def test_chain_holds_the_other_jobs_lock_while_it_runs(tmp_path):
+    import fcntl
+
+    env, mini, _ = chain_env(tmp_path)
+    other = tmp_path / "gpu.lock"
+    other.write_text("")
+    fetch = tmp_path / "dan" / "pod" / "olmo_ifomega" / "fetch.sh"
+    fetch.write_text(
+        "#!/usr/bin/env bash\nfor _ in $(seq 100); do [ -f $MODELS_ROOT/go ] && break; sleep 0.1; done\n"
+        + fetch.read_text().split("\n", 1)[1]
+    )
+    p = subprocess.Popen(
+        ["bash", str(HERE / "pod" / "mini_chain.sh"), "dpo", "download"],
+        env={**env, "ALSO_LOCK": str(other)},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    try:
+        held = False
+        for _ in range(100):  # the chain takes the lock within a moment of starting
+            with open(other) as fh:
+                try:
+                    fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    held = True
+                    break
+            time.sleep(0.05)
+        assert held, "the chain did not take the other job's lock"
+    finally:
+        (tmp_path / "models" / "go").touch()
+        out, _ = p.communicate(timeout=60)
+    assert p.returncode == 0, out
+    with open(other) as fh:  # released when the chain ends
+        fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
 
 def test_mini_pod_dry_run(tmp_path):

@@ -21,6 +21,10 @@
 # line (logs/gpu.log) every 60 s. One chain per pod (flock on $MINI_ROOT/gpu.lock). Every command runs under `timeout`.
 # env: MINI_ROOT / DAN_ROOT / MODELS_ROOT override the /workspace paths; PY (python, default python); PLAN, TRAIN_ARGS,
 #      DELETE_WEIGHTS=1, VERIFY_SHA=1, TO_DOWNLOAD / TO_TRAIN / TO_GATE / TO_SAMPLE / TO_GRADE (seconds), DRY_RUN=1 (print only).
+#      On a pod shared with another job (PREREG Amendment 9; both unset = the behaviour of every earlier run):
+#        ALSO_LOCK=<file>  the other job's GPU lock file. If it exists it is locked too for the whole chain (opened for
+#                          reading; never created or written), so that job refuses to start while this chain runs.
+#        GPU_FREE_MIB=<n>  do not start if a GPU has n MiB or more in use (another job is on it).
 set -uo pipefail
 CK=${1:?usage: mini_chain.sh <ckpt> <stages>}
 STAGES=${2:-download}
@@ -65,11 +69,20 @@ SEED_L=$(awk -F, -v c="$CK" '$1==c {print $3}' "$MINI/stage2/seeds_L.csv" 2>/dev
 if [ "${DRY_RUN:-0}" != 1 ]; then
   exec 8> "$MINI/gpu.lock"
   flock -n 8 || { log "LOCKED: another chain holds $MINI/gpu.lock; not starting $CK"; exit 3; }
+  if [ -n "${ALSO_LOCK:-}" ] && [ -f "$ALSO_LOCK" ]; then
+    exec 7< "$ALSO_LOCK"
+    flock -n 7 || { log "LOCKED: another job holds $ALSO_LOCK; not starting $CK"; exit 3; }
+  fi
+  if [ -n "${GPU_FREE_MIB:-}" ] && command -v nvidia-smi > /dev/null 2>&1; then
+    used=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits 2>/dev/null | sort -n | tail -n 1)
+    [ "${used:-x}" -lt "$GPU_FREE_MIB" ] 2>/dev/null \
+      || { log "GPU_BUSY: ${used:-no answer} MiB in use on a GPU (limit $GPU_FREE_MIB); another job may be on it; not starting $CK"; exit 3; }
+  fi
   grep -q "^GPU_OK" "$MINI/meta/gpu_status" 2>/dev/null || { log "GPU_BAD or no setup: not starting"; exit 3; }
   echo "$$ $(ps -o pgid= $$ | tr -d ' ') $(utc) $STAGES" > "$ST/chain.pid"
   rm -f "$ST/chain.DONE"
   echo download > "$ST/current"
-  ( exec 8>&-  # the heartbeat must not hold the GPU lock
+  ( exec 8>&- 7<&-  # the heartbeat must not hold the GPU lock (nor the other job's)
     while sleep "${HB_SECONDS:-60}"; do
       echo "$(date +%s) $(cat "$ST/current" 2>/dev/null)" > "$ST/heartbeat.tmp" && mv "$ST/heartbeat.tmp" "$ST/heartbeat"
       echo "$(utc) $(nvidia-smi --query-gpu=memory.used,utilization.gpu --format=csv,noheader 2>/dev/null | tr '\n' ' ')" >> "$LG/gpu.log"
