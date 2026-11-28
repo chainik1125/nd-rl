@@ -526,3 +526,97 @@ The interpretation of the block movement (selection among the base's two authors
    (notes linked with few other links, or notes written after the rated line) and its base (finding Z1).
 3. The audit recomputed the seed-1 result from the rows with its own estimator (notes restricted to proofs with a
    reiteration site: +29.2 / -22.2, D +51.4) and reaches the same reading; the two-base DPO averages reproduce.
+
+## Amendment 11 (2026-11-28 2:25 am PT; all results above are final and read; none of the runs below exists): RL on top of the preference-trained models
+
+**Status (2026-11-28 2:26 am PT): on hold, nothing run.** Leon, about 2:24 am PT: "wait im not sure its worth it to
+do the follow up lets hold off on it". No pod was created. The design audit and the implementation had been started
+and were stopped before either wrote anything, so this text is an unaudited draft and no code for it exists. If it
+is taken up again, it needs the audit first and a fresh time stamp.
+
+**Origin.** Leon, 2026-11-28 about 1:35 am PT: "what rlhf recipe did we use for the persona training and like did we
+try rling on that after to see if drift continued or like we could switch to other personas". Nothing above does
+that: every training line starts from an untouched base, and no line rates author B. His original ask also wanted
+"some way of making sure it doesnt immeditly disappear in training", which § 3.7 of the summary says was not
+tested beyond the short reads. Proposed to him at 1:43 am PT with the cost; the 30-minute window passed with no
+objection.
+
+**What I had seen.** Everything in the final read-out (`LH/read/read_final.json`, code 507c9fd) and the summary. The
+facts used below, all untagged on `marker_plain`, `c24` first base:
+
+| model | accepted | reiteration A | step order A | notes A, pooled before the first reiteration site |
+|---|---:|---:|---:|---:|
+| base `c24_s0` | 45.7 | 32.7 | 41.6 | 59.5 |
+| reward line, RL seed 0, iteration 40 (`R40`) | 80.8 | 61.4 | 26.8 | 88.5 |
+| plain line, RL seed 0 / 1, iteration 40 | 81.5 / 80.7 | 16.3 / 17.0 | 13.2 / 19.9 | 26.2 / 38.6 |
+| DPO trainer seed 0, step 15 (`D15`) | 36.8 | 56.6 | 47.7 | not moved (atom class 71.9 against 67.2) |
+
+`D15` is chosen over step 20 because its rated habit (56.6 %) is at about `R40`'s level (61.4 %) and it has lost
+fewer accepted proofs (step 20: 74.0 % and 30.7 % accepted).
+
+**The runs.** One RTX 4090 pod. Each line is the stage-2 GRPO recipe unchanged (40 iterations on Dan's RL pool, 256
+prompts x 16, lr 1.5e-4, KL anchor 0.02 to the model the line starts from, snapshots at 10 / 20 / 30 / 40 measured
+untagged on `marker_plain`, measurement seed 0), except for the start checkpoint and the reward. RL seed 2 for every
+line (not used before; the same for all lines so they see the same target batches). Reward model `rm_c24_reit_s0`,
+not refitted.
+
+| line | starts from | reward |
+|---|---|---|
+| L1, reward removed | `R40` | acceptance only |
+| L2, reward flipped | `R40` | acceptance x (1 + 0.3 x sigmoid(-score)), paid as before only on accepted proofs with a reiteration site: it pays author B's form |
+| L3, reward continued | `R40` | as in stage 2 |
+| L4, RL after DPO | `D15` | acceptance only |
+| L1b, conditional | `R40` | acceptance only, KL anchor coefficient 0 |
+
+Order: L1, L2, L3, L4, then L1b only if L1 reads "persists" (it tests whether the anchor is what holds the notes).
+
+**Quantities** (95 % bootstrap over the 500 theorems, B 1,000, paired where two models are compared; primary read at
+iteration 40, the 10 / 20 / 30 values reported):
+- N = pooled A-share of notes before the first reiteration site (Amendment 10's quantity); R = A-share of
+  reiteration; step order and accepted are reported beside them.
+- dN(L), dR(L) = a line's value at iteration 40 minus its start checkpoint's.
+- F = dN(L2) - dN(L1): what flipping the reward does to the notes beyond removing it.
+- G = R(L4) at iteration 40 minus the mean R of the two stage-2 plain lines from the base at iteration 40 (16.3 and
+  17.0). The gap at the start is 56.6 - 32.7 = +23.9.
+
+**Reading rules, fixed now.**
+1. *Does the block stay when the reward stops (L1)?* "Persists": dN(L1) above -10 with the interval's lower end
+   above -15. "Decays": dN(L1) at or below -15 with the upper end below -5. Otherwise "partly, unclear on one seed".
+   If "persists" and L1b reads "decays", the report says the anchor held the notes. dR(L1) and the share of the
+   stage-2 gain kept, (N(L1) - 59.5) / (88.5 - 59.5), are reported beside it.
+2. *Can it be switched back, and does the block follow (L2)?* Manipulation check first: dR(L2) at or below -20 with
+   the upper end below -10; if it fails, the report says the flip did not take in 40 iterations and reads nothing
+   about the block. If it passes: "the notes follow back as a block" needs F at or below -15 with the upper end
+   below -5 and at least 10 of the 14 readable note classes moving toward B in L2 relative to L1; "the rated habit
+   switches alone" needs F above -10 with the lower end above -15; otherwise "unclear on one seed".
+3. *Does the drift continue with the reward (L3)?* "Continues" for a quantity whose change is at least +5 with the
+   interval above 0; reported for R and N separately (N is near its ceiling).
+4. *Does a DPO edit survive RL (L4)?* "Survives": G at or above +12 (half the starting gap) with the lower end
+   above +5. "Erased": G at or below +5 with the upper end below +12. Otherwise "partly". N(L4) is reported against
+   the stage-2 plain lines without a rule, because those two seeds differ by 12 points.
+
+**Why the L2 reading matters (interpretation guide, written before the data).** In stage 2 the notes moved about one
+for one with the rated habit from the base (+29.0 notes for +28.7 reiteration). The summary's reading was selection
+among the base's two authors. `R40` writes mostly A-form notes whatever its reiteration form, so under that reading
+a flipped reward has few B-author proofs left to select and the notes should lag far behind the rated habit. A link
+that the model still holds between the rated habit and the notes predicts they come back together. One seed of one
+base with one reward model cannot settle it; it can show which way this model goes.
+
+**My predictions, fixed now.** L1: reiteration falls 10 to 25 points, notes fall less than 10 ("persists"). L2: the
+manipulation check passes (reiteration falls 25 or more); F between -15 and 0 ("the rated habit switches alone" or
+unclear), so no block movement back. L3: reiteration +10 to +20, notes +3 to +8. L4: reiteration ends at 30 to 40 %,
+G between +13 and +23 ("survives"), and the notes go toward B as in the plain lines from the base (N between 25 and
+45 %).
+
+**Limits known in advance.** One RL seed (the stage-2 plain line's notes differed by 12 points between seeds, which
+is as large as the thresholds above), one base, one reward model, one DPO trainer seed, 40 iterations. The KL anchor
+is to each line's own start, as the recipe defines it, so it resists every movement read here; the same coefficient
+did not stop the stage-2 plain line moving the base's notes by 21 to 33 points. No line applies the flipped reward
+to the base, so L2 is read against L1 and L3 and not against "switching a fresh model". `R40` and `D15` differ in
+accepted share (80.8 against 36.8 %), so L1 and L4 are not compared with each other; L4 is compared with the plain
+lines from the base, which start from 45.7 %.
+
+**Compute and stopping.** One RTX 4090 at $0.89/h; about 1.1 h per line with its measurements plus about 0.5 h of
+start-up and transfers: $4.5 to $5.5 for four lines, about $1 more if L1b runs. Leon is asked before the total
+passes $6.50. Every line runs under its own timeout sized well past its expected end; the pod is deleted after the
+md5-checked fetch. Stage-2 results are not touched: the sequel writes new run folders.
