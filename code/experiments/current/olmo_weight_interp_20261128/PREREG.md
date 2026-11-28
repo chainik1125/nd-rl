@@ -329,3 +329,124 @@ The thresholds of the reading rule are unchanged; the names of its verdicts are.
   checkpoints are written under this run's own folder (`/workspace/wi/models`), the disk budget counts the whole
   volume, and a last step removes the merged checkpoints and the `s2300` this run downloaded, leaves `dpo` in place and
   writes a "GPU free" marker (`RUNBOOK.md`).
+
+## Result (appended 2026-11-28 5:27 am PT, after the run; nothing above is edited)
+
+Code as committed in `938f9017` (branch `leon/olmo-elicitation`), unchanged during the run. Pod `yvq82k1iewzheh`
+(1 x H200, US-CO-1), created 4:08 am PT. Schedule: the default one (merged checkpoints written on the CPU while cells
+sample). Order of cells as planned: alpha 1.0, 0.5, 0.75, 0.25. Everything below is observed unless a sentence says
+otherwise. The passing answers have not been read by anyone yet.
+
+### Cells
+
+Strict-checker pass@1 on the 48 reach prompts, 4 draws each (192 draws per cell). Intervals are 95 %, from a bootstrap
+over prompts (10,000 resamples, paired across cells). "Share" is r(alpha), the cell's rate divided by the alpha 1.0
+rate of this run. "Realised" is the realised fraction of the merged checkpoint along the line (see "Rounding").
+
+| alpha | passes | pass@1 | interval | share r | interval | tokens per draw | passes without sentence punctuation | realised |
+|---|---|---|---|---|---|---|---|---|
+| 0.25 | 2 of 192 | 1.0 % | 0.0 to 2.6 | 1.5 % | 0.0 to 3.9 | 5,269 | 0 of 2 (0 %) | 0.143 |
+| 0.5 | 26 of 192 | 13.5 % | 7.3 to 20.3 | 19.5 % | 11.1 to 29.2 | 6,288 | 5 of 26 (19.2 %) | 0.421 |
+| 0.75 | 102 of 192 | 53.1 % | 42.7 to 63.5 | 76.7 % | 65.9 to 87.1 | 6,749 | 33 of 102 (32.4 %) | 0.856 |
+| 1.0 | 133 of 192 | 69.3 % | 59.4 to 78.6 | (denominator) | | 7,107 | 60 of 133 (45.1 %) | stored weights |
+
+- Every cell has all 192 planned draws. No draw was cut at the 32,768-token cap, none lacks the end of thinking, no
+  cell was cut by its timeout, nothing was resumed. So the as-sampled value and the two bounds are the same numbers.
+- The alpha 1.0 cell (stored `s2300` on this engine) gives 69.3 % against the stored 69.4 %: difference -0.1 points
+  (-5.3 to 4.9). The engine and settings reproduce the stored rate.
+- Median length of a passing answer: 196 words at alpha 0.25 (2 answers), 56.5 at 0.5, 44.5 at 0.75, 30 at 1.0.
+- With the stored `s2300` rate as the denominator (sensitivity line A1.7, not used by the rule) the shares are 1.5 %
+  (0.0 to 3.8), 19.5 % (11.2 to 28.6) and 76.5 % (66.8 to 85.5).
+
+### Reading by the fixed rule
+
+- First line (thresholds of the original note, names of Amendment 2): r(0.5) = 19.5 % (11.1 to 29.2) is below 0.35
+  with the upper end below 0.5, so the verdict is **below proportional at the midpoint**. It is not near a boundary
+  (more than 0.05 from 0.35). The checkpoint served as alpha 0.5 has a realised fraction of 0.421, which is more than
+  0.05 from its nominal alpha (see "Rounding"); the rule uses the nominal alpha as pre-registered.
+- Second line (A1.5): the interval of r(0.5) contains part of the range of the smooth reference (9.1 % to 16.6 %),
+  so it is **compatible with a smooth path**. The sentence about a switch is therefore not written.
+- Half-gain point (where the rate reaches half of the alpha 1.0 rate, linear between cells): alpha 0.63 (0.60 to
+  0.67). On the realised axis (A1.8): 0.65 (0.59 to 0.72). Smooth reference: 0.69 to 0.75. Small provers, for
+  comparison only: r(0.5) = 1.6 %, r(0.75) = 64 %.
+
+### Predictions
+
+- Orchestrator: alpha 0.25 inside (0 to 4 %), alpha 0.5 inside (4 to 18 %), alpha 0.75 **outside** (predicted 22 to
+  46 %, observed 53.1 %), alpha 1.0 inside (60 to 78 %). Both verdict lines as predicted.
+- Coordinator: alpha 0.25 inside (below 3 %), alpha 0.5 inside (5 to 20 %), alpha 0.75 inside (35 to 55 %). Both
+  verdict lines as predicted.
+
+### Checks on the merged checkpoints
+
+- Before any write: both models have the same 707 tensors (448 matrices, 257 norm vectors, embedding, output head),
+  all bf16. The configs differ only in `use_cache`, the generation configs only in `do_sample`; the end, pad and
+  start token ids are equal. Both downloads passed the sha256 comparison of all 14 shards.
+- `dpo` and `s2300` differ in all 707 tensors, at 21,178,644,133 of 32,233,522,176 elements (65.7 %).
+- Each of the three merged checkpoints: the recomputation of all 707 tensors is bit-for-bit equal to what was
+  written (0 tensors failing); 0 elements lie outside the two inputs; 0 elements changed where the inputs agree; no
+  differing tensor was left at `dpo`. The exact-rational verifier (287 tensors, 2,978,251,776 elements: embedding,
+  head, all norms, 28 matrices) found 0 unequal elements and a largest difference of 0 bf16 steps, in all three.
+- Census (with the last write): of all elements 34.3 % are equal in the two models, 30.8 % are one bf16 step apart,
+  12.0 % two, 9.6 % three or four, 6.1 % five to eight, 7.2 % more than eight. The one-step elements carry 36.7 %
+  of the squared difference. At alpha 1 the writer's arithmetic gives the stored `s2300` value except at 864 of
+  32,233,522,176 elements (a share of 2.7e-8, below the 1e-6 flag).
+
+### Rounding (what the merged checkpoints are)
+
+| alpha | realised fraction | length ratio | share of the change off the line | differing weights at `dpo`'s value | at `s2300`'s value | between |
+|---|---|---|---|---|---|---|
+| 0.25 | 0.143 | 0.215 | 55.7 % | 59.1 % | 0 % | 40.9 % |
+| 0.5 | 0.421 | 0.516 | 33.5 % | 32.9 % | 14.0 % | 53.1 % |
+| 0.75 | 0.856 | 0.871 | 3.4 % | 0 % | 59.1 % | 40.9 % |
+
+All three are more than 0.05 from the nominal alpha, and not symmetrically: the three served checkpoints sit at
+about 0.14, 0.42 and 0.86 of the way, so the step from the second to the third is the widest (0.44 against 0.28).
+By tensor class the realised fractions at alpha 0.5 are 0.421 (matrices), 0.418 (output head), 0.335 (embedding)
+and 0.281 (norms). At alpha 0.5 a weight that is one step apart must take one of the two end values, and it takes
+`dpo`'s value in about 70 % of those cases (32.9 % against 14.0 % of the differing weights), which is why the
+realised fraction is 0.42 and not 0.5. Why `dpo`'s value is the even neighbour that often was not investigated.
+
+### What differed from the pre-registration
+
+1. Nothing in the cells, their order, the settings, the seed, the checker or the counts.
+2. The realised fractions are far from the nominal alphas (above). The pre-registration foresaw the effect and fixed
+   how it is reported; its size (0.14 for a nominal 0.25) is larger than I expected.
+3. At 5:11 am, while the alpha 0.25 cell was sampling, I ran `analyze.py` on the three fetched cells into a scratch
+   folder to test it on real files. It printed the verdict for alpha 0.5 before the last cell had ended. No code,
+   rule or setting was changed afterwards.
+4. The run took 1.26 pod-hours ($6.68) instead of the expected 1.6.
+
+### Post hoc observations (not in the pre-registration; descriptive only)
+
+- The pre-registered second line looks only at alpha 0.5. At alpha 0.75 the observed rate (53.1 %, 42.7 to 63.5) is
+  above the smooth reference at that alpha (34.9 % to 40.9 %).
+- The same reference curve read at the realised positions gives 0.2 % to 0.8 % at 0.143 (observed 1.0 %, 0.0 to
+  2.6), 3.0 % to 6.5 % at 0.421 (observed 13.5 %, 7.3 to 20.3: above) and 51.1 % to 54.4 % at 0.856 (observed
+  53.1 %: on it). So on either axis one of the three points is above the reference and none is below.
+  Interpretation, not a finding: nothing here points to a rise sharper than a smooth one; if anything the rise is
+  somewhat earlier. With 4 draws per prompt this is weak.
+- Prompts with at least one pass: 2, 15, 38 and 43 of 48 at alpha 0.25, 0.5, 0.75 and 1.0. Of the 15 at alpha 0.5,
+  14 also pass at 0.75 and all 15 at 1.0; of the 38 at 0.75, 37 also pass at 1.0. Four prompts pass in no cell.
+  Prompts with 4 passes of 4: 0, 0, 12, 21.
+- The share of passes without sentence punctuation rises with alpha (0 of 2, 19.2 %, 32.4 %, 45.1 %) and passing
+  answers get shorter. Whether these are the degenerate answers seen in metrics 2 needs the reader check.
+
+### Files
+
+- Per-draw files, one folder per cell: `$WI_DATA/runs/cell_{a100,a050,a075,a025}/out/samples.jsonl.gz` (text of
+  every draw) and `graded.jsonl` (strict and loose checker result per draw), with `$WI_DATA` =
+  `/scratch/cowifornia/nd-rl/olmo_elicit/interp`. List with md5 for the reader check:
+  `$WI_DATA/analysis/cells_manifest.json`.
+- Analysis: `$WI_DATA/analysis/results.json`, `results.txt`; figure `fig_interp.{pdf,svg,png}`.
+- Write checks: `$WI_DATA/runs/write_{a050,a075,a025}/out/check.json` (the step census is in the `a025` one);
+  tensor list and config comparison in `runs/preflight/out/check.json`.
+- Fetch record: `$WI_DATA/fetch_rp-wi.md5` (141 files, md5 equal on the pod and on serrano); release record
+  `$WI_DATA/release_rp-wi.txt`; run metadata `$WI_DATA/run_meta.json`.
+
+### Limits
+
+48 prompts with 4 draws each; one RL run of one model; the prompts were selected because the pre-RL model never
+passed them; passes are checker passes; the merged checkpoints are the nearest bf16 models to three points on the
+line and their realised positions are uneven; a weight-space path says where along the line the behaviour changes,
+not that the pre-RL model contains it.
